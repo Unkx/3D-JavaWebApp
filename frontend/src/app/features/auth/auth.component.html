@@ -1,0 +1,200 @@
+<div class="auth-page">
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <a routerLink="/" class="auth-logo" aria-label="Strona główna">
+      🖨️ <span>Druk3D</span>
+    </a>
+
+    <!-- Tabs -->
+    <div class="tabs" role="tablist" aria-label="Logowanie lub rejestracja">
+      <button
+        role="tab"
+        class="tab"
+        [class.tab--active]="activeTab() === 'login'"
+        [attr.aria-selected]="activeTab() === 'login'"
+        (click)="switchTab('login')"
+        id="tab-login"
+        aria-controls="panel-login"
+      >Zaloguj się</button>
+      <button
+        role="tab"
+        class="tab"
+        [class.tab--active]="activeTab() === 'register'"
+        [attr.aria-selected]="activeTab() === 'register'"
+        (click)="switchTab('register')"
+        id="tab-register"
+        aria-controls="panel-register"
+      >Zarejestruj się</button>
+    </div>
+
+    <!-- Server error -->
+    @if (serverError()) {
+      <div class="alert alert--error" role="alert" aria-live="assertive">
+        ⚠️ {{ serverError() }}
+      </div>
+    }
+
+    <!-- LOGIN PANEL -->
+    @if (activeTab() === 'login') {
+      <form
+        id="panel-login"
+        role="tabpanel"
+        aria-labelledby="tab-login"
+        class="form"
+        [formGroup]="loginForm"
+        (ngSubmit)="login()"
+        novalidate
+      >
+        <div class="field">
+          <label class="field__label" for="login-email">Email</label>
+          <input
+            id="login-email"
+            type="email"
+            class="field__input"
+            [class.field__input--error]="le['email'].invalid && le['email'].touched"
+            formControlName="email"
+            placeholder="jan@kowalski.pl"
+            autocomplete="email"
+            [attr.aria-invalid]="le['email'].invalid && le['email'].touched ? 'true' : null"
+            aria-describedby="le-email-err"
+          />
+          @if (le['email'].invalid && le['email'].touched) {
+            <p id="le-email-err" class="field__error" role="alert">
+              @if (le['email'].errors?.['required']) { Email jest wymagany. }
+              @else { Podaj poprawny adres email. }
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="login-pw">Hasło</label>
+          <input
+            id="login-pw"
+            type="password"
+            class="field__input"
+            [class.field__input--error]="le['password'].invalid && le['password'].touched"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            [attr.aria-invalid]="le['password'].invalid && le['password'].touched ? 'true' : null"
+            aria-describedby="le-pw-err"
+          />
+          @if (le['password'].invalid && le['password'].touched) {
+            <p id="le-pw-err" class="field__error" role="alert">Hasło jest wymagane.</p>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn--primary btn--full"
+          [disabled]="loading()"
+          [attr.aria-busy]="loading()"
+        >
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span> Logowanie...
+          } @else { Zaloguj się }
+        </button>
+
+        <p class="form__switch">
+          Nie masz konta?
+          <button type="button" class="link-btn" (click)="switchTab('register')">Zarejestruj się</button>
+        </p>
+      </form>
+    }
+
+    <!-- REGISTER PANEL -->
+    @if (activeTab() === 'register') {
+      <form
+        id="panel-register"
+        role="tabpanel"
+        aria-labelledby="tab-register"
+        class="form"
+        [formGroup]="registerForm"
+        (ngSubmit)="register()"
+        novalidate
+      >
+        <div class="field">
+          <label class="field__label" for="reg-email">Email</label>
+          <input
+            id="reg-email"
+            type="email"
+            class="field__input"
+            [class.field__input--error]="re['email'].invalid && re['email'].touched"
+            formControlName="email"
+            placeholder="jan@kowalski.pl"
+            autocomplete="email"
+            [attr.aria-invalid]="re['email'].invalid && re['email'].touched ? 'true' : null"
+            aria-describedby="re-email-err"
+          />
+          @if (re['email'].invalid && re['email'].touched) {
+            <p id="re-email-err" class="field__error" role="alert">
+              @if (re['email'].errors?.['required']) { Email jest wymagany. }
+              @else { Podaj poprawny adres email. }
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="reg-pw">Hasło</label>
+          <input
+            id="reg-pw"
+            type="password"
+            class="field__input"
+            [class.field__input--error]="re['password'].invalid && re['password'].touched"
+            formControlName="password"
+            placeholder="min. 6 znaków"
+            autocomplete="new-password"
+            [attr.aria-invalid]="re['password'].invalid && re['password'].touched ? 'true' : null"
+            aria-describedby="re-pw-err"
+          />
+          @if (re['password'].invalid && re['password'].touched) {
+            <p id="re-pw-err" class="field__error" role="alert">
+              @if (re['password'].errors?.['required']) { Hasło jest wymagane. }
+              @else { Hasło musi mieć co najmniej 6 znaków. }
+            </p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="reg-pw2">Powtórz hasło</label>
+          <input
+            id="reg-pw2"
+            type="password"
+            class="field__input"
+            [class.field__input--error]="(re['passwordConfirm'].invalid || registerForm.errors?.['mismatch']) && re['passwordConfirm'].touched"
+            formControlName="passwordConfirm"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            [attr.aria-invalid]="(re['passwordConfirm'].invalid || registerForm.errors?.['mismatch']) && re['passwordConfirm'].touched ? 'true' : null"
+            aria-describedby="re-pw2-err"
+          />
+          @if (re['passwordConfirm'].touched) {
+            @if (re['passwordConfirm'].errors?.['required']) {
+              <p id="re-pw2-err" class="field__error" role="alert">Powtórz hasło.</p>
+            } @else if (registerForm.errors?.['mismatch']) {
+              <p id="re-pw2-err" class="field__error" role="alert">Hasła nie są identyczne.</p>
+            }
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn--primary btn--full"
+          [disabled]="loading()"
+          [attr.aria-busy]="loading()"
+        >
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span> Tworzenie konta...
+          } @else { Utwórz konto }
+        </button>
+
+        <p class="form__switch">
+          Masz już konto?
+          <button type="button" class="link-btn" (click)="switchTab('login')">Zaloguj się</button>
+        </p>
+      </form>
+    }
+
+  </div>
+</div>

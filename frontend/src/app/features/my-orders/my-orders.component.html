@@ -1,0 +1,86 @@
+<div class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Moje zlecenia</h1>
+      @if (!loading()) {
+        <p class="page__subtitle">{{ listings().length }} zlecen{{ listings().length === 1 ? 'ie' : (listings().length < 5 ? 'ia' : 'ień') }}</p>
+      }
+    </div>
+    <a routerLink="/dodaj-zlecenie" class="btn btn--primary">+ Dodaj zlecenie</a>
+  </header>
+
+  @if (loading()) {
+    <div class="state-box" aria-busy="true">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Ładowanie zleceń...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-box state-box--error" role="alert">⚠️ {{ error() }}</div>
+  } @else if (listings().length === 0) {
+    <div class="state-box state-box--empty">
+      <span class="state-box__icon" aria-hidden="true">📭</span>
+      <p>Nie masz jeszcze żadnych zleceń.</p>
+      <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
+    </div>
+  } @else {
+    <ul class="order-list" aria-label="Lista moich zleceń">
+      @for (listing of listings(); track listing.id) {
+        <li class="order-card">
+          <div class="order-card__top">
+            <div class="order-card__meta">
+              <span class="status-badge status-badge--{{ (listing.status ?? 'open').toLowerCase() }}">
+                {{ statusLabel(listing.status) }}
+              </span>
+              @if (listing.createdAt) {
+                <time class="order-card__date" [attr.datetime]="listing.createdAt">
+                  {{ listing.createdAt | slice:0:10 }}
+                </time>
+              }
+            </div>
+            <div class="order-card__actions">
+              <a [routerLink]="['/zlecenia', listing.id]" class="btn btn--ghost" aria-label="Szczegóły zlecenia">
+                Szczegóły →
+              </a>
+              @if (listing.status === 'OPEN') {
+                <button
+                  class="btn btn--outline-warn"
+                  (click)="closeListing(listing.id!)"
+                  [disabled]="closingId() === listing.id"
+                  aria-label="Zamknij zlecenie"
+                >
+                  @if (closingId() === listing.id) { Zamykanie... } @else { Zamknij }
+                </button>
+              }
+              @if (listing.status !== 'AWARDED') {
+                <button
+                  class="btn btn--danger"
+                  (click)="deleteListing(listing.id!)"
+                  [disabled]="deletingId() === listing.id"
+                  aria-label="Usuń zlecenie"
+                >
+                  @if (deletingId() === listing.id) { Usuwanie... } @else { Usuń }
+                </button>
+              }
+            </div>
+          </div>
+
+          <h2 class="order-card__title">
+            <a [routerLink]="['/zlecenia', listing.id]">{{ listing.title }}</a>
+          </h2>
+
+          <p class="order-card__desc">{{ listing.description }}</p>
+
+          <div class="order-card__tags">
+            <span class="tag">🧱 {{ listing.requiredMaterial }}</span>
+            @if (listing.maxBudget) {
+              <span class="tag tag--budget">💰 do {{ listing.maxBudget }} zł</span>
+            }
+            @if (listing.stlFileUrl) {
+              <span class="tag">📎 Plik STL</span>
+            }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>

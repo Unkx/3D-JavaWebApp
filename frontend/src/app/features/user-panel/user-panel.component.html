@@ -1,0 +1,102 @@
+<div class="page">
+  <h1 class="page__title">Mój profil</h1>
+
+  @if (loading()) {
+    <div class="state-box" aria-busy="true">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Ładowanie profilu...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-box state-box--error" role="alert">⚠️ {{ error() }}</div>
+  } @else if (profile()) {
+    <div class="panel-grid">
+
+      <!-- Karta profilu -->
+      <section class="card profile-card" aria-label="Dane konta">
+        <div class="profile-avatar" aria-hidden="true">
+          {{ profile()!.email[0].toUpperCase() }}
+        </div>
+        <div class="profile-info">
+          <h2 class="profile-email">{{ profile()!.email }}</h2>
+          <span class="role-badge">{{ roleLabel(profile()!.role) }}</span>
+          <p class="profile-since">
+            Konto od: <strong>{{ formatDate(profile()!.createdAt) }}</strong>
+          </p>
+        </div>
+      </section>
+
+      <!-- Statystyki -->
+      <section class="card stats-card" aria-label="Statystyki aktywności">
+        <h2 class="card__title">Aktywność</h2>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-item__value">{{ profile()!.listingsCount }}</span>
+            <span class="stat-item__label">Dodanych zleceń</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-item__value">{{ profile()!.offersCount }}</span>
+            <span class="stat-item__label">Złożonych ofert</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Szybkie akcje -->
+      <section class="card actions-card" aria-label="Szybkie akcje">
+        <h2 class="card__title">Szybkie akcje</h2>
+        <div class="actions-list">
+          <a routerLink="/dodaj-zlecenie" class="action-item">
+            <span class="action-item__icon" aria-hidden="true">➕</span>
+            <div>
+              <strong>Dodaj zlecenie</strong>
+              <p>Opisz co chcesz wydrukować</p>
+            </div>
+            <span class="action-item__arrow" aria-hidden="true">→</span>
+          </a>
+          <a routerLink="/moje-zlecenia" class="action-item">
+            <span class="action-item__icon" aria-hidden="true">📋</span>
+            <div>
+              <strong>Moje zlecenia</strong>
+              <p>Zarządzaj swoimi zleceniami</p>
+            </div>
+            <span class="action-item__arrow" aria-hidden="true">→</span>
+          </a>
+          <a routerLink="/zlecenia" class="action-item">
+            <span class="action-item__icon" aria-hidden="true">🔍</span>
+            <div>
+              <strong>Przeglądaj zlecenia</strong>
+              <p>Znajdź zlecenia do realizacji</p>
+            </div>
+            <span class="action-item__arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Dane konta -->
+      <section class="card info-card" aria-label="Informacje o koncie">
+        <h2 class="card__title">Informacje</h2>
+        <dl class="info-list">
+          <div class="info-row">
+            <dt>ID konta</dt>
+            <dd class="monospace">{{ profile()!.id }}</dd>
+          </div>
+          <div class="info-row">
+            <dt>Email</dt>
+            <dd>{{ profile()!.email }}</dd>
+          </div>
+          <div class="info-row">
+            <dt>Rola</dt>
+            <dd>{{ profile()!.role }}</dd>
+          </div>
+          <div class="info-row">
+            <dt>Data rejestracji</dt>
+            <dd>{{ formatDate(profile()!.createdAt) }}</dd>
+          </div>
+        </dl>
+        <button class="btn btn--danger" (click)="auth.logout()">
+          Wyloguj się
+        </button>
+      </section>
+
+    </div>
+  }
+</div>

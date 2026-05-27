@@ -1,0 +1,223 @@
+<div class="page">
+  <a routerLink="/zlecenia" class="back-link" aria-label="Wróć do listy zleceń">
+    ← Wróć do zleceń
+  </a>
+
+  @if (listingLoading()) {
+    <div class="state-box" aria-live="polite" aria-busy="true">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Ładowanie zlecenia...</p>
+    </div>
+  } @else if (listingError()) {
+    <div class="state-box state-box--error" role="alert">
+      <span aria-hidden="true">⚠️</span>
+      <p>{{ listingError() }}</p>
+      <a routerLink="/zlecenia" class="btn btn--secondary">Wróć do listy</a>
+    </div>
+  } @else if (listing()) {
+    <article class="listing" aria-label="Szczegóły zlecenia">
+      <header class="listing__header">
+        <div class="listing__title-row">
+          <h1 class="listing__title">{{ listing()!.title }}</h1>
+          <span class="status-badge status-badge--{{ (listing()!.status ?? 'open').toLowerCase() }}">
+            {{ statusLabel(listing()!.status) }}
+          </span>
+        </div>
+
+        <div class="listing__meta">
+          <span class="tag">🧱 {{ listing()!.requiredMaterial }}</span>
+          @if (listing()!.maxBudget) {
+            <span class="tag tag--budget">💰 Budżet: do {{ listing()!.maxBudget }} zł</span>
+          }
+          @if (listing()!.stlFileUrl) {
+            <a [href]="listing()!.stlFileUrl" target="_blank" rel="noopener noreferrer" class="tag tag--link">
+              📎 Pobierz plik STL
+            </a>
+          }
+          @if (listing()!.createdAt) {
+            <time class="listing__date" [attr.datetime]="listing()!.createdAt">
+              Dodano: {{ listing()!.createdAt | slice:0:10 }}
+            </time>
+          }
+        </div>
+      </header>
+
+      <section class="listing__description" aria-label="Opis zlecenia">
+        <h2 class="section-title">Opis</h2>
+        <p>{{ listing()!.description }}</p>
+      </section>
+    </article>
+
+    <!-- Oferty -->
+    <section class="offers" aria-label="Oferty drukarzy">
+      <h2 class="section-title">
+        Oferty
+        @if (!offersLoading()) {
+          <span class="badge">{{ offers().length }}</span>
+        }
+      </h2>
+
+      @if (offersLoading()) {
+        <div class="state-box" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+      } @else if (offers().length === 0) {
+        <div class="state-box state-box--empty">
+          <span aria-hidden="true">📭</span>
+          <p>Brak ofert. Złóż pierwszą!</p>
+        </div>
+      } @else {
+        <ul class="offer-list" aria-label="Lista ofert">
+          @for (offer of offers(); track offer.id) {
+            <li class="offer-card">
+              <div class="offer-card__row">
+                <span class="offer-card__price">{{ offer.price }} zł</span>
+                <span class="offer-status status-badge status-badge--{{ (offer.status ?? 'pending').toLowerCase() }}">
+                  {{ statusLabel(offer.status) }}
+                </span>
+              </div>
+              <div class="offer-card__details">
+                <span>⏱ {{ offer.printingTimeHours }} h</span>
+                <span>🧵 {{ offer.filamentGrams }} g filamentu</span>
+                @if (offer.printerModel) {
+                  <span>🖨️ {{ offer.printerModel }}</span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Formularz oferty -->
+    @if (listing()!.status === 'OPEN' || !listing()!.status) {
+      <section class="offer-form-section" aria-label="Złóż ofertę">
+        <h2 class="section-title">Złóż ofertę</h2>
+
+        @if (submitSuccess()) {
+          <div class="alert alert--success" role="alert" aria-live="polite">
+            <span aria-hidden="true">✅</span>
+            Oferta złożona pomyślnie!
+          </div>
+        }
+        @if (submitError()) {
+          <div class="alert alert--error" role="alert" aria-live="polite">
+            <span aria-hidden="true">❌</span>
+            {{ submitError() }}
+          </div>
+        }
+
+        <form class="offer-form" [formGroup]="offerForm" (ngSubmit)="submitOffer()" novalidate>
+          <div class="offer-form__grid">
+
+            <div class="field">
+              <label class="field__label" for="price">
+                Cena <span class="field__required" aria-hidden="true">*</span>
+              </label>
+              <div class="field__input-group">
+                <input
+                  id="price"
+                  type="number"
+                  class="field__input"
+                  [class.field__input--error]="priceCtrl.invalid && priceCtrl.touched"
+                  formControlName="price"
+                  placeholder="np. 80"
+                  min="1"
+                  step="1"
+                  [attr.aria-invalid]="priceCtrl.invalid && priceCtrl.touched ? 'true' : null"
+                  aria-describedby="price-error"
+                />
+                <span class="field__suffix" aria-hidden="true">zł</span>
+              </div>
+              @if (priceCtrl.invalid && priceCtrl.touched) {
+                <p id="price-error" class="field__error" role="alert">Podaj cenę większą od 0.</p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="time">
+                Czas druku <span class="field__required" aria-hidden="true">*</span>
+              </label>
+              <div class="field__input-group">
+                <input
+                  id="time"
+                  type="number"
+                  class="field__input"
+                  [class.field__input--error]="timeCtrl.invalid && timeCtrl.touched"
+                  formControlName="printingTimeHours"
+                  placeholder="np. 4.5"
+                  min="0.1"
+                  step="0.5"
+                  [attr.aria-invalid]="timeCtrl.invalid && timeCtrl.touched ? 'true' : null"
+                  aria-describedby="time-error"
+                />
+                <span class="field__suffix" aria-hidden="true">h</span>
+              </div>
+              @if (timeCtrl.invalid && timeCtrl.touched) {
+                <p id="time-error" class="field__error" role="alert">Podaj czas druku.</p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="filament">
+                Filament <span class="field__required" aria-hidden="true">*</span>
+              </label>
+              <div class="field__input-group">
+                <input
+                  id="filament"
+                  type="number"
+                  class="field__input"
+                  [class.field__input--error]="filamentCtrl.invalid && filamentCtrl.touched"
+                  formControlName="filamentGrams"
+                  placeholder="np. 120"
+                  min="1"
+                  step="1"
+                  [attr.aria-invalid]="filamentCtrl.invalid && filamentCtrl.touched ? 'true' : null"
+                  aria-describedby="filament-error"
+                />
+                <span class="field__suffix" aria-hidden="true">g</span>
+              </div>
+              @if (filamentCtrl.invalid && filamentCtrl.touched) {
+                <p id="filament-error" class="field__error" role="alert">Podaj zużycie filamentu.</p>
+              }
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="printer">
+                Model drukarki <span class="field__required" aria-hidden="true">*</span>
+              </label>
+              <input
+                id="printer"
+                type="text"
+                class="field__input"
+                [class.field__input--error]="printerCtrl.invalid && printerCtrl.touched"
+                formControlName="printerModel"
+                placeholder="np. Bambu Lab P1S"
+                [attr.aria-invalid]="printerCtrl.invalid && printerCtrl.touched ? 'true' : null"
+                aria-describedby="printer-error"
+              />
+              @if (printerCtrl.invalid && printerCtrl.touched) {
+                <p id="printer-error" class="field__error" role="alert">Podaj model drukarki.</p>
+              }
+            </div>
+
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn--primary"
+            [disabled]="submitting()"
+            [attr.aria-busy]="submitting()"
+          >
+            @if (submitting()) {
+              <span class="btn-spinner" aria-hidden="true"></span>
+              Składanie...
+            } @else {
+              Złóż ofertę
+            }
+          </button>
+        </form>
+      </section>
+    }
+  }
+</div>

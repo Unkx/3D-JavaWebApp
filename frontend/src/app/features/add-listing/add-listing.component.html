@@ -1,0 +1,184 @@
+<div class="page">
+  <header class="page__header">
+    <a routerLink="/zlecenia" class="back-link" aria-label="Wróć do listy zleceń">
+      ← Wróć do zleceń
+    </a>
+    <h1 class="page__title">Dodaj zlecenie druku</h1>
+    <p class="page__subtitle">Opisz co chcesz wydrukować, a drukarze złożą Ci oferty.</p>
+  </header>
+
+  @if (success()) {
+    <div class="alert alert--success" role="alert" aria-live="polite">
+      <span class="alert__icon" aria-hidden="true">✅</span>
+      <div>
+        <strong>Zlecenie dodane!</strong>
+        <p>Za chwilę zostaniesz przekierowany do listy zleceń...</p>
+      </div>
+    </div>
+  }
+
+  @if (serverError()) {
+    <div class="alert alert--error" role="alert" aria-live="polite">
+      <span class="alert__icon" aria-hidden="true">❌</span>
+      <p>{{ serverError() }}</p>
+    </div>
+  }
+
+  <form
+    class="form"
+    [formGroup]="form"
+    (ngSubmit)="submit()"
+    novalidate
+    aria-label="Formularz dodawania zlecenia druku"
+  >
+    <!-- Tytuł -->
+    <div class="field">
+      <label class="field__label" for="title">
+        Tytuł zlecenia <span class="field__required" aria-hidden="true">*</span>
+      </label>
+      <input
+        id="title"
+        type="text"
+        class="field__input"
+        [class.field__input--error]="titleCtrl.invalid && titleCtrl.touched"
+        formControlName="title"
+        placeholder="np. Uchwyt na rower, figurka, proteza palca..."
+        [attr.aria-invalid]="titleCtrl.invalid && titleCtrl.touched ? 'true' : null"
+        aria-describedby="title-error"
+        maxlength="100"
+        autocomplete="off"
+      />
+      <span class="field__counter" aria-hidden="true">
+        {{ titleCtrl.value?.length ?? 0 }}/100
+      </span>
+      @if (titleCtrl.invalid && titleCtrl.touched) {
+        <p id="title-error" class="field__error" role="alert">
+          @if (titleCtrl.errors?.['required']) { Tytuł jest wymagany. }
+          @else if (titleCtrl.errors?.['minlength']) { Tytuł musi mieć co najmniej 3 znaki. }
+          @else if (titleCtrl.errors?.['maxlength']) { Tytuł może mieć maksymalnie 100 znaków. }
+        </p>
+      }
+    </div>
+
+    <!-- Opis -->
+    <div class="field">
+      <label class="field__label" for="description">
+        Opis <span class="field__required" aria-hidden="true">*</span>
+      </label>
+      <textarea
+        id="description"
+        class="field__input field__textarea"
+        [class.field__input--error]="descriptionCtrl.invalid && descriptionCtrl.touched"
+        formControlName="description"
+        placeholder="Opisz dokładnie co chcesz wydrukować: wymiary, kolor, przeznaczenie, ilość sztuk, termin..."
+        [attr.aria-invalid]="descriptionCtrl.invalid && descriptionCtrl.touched ? 'true' : null"
+        aria-describedby="description-error"
+        maxlength="2000"
+        rows="5"
+      ></textarea>
+      <span class="field__counter" aria-hidden="true">
+        {{ descriptionCtrl.value?.length ?? 0 }}/2000
+      </span>
+      @if (descriptionCtrl.invalid && descriptionCtrl.touched) {
+        <p id="description-error" class="field__error" role="alert">
+          @if (descriptionCtrl.errors?.['required']) { Opis jest wymagany. }
+          @else if (descriptionCtrl.errors?.['maxlength']) { Opis może mieć maksymalnie 2000 znaków. }
+        </p>
+      }
+    </div>
+
+    <!-- Materiał -->
+    <div class="field">
+      <label class="field__label" for="material">
+        Wymagany materiał <span class="field__required" aria-hidden="true">*</span>
+      </label>
+      <select
+        id="material"
+        class="field__input field__select"
+        formControlName="requiredMaterial"
+        aria-describedby="material-hint"
+      >
+        @for (mat of materials; track mat) {
+          <option [value]="mat">{{ mat }}</option>
+        }
+      </select>
+      <p id="material-hint" class="field__hint">
+        Nie znasz się na materiałach? Wybierz PLA — najpopularniejszy i najtańszy.
+      </p>
+    </div>
+
+    <!-- Maksymalny budżet -->
+    <div class="field">
+      <label class="field__label" for="budget">
+        Maksymalny budżet (PLN)
+        <span class="field__optional">opcjonalnie</span>
+      </label>
+      <div class="field__input-group">
+        <input
+          id="budget"
+          type="number"
+          class="field__input"
+          [class.field__input--error]="budgetCtrl.invalid && budgetCtrl.touched"
+          formControlName="maxBudget"
+          placeholder="np. 150"
+          [attr.aria-invalid]="budgetCtrl.invalid && budgetCtrl.touched ? 'true' : null"
+          aria-describedby="budget-error budget-hint"
+          min="1"
+          step="1"
+        />
+        <span class="field__suffix" aria-hidden="true">zł</span>
+      </div>
+      <p id="budget-hint" class="field__hint">
+        Podaj orientacyjny budżet, żeby odfiltrować zbyt drogie oferty.
+      </p>
+      @if (budgetCtrl.invalid && budgetCtrl.touched) {
+        <p id="budget-error" class="field__error" role="alert">
+          Budżet musi być liczbą większą od 0.
+        </p>
+      }
+    </div>
+
+    <!-- Plik STL -->
+    <div class="field">
+      <label class="field__label" for="stlUrl">
+        Link do pliku STL
+        <span class="field__optional">opcjonalnie</span>
+      </label>
+      <input
+        id="stlUrl"
+        type="url"
+        class="field__input"
+        [class.field__input--error]="stlUrlCtrl.invalid && stlUrlCtrl.touched"
+        formControlName="stlFileUrl"
+        placeholder="https://..."
+        [attr.aria-invalid]="stlUrlCtrl.invalid && stlUrlCtrl.touched ? 'true' : null"
+        aria-describedby="stlUrl-error stlUrl-hint"
+      />
+      <p id="stlUrl-hint" class="field__hint">
+        Możesz wkleić link do pliku STL z Thingiverse, Google Drive lub innego hostingu.
+      </p>
+      @if (stlUrlCtrl.invalid && stlUrlCtrl.touched) {
+        <p id="stlUrl-error" class="field__error" role="alert">
+          Podaj poprawny adres URL (http:// lub https://).
+        </p>
+      }
+    </div>
+
+    <div class="form__actions">
+      <a routerLink="/zlecenia" class="btn btn--secondary">Anuluj</a>
+      <button
+        type="submit"
+        class="btn btn--primary"
+        [disabled]="loading()"
+        [attr.aria-busy]="loading()"
+      >
+        @if (loading()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Dodawanie...
+        } @else {
+          Dodaj zlecenie
+        }
+      </button>
+    </div>
+  </form>
+</div>

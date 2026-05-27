@@ -1,0 +1,63 @@
+<div class="page">
+  <header class="page__header">
+    <div class="page__heading">
+      <h1 class="page__title">Zlecenia druku</h1>
+      @if (!loading()) {
+        <span class="badge" aria-label="{{ listings().length }} zleceń">
+          {{ listings().length }}
+        </span>
+      }
+    </div>
+    <a routerLink="/dodaj-zlecenie" class="btn btn--primary">
+      + Dodaj zlecenie
+    </a>
+  </header>
+
+  @if (loading()) {
+    <div class="state-box" aria-live="polite" aria-busy="true">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Ładowanie zleceń...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-box state-box--error" role="alert">
+      <span class="state-box__icon" aria-hidden="true">⚠️</span>
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (listings().length === 0) {
+    <div class="state-box state-box--empty">
+      <span class="state-box__icon" aria-hidden="true">📭</span>
+      <p>Brak zleceń. Bądź pierwszy!</p>
+      <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
+    </div>
+  } @else {
+    <ul class="listing-grid" aria-label="Lista zleceń druku">
+      @for (listing of listings(); track listing.id) {
+        <li>
+          <a [routerLink]="['/zlecenia', listing.id]" class="listing-card" aria-label="Zlecenie: {{ listing.title }}">
+            <div class="listing-card__header">
+              <h2 class="listing-card__title">{{ listing.title }}</h2>
+              <span class="status-badge status-badge--{{ (listing.status ?? 'open').toLowerCase() }}">
+                {{ statusLabel(listing.status) }}
+              </span>
+            </div>
+            <p class="listing-card__description">{{ listing.description }}</p>
+            <div class="listing-card__meta">
+              <span class="tag">🧱 {{ listing.requiredMaterial }}</span>
+              @if (listing.maxBudget) {
+                <span class="tag tag--budget">💰 do {{ listing.maxBudget }} zł</span>
+              }
+              @if (listing.stlFileUrl) {
+                <span class="tag">📎 Plik STL</span>
+              }
+            </div>
+            @if (listing.createdAt) {
+              <time class="listing-card__date" [attr.datetime]="listing.createdAt">
+                {{ listing.createdAt | slice:0:10 }}
+              </time>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</div>
