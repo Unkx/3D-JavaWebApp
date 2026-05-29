@@ -1,5 +1,6 @@
 package com.printplatform.security;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -34,9 +35,11 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/{id}", "/api/listings/{id}/stl").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/listing/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/listings/{id}/upload-stl").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

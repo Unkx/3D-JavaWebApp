@@ -9,8 +9,10 @@ export interface Listing {
   requiredMaterial: string;
   maxBudget?: number;
   stlFileUrl?: string;
+  stlFileName?: string;
   status?: string;
   createdAt?: string;
+  user?: { id: string };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -40,5 +42,13 @@ export class ListingService {
 
   deleteListing(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  uploadStlFile(id: string, file: File): Observable<Listing> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<Listing>(`${this.apiUrl}/${id}/upload-stl`, formData, {
+      reportProgress: true
+    });
   }
 }

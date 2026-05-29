@@ -1,13 +1,16 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit, computed } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
 import { ListingService, Listing } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
+import { AuthService } from '../../services/auth.service';
+import { StlViewerComponent } from '../../components/stl-viewer.component';
+import { StlFileUploadComponent } from '../../components/stl-file-upload.component';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [RouterLink, ReactiveFormsModule, SlicePipe],
+  imports: [RouterLink, ReactiveFormsModule, SlicePipe, StlViewerComponent, StlFileUploadComponent],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -16,6 +19,7 @@ export class ListingDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
+  private authService = inject(AuthService);
   private fb = inject(FormBuilder);
 
   listing = signal<Listing | null>(null);
@@ -26,6 +30,16 @@ export class ListingDetailComponent implements OnInit {
   submitSuccess = signal(false);
   submitError = signal<string | null>(null);
   submitting = signal(false);
+  viewerVersion = signal(0);
+  viewerVisible = signal(true);
+  currentUser = this.authService.currentUser;
+
+  canUploadFile = computed(() => {
+    const user = this.currentUser();
+    const listing = this.listing();
+    if (!user || !listing) return false;
+    return user.userId === listing.user?.id || user.role === 'ADMIN';
+  });
 
   offerForm = this.fb.group({
     price: [null as number | null, [Validators.required, Validators.min(1)]],
@@ -54,6 +68,21 @@ export class ListingDetailComponent implements OnInit {
       error: () => {
         this.listingError.set('Nie znaleziono zlecenia.');
         this.listingLoading.set(false);
+      }
+    });
+  }
+
+  onFileUploaded(): void {
+    const current = this.listing();
+    if (!current?.id) return;
+    // Reload the listing so stlFileName populates, then destroy + recreate the
+    // viewer with a cache-busted URL so it re-fetches the newly uploaded model.
+    this.listingService.getListing(current.id).subscribe({
+      next: (data) => {
+        this.listing.set(data);
+        this.viewerVersion.update(v => v + 1);
+        this.viewerVisible.set(false);
+        setTimeout(() => this.viewerVisible.set(true), 0);
       }
     });
   }

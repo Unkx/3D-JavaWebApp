@@ -1,5 +1,6 @@
 package com.printplatform.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -36,6 +37,12 @@ public class Listing {
     private ListingStatus status = ListingStatus.OPEN;
 
     private String stlFileUrl; // URL do pliku (po wybraniu oferty)
+
+    @JsonIgnore
+    @Column(columnDefinition = "bytea")
+    private byte[] stlFileData; // Uploaded STL file binary data (mapped to PostgreSQL bytea)
+
+    private String stlFileName; // Original filename of uploaded file
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }

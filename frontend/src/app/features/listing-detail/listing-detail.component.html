@@ -42,6 +42,21 @@
         </div>
       </header>
 
+      @if (canUploadFile()) {
+        <app-stl-file-upload [listingId]="listing()!.id!" (uploaded)="onFileUploaded()"></app-stl-file-upload>
+      }
+
+      @if (listing()!.stlFileUrl || listing()!.stlFileName) {
+        <section class="stl-viewer-section" aria-label="Podgląd modelu 3D">
+          <h2 class="section-title">Podgląd 3D</h2>
+          <div class="stl-viewer-wrapper">
+            @if (viewerVisible()) {
+              <app-stl-viewer [stlUrl]="'/api/listings/' + listing()!.id + '/stl?v=' + viewerVersion()"></app-stl-viewer>
+            }
+          </div>
+        </section>
+      }
+
       <section class="listing__description" aria-label="Opis zlecenia">
         <h2 class="section-title">Opis</h2>
         <p>{{ listing()!.description }}</p>
