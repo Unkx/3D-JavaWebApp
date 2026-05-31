@@ -11,8 +11,17 @@ export interface AuthUser {
   userId: string;
 }
 
-export interface RegisterPayload { email: string; password: string; }
+export interface RegisterPayload { email: string; password: string; adminCode?: string; }
 export interface LoginPayload    { email: string; password: string; }
+
+export interface AdminCode {
+  code: string;
+  used: boolean;
+  createdByEmail: string;
+  usedByEmail: string | null;
+  createdAt: string;
+  redeemedAt: string | null;
+}
 
 const TOKEN_KEY = 'auth_token';
 
@@ -37,6 +46,23 @@ export class AuthService {
     return this.http.post<AuthUser>('/api/auth/login', payload).pipe(
       tap(user => this.persist(user))
     );
+  }
+
+  /** Redeem an admin code to become administrator; persists the fresh token/role. */
+  redeemAdminCode(code: string): Observable<AuthUser> {
+    return this.http.post<AuthUser>('/api/admin/redeem', { code }).pipe(
+      tap(user => this.persist(user))
+    );
+  }
+
+  /** Admin: generate a new single-use admin code. */
+  generateAdminCode(): Observable<AdminCode> {
+    return this.http.post<AdminCode>('/api/admin/codes', {});
+  }
+
+  /** Admin: list all generated admin codes. */
+  listAdminCodes(): Observable<AdminCode[]> {
+    return this.http.get<AdminCode[]>('/api/admin/codes');
   }
 
   logout(): void {

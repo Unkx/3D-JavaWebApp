@@ -8,7 +8,7 @@ import { ListingService } from '../services/listing.service';
   imports: [CommonModule],
   template: `
     <div class="upload-container">
-      <h3 class="upload-title">Przesłanie pliku STL</h3>
+      <h3 class="upload-title">Przesłanie plików (STL / zdjęcia)</h3>
 
       @if (successMessage()) {
         <div class="alert alert--success" role="alert" aria-live="polite">
@@ -31,40 +31,46 @@ import { ListingService } from '../services/listing.service';
           <input
             #fileInput
             type="file"
-            accept=".stl"
+            accept=".stl,.png,.jpg,.jpeg,.gif,.webp"
+            multiple
             class="file-input"
             (change)="onFileSelected($event)"
-            aria-label="Wybierz plik STL"
+            aria-label="Wybierz pliki STL lub zdjęcia"
           />
 
           <span class="file-label">
             <span class="file-icon">📁</span>
             <span class="file-text">
-              @if (selectedFileName()) {
-                {{ selectedFileName() }}
-              } @else {
-                <strong>Kliknij aby wybrać</strong> lub przeciągnij plik STL
-              }
+              <strong>Kliknij aby wybrać</strong> lub przeciągnij pliki
+              <small>Modele .stl oraz zdjęcia (.png, .jpg, .gif, .webp) — kilka naraz</small>
             </span>
           </span>
         </label>
 
-        @if (fileSizeWarning()) {
-          <p class="warning-text">⚠️ {{ fileSizeWarning() }}</p>
+        @if (selectedFiles().length > 0) {
+          <ul class="selected-list">
+            @for (f of selectedFiles(); track f.name + f.size) {
+              <li class="selected-item">
+                <span class="selected-item__name">📄 {{ f.name }}</span>
+                <span class="selected-item__size">{{ formatSize(f.size) }}</span>
+                <button type="button" class="selected-item__remove" (click)="removeFile(f)" [disabled]="uploading()" aria-label="Usuń z listy">✕</button>
+              </li>
+            }
+          </ul>
         }
 
         <button
           type="button"
           class="btn btn--primary"
           (click)="onSubmit()"
-          [disabled]="uploading()"
+          [disabled]="uploading() || selectedFiles().length === 0"
           [attr.aria-busy]="uploading()"
         >
           @if (uploading()) {
             <span class="btn-spinner" aria-hidden="true"></span>
             Przesyłanie...
           } @else {
-            Prześlij plik
+            Prześlij {{ selectedFiles().length || '' }} {{ selectedFiles().length === 1 ? 'plik' : 'pliki' }}
           }
         </button>
       </form>
@@ -164,10 +170,68 @@ import { ListingService } from '../services/listing.service';
       font-weight: 600;
     }
 
+    .file-text small {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
     .warning-text {
       font-size: 0.875rem;
       color: #d97706;
       margin: 0;
+    }
+
+    .selected-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .selected-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.7rem;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+    }
+
+    .selected-item__name {
+      font-size: 0.875rem;
+      color: #111827;
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .selected-item__size {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    .selected-item__remove {
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0.1rem 0.3rem;
+      border-radius: 4px;
+    }
+
+    .selected-item__remove:hover:not(:disabled) {
+      background: #fee2e2;
+      color: #dc2626;
     }
 
     .btn {
@@ -223,56 +287,58 @@ export class StlFileUploadComponent {
 
   private listingService = inject(ListingService);
 
+  private static readonly MAX_SIZE = 50 * 1024 * 1024; // 50MB
+  private static readonly ALLOWED = ['.stl', '.png', '.jpg', '.jpeg', '.gif', '.webp'];
+
   uploading = signal(false);
   successMessage = signal<string | null>(null);
   errorMessage = signal<string | null>(null);
-  selectedFile = signal<File | null>(null);
-  selectedFileName = signal<string | null>(null);
-  fileSizeWarning = signal<string | null>(null);
+  selectedFiles = signal<File[]>([]);
   isDragging = signal(false);
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input?.files?.[0] ?? null;
-    this.applyFile(file);
+    this.addFiles(input?.files);
   }
 
-  private applyFile(file: File | null): void {
+  private addFiles(fileList: FileList | null | undefined): void {
     this.errorMessage.set(null);
-    this.fileSizeWarning.set(null);
+    if (!fileList || fileList.length === 0) return;
 
-    if (!file) {
-      this.selectedFile.set(null);
-      this.selectedFileName.set(null);
-      return;
+    const accepted: File[] = [...this.selectedFiles()];
+    const rejected: string[] = [];
+
+    for (const file of Array.from(fileList)) {
+      const name = file.name.toLowerCase();
+      if (!StlFileUploadComponent.ALLOWED.some(ext => name.endsWith(ext))) {
+        rejected.push(`${file.name} (nieobsługiwany typ)`);
+        continue;
+      }
+      if (file.size > StlFileUploadComponent.MAX_SIZE) {
+        rejected.push(`${file.name} (> 50MB)`);
+        continue;
+      }
+      // Skip duplicates already in the list
+      if (accepted.some(f => f.name === file.name && f.size === file.size)) {
+        continue;
+      }
+      accepted.push(file);
     }
 
-    // Validate file extension
-    if (!file.name.toLowerCase().endsWith('.stl')) {
-      this.errorMessage.set('Proszę wybrać plik .stl');
-      this.selectedFile.set(null);
-      this.selectedFileName.set(null);
-      return;
+    this.selectedFiles.set(accepted);
+    if (rejected.length > 0) {
+      this.errorMessage.set('Pominięto: ' + rejected.join(', '));
     }
+  }
 
-    // Validate file size
-    const maxSizeBytes = 50 * 1024 * 1024; // 50MB
-    if (file.size > maxSizeBytes) {
-      this.errorMessage.set('Plik jest zbyt duży (maksymalnie 50MB)');
-      this.selectedFile.set(null);
-      this.selectedFileName.set(null);
-      return;
-    }
+  removeFile(file: File): void {
+    this.selectedFiles.update(list => list.filter(f => f !== file));
+  }
 
-    // File is valid
-    this.selectedFile.set(file);
-    this.selectedFileName.set(file.name);
-
-    // Warn if file is large
-    if (file.size > 10 * 1024 * 1024) {
-      const sizeMB = Math.round(file.size / (1024 * 1024));
-      this.fileSizeWarning.set(`Plik ma ${sizeMB}MB - przesyłanie może trwać chwilę`);
-    }
+  formatSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   onDragOver(event: DragEvent): void {
@@ -291,14 +357,12 @@ export class StlFileUploadComponent {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging.set(false);
-
-    const file = event.dataTransfer?.files?.[0] ?? null;
-    this.applyFile(file);
+    this.addFiles(event.dataTransfer?.files);
   }
 
   onSubmit(): void {
-    const file = this.selectedFile();
-    if (!file) {
+    const files = this.selectedFiles();
+    if (files.length === 0) {
       this.errorMessage.set('Proszę najpierw wybrać plik .stl');
       return;
     }
@@ -311,13 +375,12 @@ export class StlFileUploadComponent {
     this.errorMessage.set(null);
     this.successMessage.set(null);
 
-    this.listingService.uploadStlFile(this.listingId, file).subscribe({
-      next: () => {
+    this.listingService.uploadStlFiles(this.listingId, files).subscribe({
+      next: (saved) => {
         this.uploading.set(false);
-        this.successMessage.set('Plik przesłany pomyślnie!');
-        this.selectedFile.set(null);
-        this.selectedFileName.set(null);
-        this.fileSizeWarning.set(null);
+        const n = saved?.length ?? files.length;
+        this.successMessage.set(`Przesłano ${n} ${n === 1 ? 'plik' : 'pliki'}!`);
+        this.selectedFiles.set([]);
         if (this.fileInput?.nativeElement) {
           this.fileInput.nativeElement.value = '';
         }
@@ -334,7 +397,7 @@ export class StlFileUploadComponent {
         } else if (err?.error?.message) {
           msg = err.error.message;
         } else {
-          msg = `Nie udało się przesłać plik (błąd ${err?.status ?? '?'}). Spróbuj ponownie.`;
+          msg = `Nie udało się przesłać plików (błąd ${err?.status ?? '?'}). Spróbuj ponownie.`;
         }
         this.errorMessage.set(msg);
       }

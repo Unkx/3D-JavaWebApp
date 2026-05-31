@@ -15,6 +15,15 @@ export interface Listing {
   user?: { id: string };
 }
 
+export interface StlFile {
+  id: string;
+  fileName: string;
+  fileSize: number | null;
+  contentType?: string;
+  kind: 'stl' | 'image';
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ListingService {
   private http = inject(HttpClient);
@@ -50,5 +59,25 @@ export class ListingService {
     return this.http.post<Listing>(`${this.apiUrl}/${id}/upload-stl`, formData, {
       reportProgress: true
     });
+  }
+
+  // --- Multiple STL files ---
+
+  getStlFiles(listingId: string): Observable<StlFile[]> {
+    return this.http.get<StlFile[]>(`${this.apiUrl}/${listingId}/stl-files`);
+  }
+
+  uploadStlFiles(listingId: string, files: File[]): Observable<StlFile[]> {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('files', file);
+    }
+    return this.http.post<StlFile[]>(`${this.apiUrl}/${listingId}/stl-files`, formData, {
+      reportProgress: true
+    });
+  }
+
+  deleteStlFile(listingId: string, fileId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${listingId}/stl-files/${fileId}`);
   }
 }

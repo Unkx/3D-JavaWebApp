@@ -178,6 +178,24 @@
           }
         </div>
 
+        <div class="field">
+          <label class="field__label" for="reg-admin">
+            Kod administratora <span class="field__optional">(opcjonalnie)</span>
+          </label>
+          <input
+            id="reg-admin"
+            type="text"
+            class="field__input"
+            formControlName="adminCode"
+            placeholder="np. ABCD-EFGH-JKLM"
+            autocomplete="off"
+            aria-describedby="re-admin-hint"
+          />
+          <p id="re-admin-hint" class="field__hint">
+            Masz kod? Konto zostanie utworzone z uprawnieniami administratora.
+          </p>
+        </div>
+
         <button
           type="submit"
           class="btn btn--primary btn--full"

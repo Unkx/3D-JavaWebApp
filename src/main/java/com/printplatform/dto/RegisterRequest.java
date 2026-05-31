@@ -14,9 +14,15 @@ public class RegisterRequest {
     @Size(min = 6, message = "Hasło musi mieć co najmniej 6 znaków")
     private String password;
 
+    /** Optional: if a valid admin code is supplied, the new account becomes an administrator. */
+    private String adminCode;
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getAdminCode() { return adminCode; }
+    public void setAdminCode(String adminCode) { this.adminCode = adminCode; }
 }

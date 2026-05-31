@@ -2,8 +2,12 @@ package com.printplatform.controller;
 
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingStatus;
+import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
+import com.printplatform.repository.OfferRepository;
+import com.printplatform.repository.StlFileRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,9 +24,15 @@ import java.util.UUID;
 public class ListingController {
 
     private final ListingRepository listingRepository;
+    private final OfferRepository offerRepository;
+    private final StlFileRepository stlFileRepository;
 
-    public ListingController(ListingRepository listingRepository) {
+    public ListingController(ListingRepository listingRepository,
+                             OfferRepository offerRepository,
+                             StlFileRepository stlFileRepository) {
         this.listingRepository = listingRepository;
+        this.offerRepository = offerRepository;
+        this.stlFileRepository = stlFileRepository;
     }
 
     @GetMapping
@@ -55,23 +65,32 @@ public class ListingController {
                                 @AuthenticationPrincipal User user) {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
-        if (!listing.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień");
-        }
+        requireOwnerOrAdmin(listing, user);
         listing.setStatus(ListingStatus.CLOSED);
         return listingRepository.save(listing);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
     public void deleteListing(@PathVariable UUID id,
                               @AuthenticationPrincipal User user) {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
-        if (!listing.getUser().getId().equals(user.getId())) {
+        requireOwnerOrAdmin(listing, user);
+        // Remove dependent rows first (listing_id FKs are non-nullable).
+        offerRepository.deleteAll(offerRepository.findByListingId(id));
+        stlFileRepository.deleteByListingId(id);
+        listingRepository.delete(listing);
+    }
+
+    /** A listing may be modified/removed by its owner or by any administrator. */
+    private void requireOwnerOrAdmin(Listing listing, User user) {
+        boolean isOwner = listing.getUser().getId().equals(user.getId());
+        boolean isAdmin = user.getRole() == Role.ADMIN;
+        if (!isOwner && !isAdmin) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak uprawnień");
         }
-        listingRepository.delete(listing);
     }
 
     @GetMapping("/{id}/stl")

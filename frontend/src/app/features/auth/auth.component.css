@@ -125,6 +125,18 @@
   margin: 0;
 }
 
+.field__optional {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.8125rem;
+}
+
+.field__hint {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0.25rem 0 0;
+}
+
 /* Buttons */
 .btn {
   display: inline-flex;

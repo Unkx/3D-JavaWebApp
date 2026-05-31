@@ -18,13 +18,16 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AdminService adminService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
-                       JwtService jwtService) {
+                       JwtService jwtService,
+                       AdminService adminService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.adminService = adminService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -35,6 +38,12 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(Role.USER);
+
+        // Optional admin code promotes the new account to administrator.
+        if (request.getAdminCode() != null && !request.getAdminCode().isBlank()) {
+            adminService.applyCodeToNewUser(request.getAdminCode(), user);
+        }
+
         userRepository.save(user);
         return toResponse(user);
     }

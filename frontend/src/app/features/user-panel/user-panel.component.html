@@ -71,6 +71,77 @@
         </div>
       </section>
 
+      <!-- Administrator -->
+      @if (isAdmin()) {
+        <section class="card admin-card" aria-label="Panel administratora">
+          <h2 class="card__title">🔑 Kody administratora</h2>
+          <p class="admin-card__desc">
+            Wygeneruj kod i przekaż go zaufanej osobie. Po wpisaniu kodu w profilu
+            (lub przy rejestracji) jej konto otrzyma uprawnienia administratora.
+          </p>
+
+          <button class="btn btn--primary" (click)="generate()" [disabled]="generating()">
+            @if (generating()) { Generowanie... } @else { + Wygeneruj nowy kod }
+          </button>
+
+          @if (codesLoading()) {
+            <p class="admin-card__muted">Ładowanie kodów...</p>
+          } @else if (codes().length === 0) {
+            <p class="admin-card__muted">Nie wygenerowano jeszcze żadnych kodów.</p>
+          } @else {
+            <ul class="code-list">
+              @for (c of codes(); track c.code) {
+                <li class="code-row" [class.code-row--used]="c.used">
+                  <code class="code-row__code">{{ c.code }}</code>
+                  @if (c.used) {
+                    <span class="code-row__status code-row__status--used">
+                      Użyty{{ c.usedByEmail ? ' — ' + c.usedByEmail : '' }}
+                    </span>
+                  } @else {
+                    <span class="code-row__status code-row__status--free">Aktywny</span>
+                    <button class="btn btn--ghost btn--sm" (click)="copy(c.code)">
+                      @if (copiedCode() === c.code) { Skopiowano ✓ } @else { Kopiuj }
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      } @else {
+        <section class="card admin-card" aria-label="Zostań administratorem">
+          <h2 class="card__title">🔑 Masz kod administratora?</h2>
+          <p class="admin-card__desc">
+            Wpisz kod otrzymany od administratora, aby uzyskać uprawnienia administratora.
+          </p>
+
+          @if (redeemSuccess()) {
+            <div class="alert alert--success" role="alert">
+              ✅ Gratulacje! Twoje konto ma teraz uprawnienia administratora.
+            </div>
+          }
+          @if (redeemError()) {
+            <div class="alert alert--error" role="alert">⚠️ {{ redeemError() }}</div>
+          }
+
+          <div class="redeem-row">
+            <input
+              type="text"
+              class="field__input"
+              placeholder="np. ABCD-EFGH-JKLM"
+              autocomplete="off"
+              [ngModel]="redeemCode()"
+              (ngModelChange)="redeemCode.set($event)"
+              (keyup.enter)="redeem()"
+              aria-label="Kod administratora"
+            />
+            <button class="btn btn--primary" (click)="redeem()" [disabled]="redeeming()">
+              @if (redeeming()) { Sprawdzanie... } @else { Aktywuj }
+            </button>
+          </div>
+        </section>
+      }
+
       <!-- Dane konta -->
       <section class="card info-card" aria-label="Informacje o koncie">
         <h2 class="card__title">Informacje</h2>

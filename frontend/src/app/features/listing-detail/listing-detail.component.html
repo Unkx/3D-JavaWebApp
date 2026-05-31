@@ -40,18 +40,73 @@
             </time>
           }
         </div>
+
+        @if (canManage()) {
+          <div class="listing__manage">
+            @if (isAdmin() && currentUser()?.userId !== listing()!.user?.id) {
+              <span class="admin-flag" title="Akcja administratora">🔑 Administrator</span>
+            }
+            <button
+              class="btn btn--danger"
+              (click)="deleteListing()"
+              [disabled]="deletingListing()"
+            >
+              @if (deletingListing()) { Usuwanie... } @else { 🗑️ Usuń zlecenie }
+            </button>
+          </div>
+        }
       </header>
 
       @if (canUploadFile()) {
         <app-stl-file-upload [listingId]="listing()!.id!" (uploaded)="onFileUploaded()"></app-stl-file-upload>
       }
 
-      @if (listing()!.stlFileUrl || listing()!.stlFileName) {
-        <section class="stl-viewer-section" aria-label="Podgląd modelu 3D">
-          <h2 class="section-title">Podgląd 3D</h2>
+      @if (stlFiles().length > 0) {
+        <section class="stl-viewer-section" aria-label="Podgląd plików">
+          <h2 class="section-title">
+            Podgląd
+            <span class="badge">{{ stlFiles().length }}</span>
+          </h2>
+
+          @if (stlFiles().length > 1 || canManage()) {
+            <div class="file-tabs" role="tablist" aria-label="Pliki">
+              @for (f of stlFiles(); track f.id) {
+                <div
+                  class="file-tab"
+                  [class.file-tab--active]="selectedFileId() === f.id"
+                  role="tab"
+                  [attr.aria-selected]="selectedFileId() === f.id"
+                  (click)="selectFile(f.id)"
+                  (keyup.enter)="selectFile(f.id)"
+                  tabindex="0"
+                >
+                  <span class="file-tab__name">{{ f.kind === 'image' ? '🖼️' : '📄' }} {{ f.fileName }}</span>
+                  @if (f.fileSize) {
+                    <span class="file-tab__size">{{ fileSizeLabel(f.fileSize) }}</span>
+                  }
+                  @if (canManage()) {
+                    <button
+                      class="file-tab__del"
+                      (click)="deleteFile(f.id, $event)"
+                      [disabled]="deletingFileId() === f.id"
+                      aria-label="Usuń plik"
+                      title="Usuń plik"
+                    >✕</button>
+                  }
+                </div>
+              }
+            </div>
+          }
+
           <div class="stl-viewer-wrapper">
-            @if (viewerVisible()) {
-              <app-stl-viewer [stlUrl]="'/api/listings/' + listing()!.id + '/stl?v=' + viewerVersion()"></app-stl-viewer>
+            @if (viewerVisible() && selectedFileUrl()) {
+              @if (selectedFile()?.kind === 'image') {
+                <div class="image-preview">
+                  <img [src]="selectedFileUrl()" [alt]="selectedFile()?.fileName" />
+                </div>
+              } @else {
+                <app-stl-viewer [stlUrl]="selectedFileUrl()"></app-stl-viewer>
+              }
             }
           </div>
         </section>

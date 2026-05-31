@@ -1,0 +1,106 @@
+package com.printplatform.service;
+
+import com.printplatform.dto.AdminCodeDto;
+import com.printplatform.dto.AuthResponse;
+import com.printplatform.model.AdminCode;
+import com.printplatform.model.Role;
+import com.printplatform.model.User;
+import com.printplatform.repository.AdminCodeRepository;
+import com.printplatform.repository.UserRepository;
+import com.printplatform.security.JwtService;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Service
+public class AdminService {
+
+    private static final SecureRandom RANDOM = new SecureRandom();
+    // No ambiguous chars (0/O, 1/I) to make codes easy to read and type
+    private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    private final AdminCodeRepository codeRepository;
+    private final UserRepository userRepository;
+    private final JwtService jwtService;
+
+    public AdminService(AdminCodeRepository codeRepository,
+                        UserRepository userRepository,
+                        JwtService jwtService) {
+        this.codeRepository = codeRepository;
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+    }
+
+    /** Admin generates a new single-use admin code. */
+    public AdminCodeDto generateCode(User admin) {
+        AdminCode code = new AdminCode();
+        code.setCode(randomCode());
+        code.setCreatedByEmail(admin.getEmail());
+        codeRepository.save(code);
+        return new AdminCodeDto(code);
+    }
+
+    /** List all admin codes, newest first (admin only). */
+    public List<AdminCodeDto> listCodes() {
+        return codeRepository.findAllByOrderByCreatedAtDesc()
+                .stream()
+                .map(AdminCodeDto::new)
+                .toList();
+    }
+
+    /** A logged-in user redeems a code to become admin. Returns a fresh token with the new role. */
+    public AuthResponse redeemCode(User user, String rawCode) {
+        if (user.getRole() == Role.ADMIN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Jesteś już administratorem");
+        }
+        AdminCode code = validate(rawCode);
+        markUsed(code, user.getEmail());
+        user.setRole(Role.ADMIN);
+        userRepository.save(user);
+
+        String token = jwtService.generateToken(user);
+        return new AuthResponse(token, user.getEmail(), user.getRole().name(), user.getId().toString());
+    }
+
+    /** Used during registration: validate a code and promote the (not-yet-saved) user to admin. */
+    public void applyCodeToNewUser(String rawCode, User user) {
+        AdminCode code = validate(rawCode);
+        markUsed(code, user.getEmail());
+        user.setRole(Role.ADMIN);
+    }
+
+    private AdminCode validate(String rawCode) {
+        if (rawCode == null || rawCode.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Kod administratora jest pusty");
+        }
+        AdminCode code = codeRepository.findByCode(rawCode.trim().toUpperCase())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nieprawidłowy kod administratora"));
+        if (code.isUsed()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ten kod został już wykorzystany");
+        }
+        return code;
+    }
+
+    private void markUsed(AdminCode code, String userEmail) {
+        code.setUsed(true);
+        code.setUsedByEmail(userEmail);
+        code.setRedeemedAt(LocalDateTime.now());
+        codeRepository.save(code);
+    }
+
+    private String randomCode() {
+        // Format: XXXX-XXXX-XXXX
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 12; i++) {
+            if (i > 0 && i % 4 == 0) {
+                sb.append('-');
+            }
+            sb.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
+        }
+        return sb.toString();
+    }
+}

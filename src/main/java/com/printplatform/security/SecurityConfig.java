@@ -38,8 +38,11 @@ public class SecurityConfig {
                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/{id}", "/api/listings/{id}/stl").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/listings/*/stl-files", "/api/listings/*/stl-files/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/listing/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/listings/{id}/upload-stl").authenticated()
+                .requestMatchers("/api/admin/codes/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/redeem").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

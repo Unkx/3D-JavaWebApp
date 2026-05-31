@@ -1,8 +1,8 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit, computed } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
-import { ListingService, Listing } from '../../services/listing.service';
+import { ListingService, Listing, StlFile } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
 import { AuthService } from '../../services/auth.service';
 import { StlViewerComponent } from '../../components/stl-viewer.component';
@@ -17,6 +17,7 @@ import { StlFileUploadComponent } from '../../components/stl-file-upload.compone
 })
 export class ListingDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
   private authService = inject(AuthService);
@@ -32,7 +33,24 @@ export class ListingDetailComponent implements OnInit {
   submitting = signal(false);
   viewerVersion = signal(0);
   viewerVisible = signal(true);
+  deletingListing = signal(false);
   currentUser = this.authService.currentUser;
+
+  // Multiple STL files
+  stlFiles = signal<StlFile[]>([]);
+  selectedFileId = signal<string | null>(null);
+  deletingFileId = signal<string | null>(null);
+
+  selectedFile = computed(() =>
+    this.stlFiles().find(f => f.id === this.selectedFileId()) ?? null
+  );
+
+  selectedFileUrl = computed(() => {
+    const id = this.selectedFileId();
+    const listing = this.listing();
+    if (!id || !listing?.id) return null;
+    return `/api/listings/${listing.id}/stl-files/${id}?v=${this.viewerVersion()}`;
+  });
 
   canUploadFile = computed(() => {
     const user = this.currentUser();
@@ -40,6 +58,10 @@ export class ListingDetailComponent implements OnInit {
     if (!user || !listing) return false;
     return user.userId === listing.user?.id || user.role === 'ADMIN';
   });
+
+  // Owner or admin may delete the listing.
+  canManage = this.canUploadFile;
+  isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
 
   offerForm = this.fb.group({
     price: [null as number | null, [Validators.required, Validators.min(1)]],
@@ -57,6 +79,54 @@ export class ListingDetailComponent implements OnInit {
     const id = this.route.snapshot.paramMap.get('id')!;
     this.loadListing(id);
     this.loadOffers(id);
+    this.loadStlFiles(id);
+  }
+
+  private loadStlFiles(id: string): void {
+    this.listingService.getStlFiles(id).subscribe({
+      next: files => {
+        this.stlFiles.set(files);
+        // Keep current selection if still present, otherwise pick the first.
+        const current = this.selectedFileId();
+        if (!current || !files.some(f => f.id === current)) {
+          this.selectedFileId.set(files.length > 0 ? files[0].id : null);
+        }
+      },
+      error: () => this.stlFiles.set([])
+    });
+  }
+
+  selectFile(fileId: string): void {
+    if (this.selectedFileId() === fileId) return;
+    this.selectedFileId.set(fileId);
+    // Recreate the viewer so it re-fetches the newly selected model.
+    this.viewerVisible.set(false);
+    setTimeout(() => this.viewerVisible.set(true), 0);
+  }
+
+  deleteFile(fileId: string, event: Event): void {
+    event.stopPropagation();
+    if (!confirm('Usunąć ten plik?')) return;
+    const listingId = this.listing()?.id;
+    if (!listingId) return;
+
+    this.deletingFileId.set(fileId);
+    this.listingService.deleteStlFile(listingId, fileId).subscribe({
+      next: () => {
+        this.deletingFileId.set(null);
+        if (this.selectedFileId() === fileId) {
+          this.selectedFileId.set(null);
+        }
+        this.loadStlFiles(listingId);
+      },
+      error: () => this.deletingFileId.set(null)
+    });
+  }
+
+  fileSizeLabel(bytes: number | null): string {
+    if (!bytes) return '';
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   }
 
   private loadListing(id: string): void {
@@ -75,14 +145,26 @@ export class ListingDetailComponent implements OnInit {
   onFileUploaded(): void {
     const current = this.listing();
     if (!current?.id) return;
-    // Reload the listing so stlFileName populates, then destroy + recreate the
-    // viewer with a cache-busted URL so it re-fetches the newly uploaded model.
-    this.listingService.getListing(current.id).subscribe({
-      next: (data) => {
-        this.listing.set(data);
-        this.viewerVersion.update(v => v + 1);
-        this.viewerVisible.set(false);
-        setTimeout(() => this.viewerVisible.set(true), 0);
+    // Reload the file list; viewer will show the (still or newly) selected file.
+    this.viewerVersion.update(v => v + 1);
+    this.loadStlFiles(current.id);
+  }
+
+  deleteListing(): void {
+    const listing = this.listing();
+    if (!listing?.id) return;
+    const asAdmin = this.isAdmin() && this.currentUser()?.userId !== listing.user?.id;
+    const msg = asAdmin
+      ? 'Usunąć to zlecenie jako administrator? Tej operacji nie można cofnąć.'
+      : 'Czy na pewno chcesz usunąć to zlecenie? Tej operacji nie można cofnąć.';
+    if (!confirm(msg)) return;
+
+    this.deletingListing.set(true);
+    this.listingService.deleteListing(listing.id).subscribe({
+      next: () => this.router.navigate(['/zlecenia']),
+      error: () => {
+        this.deletingListing.set(false);
+        this.listingError.set('Nie udało się usunąć zlecenia.');
       }
     });
   }

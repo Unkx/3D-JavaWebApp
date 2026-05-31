@@ -126,6 +126,30 @@
 .btn--primary:disabled { opacity: 0.65; cursor: not-allowed; }
 .btn--secondary { background: #f3f4f6; color: #374151; }
 .btn--secondary:hover { background: #e5e7eb; }
+.btn--danger { background: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+.btn--danger:hover:not(:disabled) { background: #fee2e2; }
+.btn--danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.listing__manage {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  margin-top: 0.25rem;
+  border-top: 1px dashed #e5e7eb;
+}
+.admin-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #1d4ed8;
+  background: #eff6ff;
+  padding: 0.25rem 0.625rem;
+  border-radius: 999px;
+}
 
 .btn-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; }
 
@@ -145,6 +169,72 @@
   border-radius: 8px;
   overflow: hidden;
 }
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+}
+.image-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+/* File tabs (multiple STL files) */
+.file-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.file-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #374151;
+  transition: background 0.15s, border-color 0.15s;
+  max-width: 100%;
+}
+.file-tab:hover { background: #e5e7eb; }
+.file-tab--active {
+  background: #eff6ff;
+  border-color: #2563eb;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+.file-tab__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+.file-tab__size { font-size: 0.72rem; color: #9ca3af; }
+.file-tab--active .file-tab__size { color: #60a5fa; }
+.file-tab__del {
+  border: none;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 0.85rem;
+  line-height: 1;
+  padding: 0.1rem 0.25rem;
+  border-radius: 4px;
+}
+.file-tab__del:hover:not(:disabled) { background: #fee2e2; color: #dc2626; }
+.file-tab__del:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 600px) {
   .offer-form__grid { grid-template-columns: 1fr; }
