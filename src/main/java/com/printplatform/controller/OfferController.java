@@ -1,10 +1,11 @@
 package com.printplatform.controller;
 
+import com.printplatform.dto.CreateOfferRequest;
 import com.printplatform.model.*;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -36,9 +37,25 @@ public class OfferController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Offer createOffer(@RequestBody Offer offer,
+    public Offer createOffer(@Valid @RequestBody CreateOfferRequest request,
                              @AuthenticationPrincipal User user) {
+        Listing listing = listingRepository.findById(request.getListingId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
+
+        if (listing.getStatus() != null && listing.getStatus() != ListingStatus.OPEN) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Zlecenie nie przyjmuje już ofert");
+        }
+        if (listing.getUser().getId().equals(user.getId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie możesz złożyć oferty na własne zlecenie");
+        }
+
+        Offer offer = new Offer();
+        offer.setListing(listing);
         offer.setUser(user);
+        offer.setPrice(request.getPrice());
+        offer.setPrintingTimeHours(request.getPrintingTimeHours());
+        offer.setFilamentGrams(request.getFilamentGrams());
+        offer.setPrinterModel(request.getPrinterModel());
         offer.setStatus(OfferStatus.PENDING);
         return offerRepository.save(offer);
     }

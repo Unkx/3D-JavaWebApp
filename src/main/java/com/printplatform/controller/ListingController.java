@@ -1,5 +1,7 @@
 package com.printplatform.controller;
 
+import com.printplatform.dto.CreateListingRequest;
+import com.printplatform.dto.PageResponse;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
@@ -8,6 +10,10 @@ import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.StlFileRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
@@ -36,8 +42,13 @@ public class ListingController {
     }
 
     @GetMapping
-    public List<Listing> getOpenListings() {
-        return listingRepository.findByStatus(ListingStatus.OPEN);
+    public PageResponse<Listing> getOpenListings(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        int safeSize = Math.clamp(size, 1, 50);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        return new PageResponse<>(listingRepository.findByStatus(ListingStatus.OPEN, pageable));
     }
 
     @GetMapping("/{id}")
@@ -53,8 +64,13 @@ public class ListingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Listing createListing(@RequestBody Listing listing,
+    public Listing createListing(@Valid @RequestBody CreateListingRequest request,
                                  @AuthenticationPrincipal User user) {
+        Listing listing = new Listing();
+        listing.setTitle(request.getTitle());
+        listing.setDescription(request.getDescription());
+        listing.setRequiredMaterial(request.getRequiredMaterial());
+        listing.setMaxBudget(request.getMaxBudget());
         listing.setUser(user);
         listing.setStatus(ListingStatus.OPEN);
         return listingRepository.save(listing);

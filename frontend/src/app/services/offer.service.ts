@@ -24,7 +24,14 @@ export class OfferService {
   }
 
   createOffer(offer: Offer): Observable<Offer> {
-    return this.http.post<Offer>(this.apiUrl, offer);
+    const payload = {
+      listingId: offer.listing?.id,
+      price: offer.price,
+      printingTimeHours: offer.printingTimeHours,
+      filamentGrams: offer.filamentGrams,
+      printerModel: offer.printerModel
+    };
+    return this.http.post<Offer>(this.apiUrl, payload);
   }
 
   selectOffer(offerId: string): Observable<Offer> {

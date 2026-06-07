@@ -7,6 +7,7 @@ import com.printplatform.model.StlFile;
 import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.StlFileRepository;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -53,9 +54,11 @@ public class StlFileController {
         String name = file.getFileName() != null ? file.getFileName() : "model.stl";
         String contentType = file.getContentType() != null ? file.getContentType() : "application/octet-stream";
         boolean isImage = contentType.startsWith("image/");
-        String disposition = (isImage ? "inline" : "attachment") + "; filename=\"" + name + "\"";
+        ContentDisposition disposition = ContentDisposition.builder(isImage ? "inline" : "attachment")
+                .filename(name)
+                .build();
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header(HttpHeaders.CONTENT_TYPE, contentType)
                 .body(file.getFileData());
     }
