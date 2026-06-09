@@ -5,6 +5,11 @@
   </a>
 
   <nav class="navbar__links" aria-label="Nawigacja główna">
+    <button class="btn-theme" (click)="theme.toggle()"
+            [attr.aria-label]="theme.isDark() ? 'Włącz jasny motyw' : 'Włącz ciemny motyw'"
+            [title]="theme.isDark() ? 'Jasny motyw' : 'Ciemny motyw'">
+      {{ theme.isDark() ? '☀️' : '🌙' }}
+    </button>
     <a routerLink="/zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">
       Zlecenia
     </a>

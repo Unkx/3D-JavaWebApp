@@ -1,1 +1,117 @@
-/* You can add global styles to this file, and also import other style files */
+/* ===== LIGHT THEME (default) ===== */
+:root {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+
+  --text-primary: #111827;
+  --text-body: #374151;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-dark: #1d4ed8;
+  --accent-light: #eff6ff;
+  --accent-border: #bfdbfe;
+  --accent-faint: #dbeafe;
+
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --suffix-bg: #f9fafb;
+
+  --success-bg: #dcfce7;
+  --success-text: #166534;
+  --success-border: #bbf7d0;
+  --success-bg-alt: #f0fdf4;
+
+  --error-bg: #fef2f2;
+  --error-text: #991b1b;
+  --error-border: #fecaca;
+  --error-text-bright: #dc2626;
+  --error-bg-deep: #fee2e2;
+
+  --warning-bg: #fefce8;
+  --warning-text: #713f12;
+  --warning-border: #fde68a;
+
+  --badge-bg: #e5e7eb;
+  --badge-text: #374151;
+
+  --tag-bg: #f3f4f6;
+  --tag-text: #374151;
+  --tag-budget-bg: #fefce8;
+  --tag-budget-text: #713f12;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ===== DARK THEME ===== */
+[data-theme="dark"] {
+  --bg: #0f1117;
+  --surface: #1a1d2e;
+  --surface-2: #1e2235;
+  --border: #2d3354;
+  --border-light: #252840;
+
+  --text-primary: #f1f5f9;
+  --text-body: #cbd5e1;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-dark: #60a5fa;
+  --accent-light: #172554;
+  --accent-border: #1e3a8a;
+  --accent-faint: #1e3a8a;
+
+  --input-bg: #1a1d2e;
+  --input-border: #374151;
+  --suffix-bg: #1e2235;
+
+  --success-bg: #14532d;
+  --success-text: #4ade80;
+  --success-border: #166534;
+  --success-bg-alt: #052e16;
+
+  --error-bg: #450a0a;
+  --error-text: #fca5a5;
+  --error-border: #7f1d1d;
+  --error-text-bright: #f87171;
+  --error-bg-deep: #3b0606;
+
+  --warning-bg: #3b1f02;
+  --warning-text: #fbbf24;
+  --warning-border: #92400e;
+
+  --badge-bg: #2d3354;
+  --badge-text: #94a3b8;
+
+  --tag-bg: #252840;
+  --tag-text: #cbd5e1;
+  --tag-budget-bg: #3b1f02;
+  --tag-budget-text: #fbbf24;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  transition: background-color 0.25s, color 0.25s;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  margin: 0;
+}
