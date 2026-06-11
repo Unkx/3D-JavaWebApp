@@ -52,11 +52,10 @@ export class ListingDetailComponent implements OnInit {
     return `/api/listings/${listing.id}/stl-files/${id}?v=${this.viewerVersion()}`;
   });
 
-  downloadUrl = computed(() => {
-    const id = this.selectedFileId();
+  zipDownloadUrl = computed(() => {
     const listing = this.listing();
-    if (!id || !listing?.id) return null;
-    return `/api/listings/${listing.id}/stl-files/${id}`;
+    if (!listing?.id) return null;
+    return `/api/listings/${listing.id}/stl-files/download-zip`;
   });
 
   canUploadFile = computed(() => {
