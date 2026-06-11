@@ -16,17 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @RestController
 @RequestMapping("/api/listings/{listingId}/stl-files")
@@ -67,68 +61,6 @@ public class StlFileController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header(HttpHeaders.CONTENT_TYPE, contentType)
                 .body(file.getFileData());
-    }
-
-    /** Download all files for a listing as a ZIP (public).
-     *  Structure: files/ for STL, images/ for images, README.txt from description. */
-    @GetMapping("/download-zip")
-    public ResponseEntity<byte[]> downloadZip(@PathVariable UUID listingId) throws IOException {
-        Listing listing = requireListing(listingId);
-        List<StlFile> files = stlFileRepository.findByListingIdOrderByCreatedAtAsc(listingId);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (ZipOutputStream zos = new ZipOutputStream(baos, StandardCharsets.UTF_8)) {
-            addReadme(zos, listing);
-            Map<String, Integer> usedNames = new HashMap<>();
-            for (StlFile file : files) {
-                if (file.getFileData() == null) continue;
-                boolean isImage = file.getContentType() != null && file.getContentType().startsWith("image/");
-                String folder = isImage ? "images/" : "files/";
-                String entryPath = uniqueEntry(folder + sanitizeEntryName(file.getFileName()), usedNames);
-                zos.putNextEntry(new ZipEntry(entryPath));
-                zos.write(file.getFileData());
-                zos.closeEntry();
-            }
-        }
-
-        String zipName = sanitizeEntryName(listing.getTitle()) + ".zip";
-        ContentDisposition disposition = ContentDisposition.attachment().filename(zipName).build();
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
-                .header(HttpHeaders.CONTENT_TYPE, "application/zip")
-                .body(baos.toByteArray());
-    }
-
-    private void addReadme(ZipOutputStream zos, Listing listing) throws IOException {
-        String desc = listing.getDescription();
-        if (desc == null || desc.isBlank()) return;
-        StringBuilder sb = new StringBuilder();
-        sb.append(listing.getTitle()).append('\n');
-        sb.append("=".repeat(Math.min(listing.getTitle().length(), 80))).append("\n\n");
-        if (listing.getRequiredMaterial() != null)
-            sb.append("Materiał: ").append(listing.getRequiredMaterial()).append('\n');
-        if (listing.getMaxBudget() != null)
-            sb.append("Budżet: do ").append(listing.getMaxBudget()).append(" zł\n");
-        sb.append('\n').append(desc);
-        zos.putNextEntry(new ZipEntry("README.txt"));
-        zos.write(sb.toString().getBytes(StandardCharsets.UTF_8));
-        zos.closeEntry();
-    }
-
-    private String sanitizeEntryName(String name) {
-        if (name == null || name.isBlank()) return "file";
-        return name.replaceAll("[/\\\\:*?\"<>|\\p{Cntrl}]", "_").strip();
-    }
-
-    private String uniqueEntry(String path, Map<String, Integer> counts) {
-        int count = counts.merge(path, 1, Integer::sum);
-        if (count == 1) return path;
-        int dot = path.lastIndexOf('.');
-        int slash = path.lastIndexOf('/');
-        if (dot > slash) {
-            return path.substring(0, dot) + " (" + count + ")" + path.substring(dot);
-        }
-        return path + " (" + count + ")";
     }
 
     /** Upload one or more STL files (owner or admin). */

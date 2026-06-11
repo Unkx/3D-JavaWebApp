@@ -55,7 +55,7 @@ export class ListingDetailComponent implements OnInit {
   zipDownloadUrl = computed(() => {
     const listing = this.listing();
     if (!listing?.id) return null;
-    return `/api/listings/${listing.id}/stl-files/download-zip`;
+    return `/api/listings/${listing.id}/download-zip`;
   });
 
   canUploadFile = computed(() => {

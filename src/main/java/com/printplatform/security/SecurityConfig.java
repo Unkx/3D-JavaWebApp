@@ -39,7 +39,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/{id}", "/api/listings/{id}/stl").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/listings", "/api/listings/{id}", "/api/listings/{id}/stl", "/api/listings/*/download-zip").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/listings/*/stl-files", "/api/listings/*/stl-files/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/listing/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/listings/{id}/upload-stl").authenticated()
