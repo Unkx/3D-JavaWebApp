@@ -1,6 +1,6 @@
 <div class="page">
-  <a routerLink="/zlecenia" class="back-link" aria-label="Wróć do listy zleceń">
-    ← Wróć do zleceń
+  <a routerLink="/zlecenia" class="back-link">
+    <span aria-hidden="true">← </span>Wróć do zleceń
   </a>
 
   @if (listingLoading()) {
@@ -112,13 +112,14 @@
 
           @if (zipDownloadUrl()) {
             <div class="viewer-actions">
-              <a
-                [href]="zipDownloadUrl()!"
+              <button
                 class="btn btn--download"
+                (click)="downloadZip()"
+                [disabled]="downloading()"
                 title="Pobierz wszystkie pliki jako ZIP — otwórz .stl w Cura, PrusaSlicer lub innym slicerze"
               >
-                ⬇ Pobierz pliki (.zip)
-              </a>
+                @if (downloading()) { ⏳ Pobieranie... } @else { ⬇ Pobierz pliki (.zip) }
+              </button>
               <span class="viewer-actions__hint">Zawiera pliki STL, obrazy i README — otwórz w Cura lub innym slicerze</span>
             </div>
           }

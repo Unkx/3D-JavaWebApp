@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, signal, inject, OnInit, computed } 
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { ListingService, Listing, StlFile } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
 import { AuthService } from '../../services/auth.service';
@@ -22,6 +23,7 @@ export class ListingDetailComponent implements OnInit {
   private offerService = inject(OfferService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private readonly http = inject(HttpClient);
 
   listing = signal<Listing | null>(null);
   offers = signal<Offer[]>([]);
@@ -34,6 +36,7 @@ export class ListingDetailComponent implements OnInit {
   viewerVersion = signal(0);
   viewerVisible = signal(true);
   deletingListing = signal(false);
+  downloading = signal(false);
   currentUser = this.authService.currentUser;
 
   // Multiple STL files
@@ -215,6 +218,23 @@ export class ListingDetailComponent implements OnInit {
         this.submitting.set(false);
         this.submitError.set('Nie udało się złożyć oferty. Spróbuj ponownie.');
       }
+    });
+  }
+
+  downloadZip(): void {
+    const url = this.zipDownloadUrl();
+    if (!url || this.downloading()) return;
+    this.downloading.set(true);
+    this.http.get(url, { responseType: 'blob' }).subscribe({
+      next: (blob) => {
+        const anchor = document.createElement('a');
+        anchor.href = URL.createObjectURL(blob);
+        anchor.download = (this.listing()?.title ?? 'listing') + '.zip';
+        anchor.click();
+        URL.revokeObjectURL(anchor.href);
+        this.downloading.set(false);
+      },
+      error: () => this.downloading.set(false)
     });
   }
 
