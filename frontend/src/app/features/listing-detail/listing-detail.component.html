@@ -109,6 +109,20 @@
               }
             }
           </div>
+
+          @if (selectedFile()?.kind !== 'image' && downloadUrl()) {
+            <div class="viewer-actions">
+              <a
+                [href]="downloadUrl()!"
+                [download]="selectedFile()?.fileName"
+                class="btn btn--download"
+                title="Pobierz plik STL i otwórz w Cura, PrusaSlicer lub innym slicerze"
+              >
+                ⬇ Pobierz STL
+              </a>
+              <span class="viewer-actions__hint">Otwórz w Cura, PrusaSlicer lub innym slicerze</span>
+            </div>
+          }
         </section>
       }
 
