@@ -88,6 +88,29 @@
 .offer-card__price { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); }
 .offer-card__details { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
 
+.offer-card__estimate {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+  font-size: 0.8125rem;
+}
+.estimate-range { color: var(--text-muted); }
+.price-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.price-verdict--cheap     { background: var(--success-bg);  color: var(--success-text); }
+.price-verdict--fair      { background: var(--accent-light); color: var(--accent-dark); }
+.price-verdict--expensive { background: var(--warning-bg);  color: var(--warning-text); }
+
 .offer-form__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem; }
 
 .field { display: flex; flex-direction: column; gap: 0.375rem; }

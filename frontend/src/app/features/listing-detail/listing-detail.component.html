@@ -167,6 +167,18 @@
                   <span>🖨️ {{ offer.printerModel }}</span>
                 }
               </div>
+              <div class="offer-card__estimate">
+                <span class="estimate-range">
+                  ⚡ Szac. koszt: {{ estimateCost(offer).low }}–{{ estimateCost(offer).high }} zł
+                </span>
+                @if (priceVsEstimate(offer) === 'cheap') {
+                  <span class="price-verdict price-verdict--cheap">↓ Poniżej szacunku</span>
+                } @else if (priceVsEstimate(offer) === 'expensive') {
+                  <span class="price-verdict price-verdict--expensive">↑ Powyżej szacunku</span>
+                } @else {
+                  <span class="price-verdict price-verdict--fair">✓ W szacowanym przedziale</span>
+                }
+              </div>
             </li>
           }
         </ul>

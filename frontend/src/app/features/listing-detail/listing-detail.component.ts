@@ -238,6 +238,21 @@ export class ListingDetailComponent implements OnInit {
     });
   }
 
+  estimateCost(offer: Offer): { low: number; high: number } {
+    const base = offer.filamentGrams * 0.06 + offer.printingTimeHours * 5;
+    return {
+      low: Math.max(1, Math.round(base * 0.8)),
+      high: Math.round(base * 1.35)
+    };
+  }
+
+  priceVsEstimate(offer: Offer): 'cheap' | 'fair' | 'expensive' {
+    const { low, high } = this.estimateCost(offer);
+    if (offer.price < low) return 'cheap';
+    if (offer.price > high) return 'expensive';
+    return 'fair';
+  }
+
   statusLabel(status: string | undefined): string {
     const map: Record<string, string> = {
       OPEN: 'Otwarte',
