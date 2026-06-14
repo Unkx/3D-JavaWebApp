@@ -13,6 +13,16 @@ export interface Listing {
   status?: string;
   createdAt?: string;
   user?: { id: string };
+  estimatorSize?: string;
+  estimatorQuality?: string;
+}
+
+export interface UpdateListingPayload {
+  description: string;
+  requiredMaterial: string;
+  maxBudget?: number | null;
+  estimatorSize?: string;
+  estimatorQuality?: string;
 }
 
 export interface StlFile {
@@ -20,7 +30,7 @@ export interface StlFile {
   fileName: string;
   fileSize: number | null;
   contentType?: string;
-  kind: 'stl' | 'image';
+  kind: 'stl' | 'obj' | 'image';
   createdAt: string;
 }
 
@@ -35,8 +45,8 @@ export interface PageResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class ListingService {
-  private http = inject(HttpClient);
-  private apiUrl = '/api/listings';
+  private readonly http = inject(HttpClient);
+  private readonly apiUrl = '/api/listings';
 
   getListings(page = 0, size = 12): Observable<PageResponse<Listing>> {
     return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?page=${page}&size=${size}`);
@@ -88,5 +98,13 @@ export class ListingService {
 
   deleteStlFile(listingId: string, fileId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${listingId}/stl-files/${fileId}`);
+  }
+
+  reorderStlFiles(listingId: string, orderedIds: string[]): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/${listingId}/stl-files/reorder`, orderedIds);
+  }
+
+  patchListing(id: string, payload: UpdateListingPayload): Observable<Listing> {
+    return this.http.patch<Listing>(`${this.apiUrl}/${id}`, payload);
   }
 }

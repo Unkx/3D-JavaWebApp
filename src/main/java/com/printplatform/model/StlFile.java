@@ -37,5 +37,8 @@ public class StlFile {
 
     private Long fileSize;
 
+    @Column(name = "sort_order")
+    private Integer sortOrder = 0;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

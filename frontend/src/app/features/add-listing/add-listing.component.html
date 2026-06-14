@@ -1,7 +1,7 @@
 <div class="page">
   <header class="page__header">
-    <a routerLink="/zlecenia" class="back-link" aria-label="Wróć do listy zleceń">
-      ← Wróć do zleceń
+    <a routerLink="/zlecenia" class="back-link">
+      <span aria-hidden="true">← </span>Wróć do zleceń
     </a>
     <h1 class="page__title">Dodaj zlecenie druku</h1>
     <p class="page__subtitle">Opisz co chcesz wydrukować, a drukarze złożą Ci oferty.</p>
@@ -107,6 +107,39 @@
       </p>
     </div>
 
+    <!-- Estymator kosztów -->
+    <div class="estimator" aria-label="Szybki estymator kosztów druku">
+      <div class="estimator__header">
+        <span aria-hidden="true">⚡</span>
+        <span class="estimator__title">Szybki estymator kosztów</span>
+        <span class="estimator__subtitle">dla materiału: <strong>{{ materialCtrl.value }}</strong></span>
+      </div>
+
+      <fieldset class="estimator__row">
+        <legend class="estimator__label">WIELKOŚĆ OBIEKTU</legend>
+        <div class="estimator__chips">
+          <button type="button" class="chip" [class.chip--active]="estimatorSize() === 'small'"  (click)="estimatorSize.set('small')">Mały</button>
+          <button type="button" class="chip" [class.chip--active]="estimatorSize() === 'medium'" (click)="estimatorSize.set('medium')">Średni</button>
+          <button type="button" class="chip" [class.chip--active]="estimatorSize() === 'large'"  (click)="estimatorSize.set('large')">Duży</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="estimator__row">
+        <legend class="estimator__label">JAKOŚĆ WYKOŃCZENIA</legend>
+        <div class="estimator__chips">
+          <button type="button" class="chip" [class.chip--active]="estimatorQuality() === 'fast'"   (click)="estimatorQuality.set('fast')">Szybki</button>
+          <button type="button" class="chip" [class.chip--active]="estimatorQuality() === 'normal'" (click)="estimatorQuality.set('normal')">Normal</button>
+          <button type="button" class="chip" [class.chip--active]="estimatorQuality() === 'ultra'"  (click)="estimatorQuality.set('ultra')">Ultra</button>
+        </div>
+      </fieldset>
+
+      <div class="estimator__result">
+        <span class="estimator__result-label"><span aria-hidden="true">⚡</span> SZACUNKOWY KOSZT</span>
+        <span class="estimator__result-value">{{ printEstimate().low }} – {{ printEstimate().high }} zł</span>
+      </div>
+      <p class="estimator__disclaimer">Podana cena jest jedynie szacunkiem i zależy od wagi modelu oraz czasu druku.</p>
+    </div>
+
     <!-- Maksymalny budżet -->
     <div class="field">
       <label class="field__label" for="budget">
@@ -138,7 +171,52 @@
       }
     </div>
 
-    <!-- Plik STL -->
+    <!-- Pliki modelu -->
+    <div class="field">
+      <span class="field__label">
+        Pliki modelu
+        <span class="field__optional">opcjonalnie</span>
+      </span>
+      <label
+        class="upload-zone"
+        [class.upload-zone--drag]="isDragging()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDropFiles($event)"
+      >
+        <span class="upload-zone__icon" aria-hidden="true">📁</span>
+        <span class="upload-zone__text">Kliknij lub przeciągnij pliki tutaj</span>
+        <span class="upload-zone__hint">.stl, .obj, .jpg, .png — maks. 50 MB / plik</span>
+        <input
+          #fileInput
+          type="file"
+          multiple
+          accept=".stl,.obj,.jpg,.jpeg,.png"
+          style="display:none"
+          (change)="onFilesSelected($event)"
+        />
+      </label>
+
+      @if (selectedFiles().length > 0) {
+        <ul class="file-list" aria-label="Wybrane pliki">
+          @for (file of selectedFiles(); track file.name) {
+            <li class="file-list__item">
+              <span class="file-list__icon" aria-hidden="true">{{ fileIcon(file) }}</span>
+              <span class="file-list__name">{{ file.name }}</span>
+              <span class="file-list__size">{{ formatSize(file.size) }}</span>
+              <button
+                type="button"
+                class="file-list__remove"
+                (click)="removeFile(file)"
+                [attr.aria-label]="'Usuń ' + file.name"
+              >✕</button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- Link do pliku STL (alternatywnie) -->
     <div class="field">
       <label class="field__label" for="stlUrl">
         Link do pliku STL
@@ -155,7 +233,7 @@
         aria-describedby="stlUrl-error stlUrl-hint"
       />
       <p id="stlUrl-hint" class="field__hint">
-        Możesz wkleić link do pliku STL z Thingiverse, Google Drive lub innego hostingu.
+        Alternatywnie możesz wkleić link do pliku STL z Thingiverse, Google Drive lub innego hostingu.
       </p>
       @if (stlUrlCtrl.invalid && stlUrlCtrl.touched) {
         <p id="stlUrl-error" class="field__error" role="alert">

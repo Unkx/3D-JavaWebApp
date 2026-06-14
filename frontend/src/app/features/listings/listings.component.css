@@ -173,6 +173,11 @@
   color: var(--tag-budget-text);
 }
 
+.tag--size {
+  background: var(--accent-light);
+  color: var(--accent-dark);
+}
+
 /* Status badges */
 .status-badge {
   flex-shrink: 0;

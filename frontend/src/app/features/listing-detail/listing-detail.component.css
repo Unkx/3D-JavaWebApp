@@ -60,6 +60,7 @@
 
 .tag { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.625rem; background: var(--tag-bg); color: var(--tag-text); font-size: 0.8125rem; font-weight: 500; border-radius: 6px; }
 .tag--budget { background: var(--tag-budget-bg); color: var(--tag-budget-text); }
+.tag--size   { background: var(--accent-light);  color: var(--accent-dark); }
 .tag--link { text-decoration: none; background: var(--accent-light); color: var(--accent-dark); transition: background 0.15s; }
 .tag--link:hover { background: var(--accent-faint); }
 
@@ -193,6 +194,21 @@
   overflow: hidden;
 }
 
+.model-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.model-placeholder__icon { font-size: 3rem; }
+.model-placeholder__text { font-size: 0.9rem; color: var(--text-secondary); margin: 0; text-align: center; }
+
 .image-preview {
   width: 100%;
   height: 100%;
@@ -269,6 +285,15 @@
   color: var(--accent-dark);
   font-weight: 600;
 }
+.file-tab--draggable { cursor: grab; }
+.file-tab--draggable:active { cursor: grabbing; }
+.file-tab__grip {
+  font-size: 1rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  user-select: none;
+}
+
 .file-tab__name {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -289,6 +314,171 @@
 }
 .file-tab__del:hover:not(:disabled) { background: var(--error-bg); color: var(--error-text-bright); }
 .file-tab__del:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Inline edit form */
+.btn-edit-toggle {
+  margin-left: auto;
+  padding: 0.25rem 0.625rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-edit-toggle:hover { background: var(--badge-bg); color: var(--text-primary); }
+
+.edit-form { display: flex; flex-direction: column; gap: 0.875rem; margin-top: 0.5rem; }
+.edit-form__error { font-size: 0.85rem; color: var(--error-text-bright); margin: 0; }
+.edit-form__actions { display: flex; gap: 0.625rem; justify-content: flex-end; padding-top: 0.25rem; }
+
+.edit-field { display: flex; flex-direction: column; gap: 0.3rem; }
+.edit-field__label { font-size: 0.875rem; font-weight: 600; color: var(--text-body); }
+.edit-field__input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--input-bg);
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.edit-field__input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.edit-field__textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+.edit-field__select { cursor: pointer; appearance: auto; }
+.edit-field__row { display: flex; }
+.edit-field__row .edit-field__input { border-radius: 8px 0 0 8px; border-right: none; }
+.edit-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.25rem; }
+
+.edit-field__suffix {
+  padding: 0.5rem 0.75rem;
+  background: var(--suffix-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* Owner estimator summary */
+.owner-estimate-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+.owner-estimate-summary__label { color: var(--accent-dark); font-weight: 600; }
+.owner-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.15rem 0.5rem;
+  background: var(--surface);
+  border: 1px solid var(--accent-border);
+  border-radius: 999px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+/* Cost estimator widget */
+.estimator {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.estimator__icon { font-style: normal; }
+
+.estimator__row {
+  border: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.estimator__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.estimator__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.375rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.chip:hover:not(.chip--active) { background: var(--badge-bg); border-color: var(--text-muted); }
+.chip--active {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+  color: var(--surface);
+}
+
+.estimator__result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--surface-2);
+  border-radius: 8px;
+  margin-top: 0.25rem;
+}
+.estimator__result-label {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+.estimator__result-value {
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-style: italic;
+  color: var(--text-primary);
+}
+
+.estimator__disclaimer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
+}
 
 @media (max-width: 600px) {
   .offer-form__grid { grid-template-columns: 1fr; }

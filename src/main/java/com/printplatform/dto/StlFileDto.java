@@ -17,7 +17,13 @@ public class StlFileDto {
         this.fileName = f.getFileName();
         this.fileSize = f.getFileSize();
         this.contentType = f.getContentType();
-        this.kind = (f.getContentType() != null && f.getContentType().startsWith("image/")) ? "image" : "stl";
+        if (f.getContentType() != null && f.getContentType().startsWith("image/")) {
+            this.kind = "image";
+        } else if ("model/obj".equals(f.getContentType())) {
+            this.kind = "obj";
+        } else {
+            this.kind = "stl";
+        }
         this.createdAt = f.getCreatedAt();
     }
 

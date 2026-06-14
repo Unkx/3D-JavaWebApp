@@ -2,6 +2,7 @@ package com.printplatform.controller;
 
 import com.printplatform.dto.CreateListingRequest;
 import com.printplatform.dto.PageResponse;
+import com.printplatform.dto.UpdateListingRequest;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
@@ -80,8 +81,25 @@ public class ListingController {
         listing.setDescription(request.getDescription());
         listing.setRequiredMaterial(request.getRequiredMaterial());
         listing.setMaxBudget(request.getMaxBudget());
+        listing.setEstimatorSize(request.getEstimatorSize());
+        listing.setEstimatorQuality(request.getEstimatorQuality());
         listing.setUser(user);
         listing.setStatus(ListingStatus.OPEN);
+        return listingRepository.save(listing);
+    }
+
+    @PatchMapping("/{id}")
+    public Listing updateListing(@PathVariable UUID id,
+                                  @RequestBody UpdateListingRequest request,
+                                  @AuthenticationPrincipal User user) {
+        Listing listing = listingRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
+        requireOwnerOrAdmin(listing, user);
+        if (request.getDescription() != null) listing.setDescription(request.getDescription());
+        if (request.getRequiredMaterial() != null) listing.setRequiredMaterial(request.getRequiredMaterial());
+        listing.setMaxBudget(request.getMaxBudget());
+        if (request.getEstimatorSize() != null) listing.setEstimatorSize(request.getEstimatorSize());
+        if (request.getEstimatorQuality() != null) listing.setEstimatorQuality(request.getEstimatorQuality());
         return listingRepository.save(listing);
     }
 
@@ -171,7 +189,7 @@ public class ListingController {
     public ResponseEntity<byte[]> downloadZip(@PathVariable UUID id) throws IOException {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
-        List<StlFile> files = stlFileRepository.findByListingIdOrderByCreatedAtAsc(id);
+        List<StlFile> files = stlFileRepository.findByListingIdOrderBySortOrderAscCreatedAtAsc(id);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos, StandardCharsets.UTF_8)) {

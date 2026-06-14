@@ -16,11 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import jakarta.transaction.Transactional;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/listings/{listingId}/stl-files")
@@ -29,7 +33,7 @@ public class StlFileController {
     private static final long MAX_FILE_SIZE = 50L * 1024 * 1024; // 50MB per file
     private static final int MAX_FILES_PER_LISTING = 20;
     private static final Set<String> ALLOWED_EXTENSIONS =
-            Set.of("stl", "png", "jpg", "jpeg", "gif", "webp");
+            Set.of("stl", "obj", "png", "jpg", "jpeg", "gif", "webp");
 
     private final StlFileRepository stlFileRepository;
     private final ListingRepository listingRepository;
@@ -42,7 +46,7 @@ public class StlFileController {
     /** List the STL files attached to a listing (public, metadata only). */
     @GetMapping
     public List<StlFileDto> list(@PathVariable UUID listingId) {
-        return stlFileRepository.findByListingIdOrderByCreatedAtAsc(listingId)
+        return stlFileRepository.findByListingIdOrderBySortOrderAscCreatedAtAsc(listingId)
                 .stream().map(StlFileDto::new).toList();
     }
 
@@ -82,6 +86,7 @@ public class StlFileController {
         }
 
         List<StlFileDto> saved = new ArrayList<>();
+        int nextOrder = (int) existing;
         for (MultipartFile file : files) {
             validate(file);
             try {
@@ -91,6 +96,7 @@ public class StlFileController {
                 entity.setContentType(resolveContentType(file));
                 entity.setFileData(file.getBytes());
                 entity.setFileSize(file.getSize());
+                entity.setSortOrder(nextOrder++);
                 saved.add(new StlFileDto(stlFileRepository.save(entity)));
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -98,6 +104,25 @@ public class StlFileController {
             }
         }
         return saved;
+    }
+
+    /** Update the display order of files (owner or admin). Body: ordered list of file UUIDs. */
+    @PatchMapping("/reorder")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Transactional
+    public void reorder(@PathVariable UUID listingId,
+                        @RequestBody List<UUID> orderedIds,
+                        @AuthenticationPrincipal User user) {
+        requireOwnerOrAdmin(requireListing(listingId), user);
+        Map<UUID, StlFile> byId = stlFileRepository
+                .findByListingIdOrderBySortOrderAscCreatedAtAsc(listingId)
+                .stream().collect(Collectors.toMap(StlFile::getId, f -> f));
+        List<StlFile> toSave = new ArrayList<>();
+        for (int i = 0; i < orderedIds.size(); i++) {
+            StlFile f = byId.get(orderedIds.get(i));
+            if (f != null) { f.setSortOrder(i); toSave.add(f); }
+        }
+        stlFileRepository.saveAll(toSave);
     }
 
     /** Delete one STL file (owner or admin). */
@@ -161,6 +186,7 @@ public class StlFileController {
             case "jpg", "jpeg" -> "image/jpeg";
             case "gif" -> "image/gif";
             case "webp" -> "image/webp";
+            case "obj" -> "model/obj";
             default -> "model/stl";
         };
     }

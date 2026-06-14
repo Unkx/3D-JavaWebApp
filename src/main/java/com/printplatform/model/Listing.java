@@ -44,5 +44,8 @@ public class Listing {
 
     private String stlFileName; // Original filename of uploaded file
 
+    private String estimatorSize;    // "small" | "medium" | "large"
+    private String estimatorQuality; // "fast" | "normal" | "ultra"
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }

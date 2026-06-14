@@ -52,6 +52,10 @@ export class ListingsComponent implements OnInit {
     });
   }
 
+  sizeLabel(v: string | undefined): string {
+    return ({ small: 'Mały', medium: 'Średni', large: 'Duży' } as Record<string, string>)[v ?? ''] ?? '';
+  }
+
   statusLabel(status: string | undefined): string {
     const map: Record<string, string> = {
       OPEN: 'Otwarte',

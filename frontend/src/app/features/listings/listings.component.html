@@ -43,6 +43,9 @@
             <p class="listing-card__description">{{ listing.description }}</p>
             <div class="listing-card__meta">
               <span class="tag">🧱 {{ listing.requiredMaterial }}</span>
+              @if (listing.estimatorSize) {
+                <span class="tag tag--size">📐 {{ sizeLabel(listing.estimatorSize) }}</span>
+              }
               @if (listing.maxBudget) {
                 <span class="tag tag--budget">💰 do {{ listing.maxBudget }} zł</span>
               }

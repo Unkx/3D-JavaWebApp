@@ -26,6 +26,12 @@
 
         <div class="listing__meta">
           <span class="tag">🧱 {{ listing()!.requiredMaterial }}</span>
+          @if (listing()!.estimatorSize) {
+            <span class="tag tag--size">📐 {{ sizeLabel(listing()!.estimatorSize) }}</span>
+          }
+          @if (listing()!.estimatorQuality) {
+            <span class="tag tag--size">⚙️ {{ qualityLabel(listing()!.estimatorQuality) }}</span>
+          }
           @if (listing()!.maxBudget) {
             <span class="tag tag--budget">💰 Budżet: do {{ listing()!.maxBudget }} zł</span>
           }
@@ -74,12 +80,21 @@
                 <div
                   class="file-tab"
                   [class.file-tab--active]="selectedFileId() === f.id"
+                  [class.file-tab--draggable]="canManage()"
                   role="tab"
                   [attr.aria-selected]="selectedFileId() === f.id"
+                  [draggable]="canManage()"
+                  (dragstart)="onDragStart(f.id)"
+                  (dragover)="onDragOver($event)"
+                  (drop)="onDrop($event, f.id)"
+                  (dragend)="onDragEnd()"
                   (click)="selectFile(f.id)"
                   (keyup.enter)="selectFile(f.id)"
                   tabindex="0"
                 >
+                  @if (canManage()) {
+                    <span class="file-tab__grip" aria-hidden="true">⠿</span>
+                  }
                   <span class="file-tab__name">{{ f.kind === 'image' ? '🖼️' : '📄' }} {{ f.fileName }}</span>
                   @if (f.fileSize) {
                     <span class="file-tab__size">{{ fileSizeLabel(f.fileSize) }}</span>
@@ -104,6 +119,12 @@
                 <div class="image-preview">
                   <img [src]="selectedFileUrl()" [alt]="selectedFile()?.fileName" />
                 </div>
+              } @else if (selectedFile()?.kind === 'obj') {
+                <div class="model-placeholder">
+                  <span class="model-placeholder__icon" aria-hidden="true">📦</span>
+                  <p class="model-placeholder__text">Podgląd plików .obj nie jest dostępny w przeglądarce.</p>
+                  <a [href]="selectedFileUrl()!" class="btn btn--download" download>⬇ Pobierz plik OBJ</a>
+                </div>
               } @else {
                 <app-stl-viewer [stlUrl]="selectedFileUrl()"></app-stl-viewer>
               }
@@ -127,8 +148,111 @@
       }
 
       <section class="listing__description" aria-label="Opis zlecenia">
-        <h2 class="section-title">Opis</h2>
-        <p>{{ listing()!.description }}</p>
+        <h2 class="section-title">
+          Opis
+          @if (canManage()) {
+            <button class="btn-edit-toggle" (click)="editMode() ? cancelEdit() : openEdit()"
+                    [attr.aria-expanded]="editMode()">
+              {{ editMode() ? '✕ Anuluj' : '✏️ Edytuj' }}
+            </button>
+          }
+        </h2>
+
+        @if (editMode()) {
+          <form class="edit-form" (ngSubmit)="saveEdit()" novalidate>
+            @if (editError()) {
+              <p class="edit-form__error" role="alert">{{ editError() }}</p>
+            }
+            <div class="edit-field">
+              <label class="edit-field__label" for="edit-desc">Opis</label>
+              <textarea id="edit-desc" class="edit-field__input edit-field__textarea"
+                        [formControl]="$any(editForm.get('description'))"
+                        maxlength="2000" rows="5"></textarea>
+            </div>
+            <div class="edit-field">
+              <label class="edit-field__label" for="edit-mat">Materiał</label>
+              <select id="edit-mat" class="edit-field__input edit-field__select"
+                      [formControl]="$any(editForm.get('requiredMaterial'))">
+                @for (m of editMaterials; track m) {
+                  <option [value]="m">{{ m }}</option>
+                }
+              </select>
+            </div>
+            <div class="edit-field">
+              <label class="edit-field__label" for="edit-budget">Maksymalny budżet (PLN)</label>
+              <div class="edit-field__row">
+                <input id="edit-budget" type="number" class="edit-field__input"
+                       [formControl]="$any(editForm.get('maxBudget'))"
+                       min="1" step="1" placeholder="opcjonalnie" />
+                <span class="edit-field__suffix" aria-hidden="true">zł</span>
+              </div>
+            </div>
+            <fieldset class="edit-field">
+              <legend class="edit-field__label">Wielkość obiektu</legend>
+              <div class="edit-chips">
+                <button type="button" class="chip" [class.chip--active]="editSize() === 'small'"  (click)="editSize.set('small')">Mały</button>
+                <button type="button" class="chip" [class.chip--active]="editSize() === 'medium'" (click)="editSize.set('medium')">Średni</button>
+                <button type="button" class="chip" [class.chip--active]="editSize() === 'large'"  (click)="editSize.set('large')">Duży</button>
+              </div>
+            </fieldset>
+
+            <fieldset class="edit-field">
+              <legend class="edit-field__label">Jakość wykończenia</legend>
+              <div class="edit-chips">
+                <button type="button" class="chip" [class.chip--active]="editQuality() === 'fast'"   (click)="editQuality.set('fast')">Szybki</button>
+                <button type="button" class="chip" [class.chip--active]="editQuality() === 'normal'" (click)="editQuality.set('normal')">Normal</button>
+                <button type="button" class="chip" [class.chip--active]="editQuality() === 'ultra'"  (click)="editQuality.set('ultra')">Ultra</button>
+              </div>
+            </fieldset>
+
+            <div class="edit-form__actions">
+              <button type="button" class="btn btn--secondary" (click)="cancelEdit()">Anuluj</button>
+              <button type="submit" class="btn btn--primary" [disabled]="editSaving()">
+                @if (editSaving()) { Zapisywanie... } @else { Zapisz zmiany }
+              </button>
+            </div>
+          </form>
+        } @else {
+          <p>{{ listing()!.description }}</p>
+
+        }
+      </section>
+
+      <section class="estimator" aria-label="Szybki estymator kosztów druku">
+        <h2 class="section-title">
+          <span class="estimator__icon" aria-hidden="true">⚡</span>
+          Szybki estymator kosztów
+        </h2>
+
+        <fieldset class="estimator__row">
+          <legend class="estimator__label">WIELKOŚĆ OBIEKTU</legend>
+          <div class="estimator__chips">
+            <button class="chip" [class.chip--active]="estimatorSize() === 'small'"  (click)="estimatorSize.set('small')">Mały</button>
+            <button class="chip" [class.chip--active]="estimatorSize() === 'medium'" (click)="estimatorSize.set('medium')">Średni</button>
+            <button class="chip" [class.chip--active]="estimatorSize() === 'large'"  (click)="estimatorSize.set('large')">Duży</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="estimator__row">
+          <legend class="estimator__label">JAKOŚĆ WYKOŃCZENIA</legend>
+          <div class="estimator__chips">
+            <button class="chip" [class.chip--active]="estimatorQuality() === 'fast'"   (click)="estimatorQuality.set('fast')">Szybki</button>
+            <button class="chip" [class.chip--active]="estimatorQuality() === 'normal'" (click)="estimatorQuality.set('normal')">Normal</button>
+            <button class="chip" [class.chip--active]="estimatorQuality() === 'ultra'"  (click)="estimatorQuality.set('ultra')">Ultra</button>
+          </div>
+        </fieldset>
+
+        <div class="estimator__result">
+          <span class="estimator__result-label">
+            <span aria-hidden="true">⚡</span> SZACUNKOWY KOSZT
+          </span>
+          <span class="estimator__result-value">
+            {{ printEstimate().low }} – {{ printEstimate().high }} zł
+          </span>
+        </div>
+        <p class="estimator__disclaimer">
+          Podana cena jest jedynie szacunkiem i zależy od wagi modelu oraz czasu druku.
+        </p>
       </section>
     </article>
 
