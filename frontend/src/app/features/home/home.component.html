@@ -1,7 +1,7 @@
 <!-- HERO -->
 <section class="hero" aria-labelledby="hero-title">
   <div class="hero__content">
-    <span class="hero__badge">🖨️ Platforma druku 3D</span>
+    <span class="hero__badge">Platforma druku 3D</span>
     <h1 class="hero__title" id="hero-title">
       Zlecaj druk 3D<br>
       <span class="hero__accent">szybko i tanio</span>
@@ -13,7 +13,7 @@
     <div class="hero__actions">
       @if (auth.isLoggedIn()) {
         <a routerLink="/dodaj-zlecenie" class="btn btn--primary btn--lg">
-          + Dodaj zlecenie
+          Dodaj zlecenie
         </a>
         <a routerLink="/zlecenia" class="btn btn--outline btn--lg">
           Przeglądaj zlecenia
@@ -29,10 +29,63 @@
     </div>
     <p class="hero__note">Rejestracja bezpłatna · Brak ukrytych opłat</p>
   </div>
+
   <div class="hero__visual" aria-hidden="true">
-    <div class="hero__printer">🖨️</div>
-    <div class="hero__orb hero__orb--1"></div>
-    <div class="hero__orb hero__orb--2"></div>
+    <svg class="hero__svg" viewBox="0 0 320 320" fill="none">
+      <defs>
+        <pattern id="hero-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+          <circle cx="0" cy="0" r="1" fill="var(--accent-border)"/>
+        </pattern>
+      </defs>
+      <rect width="320" height="320" fill="url(#hero-dots)" opacity="0.7"/>
+
+      <!-- Outer frame -->
+      <rect x="36" y="36" width="248" height="248" rx="6" stroke="var(--border)" stroke-width="1"/>
+
+      <!-- Vertical guide rails -->
+      <line x1="100" y1="56" x2="100" y2="272" stroke="var(--accent-border)" stroke-width="1" stroke-dasharray="3,7"/>
+      <line x1="220" y1="56" x2="220" y2="272" stroke="var(--accent-border)" stroke-width="1" stroke-dasharray="3,7"/>
+
+      <!-- Print bed platform -->
+      <rect x="76" y="264" width="168" height="6" rx="2" fill="var(--accent-border)"/>
+
+      <!-- Printed layers — bottom to top -->
+      <rect x="100" y="244" width="120" height="18" rx="2" fill="var(--accent)" opacity="0.22"/>
+      <rect x="100" y="226" width="120" height="16" rx="2" fill="var(--accent)" opacity="0.32"/>
+      <rect x="100" y="210" width="120" height="14" rx="2" fill="var(--accent)" opacity="0.42"/>
+      <rect x="100" y="196" width="120" height="12" rx="2" fill="var(--accent)" opacity="0.72"/>
+
+      <!-- Current scan line -->
+      <rect x="56" y="188" width="208" height="1.5" rx="0.75" fill="var(--accent)" opacity="0.35"/>
+
+      <!-- Print head -->
+      <rect x="130" y="173" width="60" height="15" rx="3" fill="var(--accent)"/>
+      <!-- Nozzle dots -->
+      <circle cx="148" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
+      <circle cx="160" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
+      <circle cx="172" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
+      <!-- Nozzle glow -->
+      <ellipse cx="160" cy="188" rx="22" ry="6" fill="var(--accent)" opacity="0.18"/>
+
+      <!-- Future layers (dashed) -->
+      <rect x="104" y="156" width="112" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.32"/>
+      <rect x="108" y="140" width="104" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.22"/>
+      <rect x="112" y="124" width="96" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.15"/>
+      <rect x="116" y="108" width="88" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.1"/>
+
+      <!-- Dimension callouts (precision feel) -->
+      <line x1="56" y1="196" x2="90" y2="196" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
+      <line x1="56" y1="244" x2="90" y2="244" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
+      <line x1="62" y1="196" x2="62" y2="244" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
+      <line x1="59" y1="196" x2="65" y2="196" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
+      <line x1="59" y1="244" x2="65" y2="244" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
+
+      <!-- Corner accent marks -->
+      <path d="M36 56L36 36L56 36" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <path d="M284 56L284 36L264 36" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <path d="M36 264L36 284L56 284" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <path d="M284 264L284 284L264 284" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+    </svg>
   </div>
 </section>
 
@@ -48,11 +101,11 @@
   </div>
   <div class="stat">
     <span class="stat__num">48h</span>
-    <span class="stat__label">Średni czas realizacji</span>
+    <span class="stat__label">Sredni czas realizacji</span>
   </div>
   <div class="stat">
-    <span class="stat__num">4.8★</span>
-    <span class="stat__label">Średnia ocena</span>
+    <span class="stat__num">4.8</span>
+    <span class="stat__label">Srednia ocena</span>
   </div>
 </section>
 
@@ -62,8 +115,7 @@
   <div class="steps">
     @for (step of steps; track step.title; let i = $index) {
       <div class="step">
-        <div class="step__num" aria-hidden="true">{{ i + 1 }}</div>
-        <div class="step__icon" aria-hidden="true">{{ step.icon }}</div>
+        <div class="step__num">0{{ i + 1 }}</div>
         <h3 class="step__title">{{ step.title }}</h3>
         <p class="step__desc">{{ step.desc }}</p>
       </div>
@@ -90,11 +142,11 @@
   <p class="cta__desc">Dołącz do społeczności i zrealizuj swój projekt już dziś.</p>
   @if (auth.isLoggedIn()) {
     <a routerLink="/dodaj-zlecenie" class="btn btn--primary btn--lg">
-      + Dodaj zlecenie
+      Dodaj zlecenie
     </a>
   } @else {
     <a routerLink="/logowanie" class="btn btn--primary btn--lg">
-      Utwórz konto — to nic nie kosztuje
+      Zacznij za darmo
     </a>
   }
 </section>

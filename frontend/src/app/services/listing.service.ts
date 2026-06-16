@@ -48,8 +48,10 @@ export class ListingService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/listings';
 
-  getListings(page = 0, size = 12): Observable<PageResponse<Listing>> {
-    return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?page=${page}&size=${size}`);
+  getListings(page = 0, size = 12, search = ''): Observable<PageResponse<Listing>> {
+    const q = search.trim();
+    const params = q ? `page=${page}&size=${size}&search=${encodeURIComponent(q)}` : `page=${page}&size=${size}`;
+    return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?${params}`);
   }
 
   getListing(id: string): Observable<Listing> {

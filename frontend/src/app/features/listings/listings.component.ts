@@ -1,6 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SlicePipe } from '@angular/common';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ListingService, Listing } from '../../services/listing.service';
 
 @Component({
@@ -10,21 +12,42 @@ import { ListingService, Listing } from '../../services/listing.service';
   styleUrl: './listings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ListingsComponent implements OnInit {
+export class ListingsComponent implements OnInit, OnDestroy {
   private listingService = inject(ListingService);
+  private readonly destroy$ = new Subject<void>();
+  private readonly search$ = new Subject<string>();
 
   private static readonly PAGE_SIZE = 12;
 
   listings = signal<Listing[]>([]);
-  loading = signal(true);          // initial load
-  loadingMore = signal(false);     // "load more" in progress
+  loading = signal(true);
+  loadingMore = signal(false);
   error = signal<string | null>(null);
   total = signal(0);
   hasMore = signal(false);
+  searchQuery = signal('');
   private nextPage = 0;
 
   ngOnInit(): void {
+    this.search$.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.nextPage = 0;
+      this.loadPage(true);
+    });
     this.loadPage(true);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onSearch(value: string): void {
+    this.searchQuery.set(value);
+    this.search$.next(value);
   }
 
   loadMore(): void {
@@ -35,7 +58,7 @@ export class ListingsComponent implements OnInit {
   private loadPage(initial: boolean): void {
     if (initial) { this.loading.set(true); } else { this.loadingMore.set(true); }
 
-    this.listingService.getListings(this.nextPage, ListingsComponent.PAGE_SIZE).subscribe({
+    this.listingService.getListings(this.nextPage, ListingsComponent.PAGE_SIZE, this.searchQuery()).subscribe({
       next: (res) => {
         this.listings.update(curr => initial ? res.content : [...curr, ...res.content]);
         this.total.set(res.totalElements);

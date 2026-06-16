@@ -11,21 +11,32 @@
   max-width: 420px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2.5rem 2rem;
-  box-shadow: var(--shadow-md);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2rem 2rem;
+  box-shadow: var(--shadow-lg);
 }
 
 .auth-logo {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   font-weight: 800;
   color: var(--text-primary);
   text-decoration: none;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   margin-bottom: 2rem;
+}
+
+.auth-logo__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--accent-gradient);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
 }
 
 /* Tabs */

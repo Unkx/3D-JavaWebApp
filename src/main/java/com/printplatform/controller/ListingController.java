@@ -54,11 +54,15 @@ public class ListingController {
     @GetMapping
     public PageResponse<Listing> getOpenListings(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
+            @RequestParam(defaultValue = "12") int size,
+            @RequestParam(defaultValue = "") String search) {
         int safeSize = Math.clamp(size, 1, 50);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return new PageResponse<>(listingRepository.findByStatus(ListingStatus.OPEN, pageable));
+        if (search.isBlank()) {
+            return new PageResponse<>(listingRepository.findByStatus(ListingStatus.OPEN, pageable));
+        }
+        return new PageResponse<>(listingRepository.searchByStatus(ListingStatus.OPEN, search.strip(), pageable));
     }
 
     @GetMapping("/{id}")

@@ -13,6 +13,34 @@
     </a>
   </header>
 
+  <div class="search-bar" role="search">
+    <label for="listing-search" class="visually-hidden">Szukaj zleceń</label>
+    <div class="search-bar__inner">
+      <span class="search-bar__icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </span>
+      <input
+        id="listing-search"
+        type="search"
+        class="search-bar__input"
+        placeholder="Szukaj po tytule lub opisie..."
+        [value]="searchQuery()"
+        (input)="onSearch($any($event.target).value)"
+        autocomplete="off"
+      />
+      @if (searchQuery()) {
+        <button
+          type="button"
+          class="search-bar__clear"
+          aria-label="Wyczyść wyszukiwanie"
+          (click)="onSearch('')"
+        >✕</button>
+      }
+    </div>
+  </div>
+
   @if (loading()) {
     <div class="state-box" aria-live="polite" aria-busy="true">
       <div class="spinner" aria-hidden="true"></div>
@@ -25,9 +53,14 @@
     </div>
   } @else if (listings().length === 0) {
     <div class="state-box state-box--empty">
-      <span class="state-box__icon" aria-hidden="true">📭</span>
-      <p>Brak zleceń. Bądź pierwszy!</p>
-      <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
+      <span class="state-box__icon" aria-hidden="true">{{ searchQuery() ? '🔍' : '📭' }}</span>
+      @if (searchQuery()) {
+        <p>Brak wyników dla „{{ searchQuery() }}"</p>
+        <button type="button" class="btn btn--secondary" (click)="onSearch('')">Wyczyść wyszukiwanie</button>
+      } @else {
+        <p>Brak zleceń. Bądź pierwszy!</p>
+        <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
+      }
     </div>
   } @else {
     <ul class="listing-grid" aria-label="Lista zleceń druku">
