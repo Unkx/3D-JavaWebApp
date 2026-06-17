@@ -52,10 +52,16 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+    }
+
     .stl-viewer-wrapper {
       position: relative;
       width: 100%;
-      height: 600px;
+      height: 100%;
+      min-height: 300px;
       border-radius: 8px;
       overflow: hidden;
     }
@@ -75,8 +81,8 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
       flex-direction: column;
       width: 100%;
       height: 100%;
-      background: #f5f5f5;
-      border: 1px solid #e0e0e0;
+      background: var(--surface-2, #f5f5f5);
+      border: 1px solid var(--border, #e0e0e0);
       border-radius: 8px;
     }
 

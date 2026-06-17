@@ -19,11 +19,12 @@
 }
 
 .page__title {
+  font-family: var(--font-display);
   font-size: 1.75rem;
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
 }
 
 .badge {
@@ -201,6 +202,7 @@
 }
 
 .listing-card__title {
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);

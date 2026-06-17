@@ -39,5 +39,7 @@ build/
 ### Mac OS ###
 .DS_Store
 
+.agents
+.continue
 
 startup.txt

@@ -1,6 +1,6 @@
 /* app.css */
 :host {
-  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-body);
   display: block;
   padding: 20px;
 }

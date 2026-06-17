@@ -89,25 +89,16 @@
   </div>
 </section>
 
-<!-- STATS -->
-<section class="stats" aria-label="Statystyki platformy">
-  <div class="stat">
-    <span class="stat__num">500+</span>
-    <span class="stat__label">Zrealizowanych zleceń</span>
-  </div>
-  <div class="stat">
-    <span class="stat__num">120+</span>
-    <span class="stat__label">Aktywnych drukarzy</span>
-  </div>
-  <div class="stat">
-    <span class="stat__num">48h</span>
-    <span class="stat__label">Sredni czas realizacji</span>
-  </div>
-  <div class="stat">
-    <span class="stat__num">4.8</span>
-    <span class="stat__label">Srednia ocena</span>
-  </div>
-</section>
+<!-- TRUST -->
+<p class="trust-line" aria-label="Statystyki platformy">
+  <span class="trust-line__item">500+ zleceń</span>
+  <span class="trust-line__sep" aria-hidden="true">·</span>
+  <span class="trust-line__item">120+ drukarzy</span>
+  <span class="trust-line__sep" aria-hidden="true">·</span>
+  <span class="trust-line__item">Średni czas 48h</span>
+  <span class="trust-line__sep" aria-hidden="true">·</span>
+  <span class="trust-line__item">Ocena 4.8★</span>
+</p>
 
 <!-- JAK TO DZIAŁA -->
 <section class="section" aria-labelledby="steps-title">
@@ -115,8 +106,7 @@
   <div class="steps">
     @for (step of steps; track step.title; let i = $index) {
       <div class="step">
-        <div class="step__num">0{{ i + 1 }}</div>
-        <h3 class="step__title">{{ step.title }}</h3>
+        <h3 class="step__title"><span class="step__num">{{ i + 1 }}</span>{{ step.title }}</h3>
         <p class="step__desc">{{ step.desc }}</p>
       </div>
     }
