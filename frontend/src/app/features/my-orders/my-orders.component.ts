@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ListingService, Listing } from '../../services/listing.service';
 import { OfferService, Offer, OrderTracking } from '../../services/offer.service';
+import { ConversationService } from '../../services/conversation.service';
 
 interface ListingWithOffers extends Listing {
   offersCount?: number;
@@ -20,6 +21,8 @@ interface ListingWithOffers extends Listing {
 export class MyOrdersComponent implements OnInit {
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
+  private conversationService = inject(ConversationService);
+  private router = inject(Router);
   private http = inject(HttpClient);
 
   listings = signal<ListingWithOffers[]>([]);
@@ -102,6 +105,15 @@ export class MyOrdersComponent implements OnInit {
         this.sendingTracking.set(false);
       },
       error: () => this.sendingTracking.set(false)
+    });
+  }
+
+  openMessage(offer: Offer): void {
+    const listingId = offer.listing?.id;
+    if (!listingId) return;
+    this.conversationService.createOrGet(listingId).subscribe({
+      next: conv => this.router.navigate(['/wiadomosci'], { queryParams: { conv: conv.id } }),
+      error: () => {}
     });
   }
 

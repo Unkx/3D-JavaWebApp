@@ -8,7 +8,7 @@ export interface Offer {
   printingTimeHours: number;
   filamentGrams: number;
   printerModel: string;
-  listing?: { id: string };
+  listing?: { id: string; title?: string };
   user?: { id: string; email?: string };
   status?: string;
   createdAt?: string;

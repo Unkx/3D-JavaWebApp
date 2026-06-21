@@ -141,6 +141,8 @@
 .btn--primary:hover { background: var(--accent-hover); }
 .btn--ghost       { background: transparent; color: var(--accent); border: 1px solid var(--accent-border); }
 .btn--ghost:hover { background: var(--accent-light); }
+.btn--outline { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
+.btn--outline:hover { background: var(--accent); color: #fff; }
 .btn--outline-warn { background: transparent; color: var(--warning-text); border: 1px solid var(--warning-border); }
 .btn--outline-warn:hover { background: var(--warning-bg); }
 .btn--outline-warn:disabled { opacity: 0.55; cursor: not-allowed; }

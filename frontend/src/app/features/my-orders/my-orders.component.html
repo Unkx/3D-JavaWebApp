@@ -114,7 +114,21 @@
                 </span>
                 <span class="order-card__price">{{ offer.price }} zl</span>
               </div>
+              <div class="order-card__actions">
+                @if (offer.listing?.id) {
+                  <a [routerLink]="['/zlecenia', offer.listing.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
+                }
+                @if (offer.listing?.id) {
+                  <button class="btn btn--outline" (click)="openMessage(offer)">&#x2709; Wiadomość</button>
+                }
+              </div>
             </div>
+
+            @if (offer.listing?.title) {
+              <h2 class="order-card__title">
+                <a [routerLink]="['/zlecenia', offer.listing.id]">{{ offer.listing.title }}</a>
+              </h2>
+            }
 
             <div class="order-card__details">
               <span>{{ offer.printingTimeHours }} h</span>
