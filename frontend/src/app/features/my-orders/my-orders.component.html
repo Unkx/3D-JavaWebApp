@@ -116,9 +116,7 @@
               </div>
               <div class="order-card__actions">
                 @if (offer.listing?.id) {
-                  <a [routerLink]="['/zlecenia', offer.listing.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
-                }
-                @if (offer.listing?.id) {
+                  <a [routerLink]="['/zlecenia', offer.listing!.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
                   <button class="btn btn--outline" (click)="openMessage(offer)">&#x2709; Wiadomość</button>
                 }
               </div>
@@ -126,7 +124,7 @@
 
             @if (offer.listing?.title) {
               <h2 class="order-card__title">
-                <a [routerLink]="['/zlecenia', offer.listing.id]">{{ offer.listing.title }}</a>
+                <a [routerLink]="['/zlecenia', offer.listing!.id]">{{ offer.listing!.title }}</a>
               </h2>
             }
 
