@@ -14,6 +14,15 @@ export interface Offer {
   createdAt?: string;
 }
 
+export interface OrderTracking {
+  id: string;
+  carrierName: string | null;
+  trackingNumber: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OfferService {
   private http = inject(HttpClient);
@@ -36,5 +45,21 @@ export class OfferService {
 
   selectOffer(offerId: string): Observable<Offer> {
     return this.http.put<Offer>(`${this.apiUrl}/${offerId}/select`, {});
+  }
+
+  getMyOffers(): Observable<Offer[]> {
+    return this.http.get<Offer[]>(`${this.apiUrl}/my`);
+  }
+
+  updateOfferStatus(offerId: string, status: string): Observable<Offer> {
+    return this.http.put<Offer>(`${this.apiUrl}/${offerId}/status`, { status });
+  }
+
+  updateTracking(offerId: string, carrierName: string, trackingNumber: string): Observable<OrderTracking> {
+    return this.http.put<OrderTracking>(`${this.apiUrl}/${offerId}/tracking`, { carrierName, trackingNumber });
+  }
+
+  getTracking(offerId: string): Observable<OrderTracking> {
+    return this.http.get<OrderTracking>(`${this.apiUrl}/${offerId}/tracking`);
   }
 }
