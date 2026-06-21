@@ -303,6 +303,27 @@
                   <span class="price-verdict price-verdict--fair">✓ W szacowanym przedziale</span>
                 }
               </div>
+              @if (currentUser() && (isOwner() || currentUser()?.userId === offer.userId)) {
+                <div class="offer-card__actions">
+                  @if (isOwner() && offer.status === 'PENDING' && listing()!.status === 'OPEN') {
+                    <button
+                      class="btn btn--accept"
+                      (click)="acceptOffer(offer)"
+                      [disabled]="acceptingOfferId() === offer.id"
+                    >
+                      @if (acceptingOfferId() === offer.id) {
+                        <span class="btn-spinner" aria-hidden="true"></span>
+                        Akceptowanie...
+                      } @else {
+                        ✓ Akceptuj ofertę
+                      }
+                    </button>
+                  }
+                  <button class="btn btn--outline" (click)="openMessage(offer)">
+                    ✉ Napisz wiadomość
+                  </button>
+                </div>
+              }
             </li>
           }
         </ul>

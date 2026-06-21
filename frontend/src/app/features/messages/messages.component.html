@@ -1,0 +1,95 @@
+<div class="page">
+  <h1 class="page__title">Wiadomości</h1>
+
+  <div class="chat-layout">
+    <!-- Conversation list -->
+    <aside class="conv-list" aria-label="Lista rozmów">
+      @if (loading()) {
+        <div class="state-box" aria-busy="true">
+          <div class="spinner" aria-hidden="true"></div>
+        </div>
+      } @else if (conversations().length === 0) {
+        <div class="state-box state-box--empty">
+          <p>Brak rozmów</p>
+        </div>
+      } @else {
+        <ul class="conv-items">
+          @for (conv of conversations(); track conv.id) {
+            <li
+              class="conv-item"
+              [class.conv-item--active]="selectedId() === conv.id"
+              [class.conv-item--unread]="conv.unreadCount > 0"
+              (click)="selectConversation(conv.id)"
+              (keyup.enter)="selectConversation(conv.id)"
+              tabindex="0"
+              role="button"
+              [attr.aria-current]="selectedId() === conv.id ? 'true' : null"
+            >
+              <div class="conv-item__top">
+                <span class="conv-item__title">{{ conv.listingTitle }}</span>
+                @if (conv.unreadCount > 0) {
+                  <span class="conv-item__badge">{{ conv.unreadCount }}</span>
+                }
+              </div>
+              <span class="conv-item__email">{{ conv.otherParticipantEmail }}</span>
+              @if (conv.lastMessageContent) {
+                <span class="conv-item__preview">{{ conv.lastMessageContent | slice:0:60 }}</span>
+              }
+              @if (conv.lastMessageAt) {
+                <time class="conv-item__time">{{ formatTime(conv.lastMessageAt) }}</time>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </aside>
+
+    <!-- Conversation view -->
+    <section class="chat-view" aria-label="Rozmowa">
+      @if (!selectedId()) {
+        <div class="chat-view__empty">
+          <p>Wybierz rozmowę z listy</p>
+        </div>
+      } @else {
+        @if (messagesLoading()) {
+          <div class="state-box" aria-busy="true">
+            <div class="spinner" aria-hidden="true"></div>
+          </div>
+        } @else {
+          <div class="chat-view__messages" #messageList>
+            @for (msg of messages(); track msg.id) {
+              <div class="bubble" [class.bubble--own]="isOwn(msg)" [class.bubble--other]="!isOwn(msg)">
+                <span class="bubble__sender">{{ msg.sender.email }}</span>
+                <p class="bubble__content">{{ msg.content }}</p>
+                <time class="bubble__time">{{ formatTime(msg.createdAt) }}</time>
+              </div>
+            }
+            @if (messages().length === 0) {
+              <p class="chat-view__no-messages">Brak wiadomości. Napisz pierwszą!</p>
+            }
+          </div>
+
+          <form class="chat-input" (ngSubmit)="sendMessage()" novalidate>
+            <input
+              type="text"
+              class="chat-input__field"
+              placeholder="Napisz wiadomość..."
+              [ngModel]="newMessage()"
+              (ngModelChange)="newMessage.set($event)"
+              name="message"
+              maxlength="2000"
+              autocomplete="off"
+            />
+            <button
+              type="submit"
+              class="btn btn--primary chat-input__send"
+              [disabled]="sending() || !newMessage().trim()"
+            >
+              @if (sending()) { Wysyłanie... } @else { Wyślij }
+            </button>
+          </form>
+        }
+      }
+    </section>
+  </div>
+</div>

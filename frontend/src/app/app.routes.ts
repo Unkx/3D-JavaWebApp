@@ -21,5 +21,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/my-orders/my-orders.component').then(m => m.MyOrdersComponent)
   },
+  {
+    path: 'wiadomosci',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/messages/messages.component').then(m => m.MessagesComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

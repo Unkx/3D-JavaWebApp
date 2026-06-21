@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { ListingService, Listing, StlFile, UpdateListingPayload } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
 import { AuthService } from '../../services/auth.service';
+import { ConversationService } from '../../services/conversation.service';
 import { StlViewerComponent } from '../../components/stl-viewer.component';
 import { StlFileUploadComponent } from '../../components/stl-file-upload.component';
 
@@ -27,6 +28,7 @@ export class ListingDetailComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
+  private readonly conversationService = inject(ConversationService);
 
   listing = signal<Listing | null>(null);
   offers = signal<Offer[]>([]);
@@ -40,6 +42,8 @@ export class ListingDetailComponent implements OnInit {
   viewerVisible = signal(true);
   deletingListing = signal(false);
   downloading = signal(false);
+  acceptingOfferId = signal<string | null>(null);
+  acceptError = signal<string | null>(null);
   currentUser = this.authService.currentUser;
   private draggedId: string | null = null;
 
@@ -334,6 +338,35 @@ export class ListingDetailComponent implements OnInit {
         this.submitting.set(false);
         this.submitError.set('Nie udało się złożyć oferty. Spróbuj ponownie.');
       }
+    });
+  }
+
+  acceptOffer(offer: Offer): void {
+    if (!offer.id) return;
+    this.acceptingOfferId.set(offer.id);
+    this.acceptError.set(null);
+    this.offerService.selectOffer(offer.id).subscribe({
+      next: () => {
+        this.acceptingOfferId.set(null);
+        const listingId = this.listing()?.id;
+        if (listingId) {
+          this.loadOffers(listingId);
+          this.loadListing(listingId);
+        }
+      },
+      error: () => {
+        this.acceptingOfferId.set(null);
+        this.acceptError.set('Nie udało się zaakceptować oferty.');
+      }
+    });
+  }
+
+  openMessage(offer: Offer): void {
+    const listingId = this.listing()?.id;
+    if (!listingId) return;
+    this.conversationService.createOrGet(listingId).subscribe({
+      next: conv => this.router.navigate(['/wiadomosci'], { queryParams: { conv: conv.id } }),
+      error: () => alert('Nie udało się otworzyć rozmowy.')
     });
   }
 
