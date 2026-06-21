@@ -5,7 +5,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ListingService, Listing } from '../../services/listing.service';
 import { OfferService, Offer, OrderTracking } from '../../services/offer.service';
-import { AuthService } from '../../services/auth.service';
 
 interface ListingWithOffers extends Listing {
   offersCount?: number;
@@ -21,7 +20,6 @@ interface ListingWithOffers extends Listing {
 export class MyOrdersComponent implements OnInit {
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
-  private authService = inject(AuthService);
   private http = inject(HttpClient);
 
   listings = signal<ListingWithOffers[]>([]);
@@ -104,18 +102,6 @@ export class MyOrdersComponent implements OnInit {
         this.sendingTracking.set(false);
       },
       error: () => this.sendingTracking.set(false)
-    });
-  }
-
-  confirmDelivery(offerId: string): void {
-    this.updatingStatusId.set(offerId);
-    this.offerService.updateOfferStatus(offerId, 'DELIVERED').subscribe({
-      next: updated => {
-        this.myOffers.update(list => list.map(o => o.id === offerId ? { ...o, status: updated.status } : o));
-        this.updatingStatusId.set(null);
-        this.loadTracking(offerId);
-      },
-      error: () => this.updatingStatusId.set(null)
     });
   }
 

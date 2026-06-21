@@ -303,7 +303,7 @@
                   <span class="price-verdict price-verdict--fair">✓ W szacowanym przedziale</span>
                 }
               </div>
-              @if (currentUser() && (isOwner() || currentUser()?.userId === offer.userId)) {
+              @if (currentUser() && (isOwner() || currentUser()?.userId === offer.user?.id)) {
                 <div class="offer-card__actions">
                   @if (isOwner() && offer.status === 'PENDING' && listing()!.status === 'OPEN') {
                     <button

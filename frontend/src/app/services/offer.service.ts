@@ -9,7 +9,7 @@ export interface Offer {
   filamentGrams: number;
   printerModel: string;
   listing?: { id: string };
-  userId?: string;
+  user?: { id: string; email?: string };
   status?: string;
   createdAt?: string;
 }
