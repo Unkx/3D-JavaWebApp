@@ -51,6 +51,17 @@
           <p>Wybierz rozmowę z listy</p>
         </div>
       } @else {
+        <!-- Listing preview header -->
+        @if (selectedConversation()) {
+          <div class="chat-header">
+            <a [routerLink]="['/zlecenia', selectedConversation()!.listingId]" class="chat-header__listing">
+              <span class="chat-header__icon" aria-hidden="true">📋</span>
+              <span class="chat-header__title">{{ selectedConversation()!.listingTitle }}</span>
+            </a>
+            <span class="chat-header__with">Rozmowa z: {{ selectedConversation()!.otherParticipantEmail }}</span>
+          </div>
+        }
+
         @if (messagesLoading()) {
           <div class="state-box" aria-busy="true">
             <div class="spinner" aria-hidden="true"></div>

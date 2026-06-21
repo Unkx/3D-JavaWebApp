@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, signal, inject, OnInit, OnDestroy, ElementRef, viewChild } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, computed, inject, OnInit, OnDestroy, ElementRef, viewChild } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
@@ -27,6 +27,11 @@ export class MessagesComponent implements OnInit, OnDestroy {
 
   private pollInterval: ReturnType<typeof setInterval> | null = null;
   readonly messageList = viewChild<ElementRef>('messageList');
+
+  selectedConversation = computed(() => {
+    const id = this.selectedId();
+    return this.conversations().find(c => c.id === id) ?? null;
+  });
 
   currentUserId(): string | null {
     return this.authService.currentUser()?.userId ?? null;
