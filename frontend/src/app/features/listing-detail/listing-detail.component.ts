@@ -393,7 +393,8 @@ export class ListingDetailComponent implements OnInit {
   statusLabel(status: string | undefined): string {
     const map: Record<string, string> = {
       OPEN: 'Otwarte', CLOSED: 'Zamknięte', AWARDED: 'Przyznane',
-      PENDING: 'Oczekuje', SELECTED: 'Wybrana', REJECTED: 'Odrzucona', PAID: 'Opłacona'
+      PENDING: 'Oczekuje', SELECTED: 'Wybrana', REJECTED: 'Odrzucona', PAID: 'Opłacona',
+      PRINTING: 'Drukowanie', SHIPPED: 'Wysłano', DELIVERED: 'Dostarczono'
     };
     return map[status ?? ''] ?? status ?? '';
   }

@@ -524,3 +524,7 @@
   .file-tabs { overflow-x: auto; flex-wrap: nowrap; -webkit-overflow-scrolling: touch; padding-bottom: 0.25rem; }
   .file-tab { flex-shrink: 0; }
 }
+
+.status-badge--printing  { background: #fef3c7; color: #92400e; }
+.status-badge--shipped   { background: #dbeafe; color: #1e40af; }
+.status-badge--delivered  { background: var(--success-bg); color: var(--success-text); }
