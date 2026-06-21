@@ -14,6 +14,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.printplatform.repository.UserRepository;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -24,13 +26,16 @@ public class ConversationController {
     private final ConversationRepository conversationRepository;
     private final MessageRepository messageRepository;
     private final ListingRepository listingRepository;
+    private final UserRepository userRepository;
 
     public ConversationController(ConversationRepository conversationRepository,
                                   MessageRepository messageRepository,
-                                  ListingRepository listingRepository) {
+                                  ListingRepository listingRepository,
+                                  UserRepository userRepository) {
         this.conversationRepository = conversationRepository;
         this.messageRepository = messageRepository;
         this.listingRepository = listingRepository;
+        this.userRepository = userRepository;
     }
 
     @PostMapping
@@ -39,8 +44,22 @@ public class ConversationController {
         Listing listing = listingRepository.findById(request.getListingId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
 
-        if (listing.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie możesz rozpocząć rozmowy z samym sobą");
+        boolean isOwner = listing.getUser().getId().equals(user.getId());
+
+        if (isOwner) {
+            if (request.getOtherUserId() == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie możesz rozpocząć rozmowy z samym sobą");
+            }
+            User otherUser = userRepository.findById(request.getOtherUserId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie istnieje"));
+            return conversationRepository.findByListingIdAndParticipant2Id(listing.getId(), otherUser.getId())
+                    .orElseGet(() -> {
+                        Conversation conv = new Conversation();
+                        conv.setListing(listing);
+                        conv.setParticipant1(listing.getUser());
+                        conv.setParticipant2(otherUser);
+                        return conversationRepository.save(conv);
+                    });
         }
 
         return conversationRepository.findByListingIdAndParticipant2Id(listing.getId(), user.getId())

@@ -30,8 +30,10 @@ export class ConversationService {
     return this.http.get<ConversationSummary[]>(this.apiUrl);
   }
 
-  createOrGet(listingId: string): Observable<{ id: string }> {
-    return this.http.post<{ id: string }>(this.apiUrl, { listingId });
+  createOrGet(listingId: string, otherUserId?: string): Observable<{ id: string }> {
+    const body: Record<string, string> = { listingId };
+    if (otherUserId) body['otherUserId'] = otherUserId;
+    return this.http.post<{ id: string }>(this.apiUrl, body);
   }
 
   getMessages(conversationId: string): Observable<ChatMessage[]> {

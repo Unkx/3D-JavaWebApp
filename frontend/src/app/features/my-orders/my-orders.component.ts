@@ -111,7 +111,8 @@ export class MyOrdersComponent implements OnInit {
   openMessage(offer: Offer): void {
     const listingId = offer.listing?.id;
     if (!listingId) return;
-    this.conversationService.createOrGet(listingId).subscribe({
+    const otherUserId = offer.user?.id;
+    this.conversationService.createOrGet(listingId, otherUserId).subscribe({
       next: conv => this.router.navigate(['/wiadomosci'], { queryParams: { conv: conv.id } }),
       error: () => {}
     });

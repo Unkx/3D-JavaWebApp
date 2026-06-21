@@ -103,6 +103,12 @@ export class MessagesComponent implements OnInit, OnDestroy {
     if (el) el.scrollTop = el.scrollHeight;
   }
 
+  deselectConversation(): void {
+    this.selectedId.set(null);
+    this.messages.set([]);
+    if (this.pollInterval) { clearInterval(this.pollInterval); this.pollInterval = null; }
+  }
+
   isOwn(msg: ChatMessage): boolean {
     return msg.sender.id === this.currentUserId();
   }

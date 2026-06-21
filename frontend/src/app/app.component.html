@@ -1,4 +1,15 @@
 <header class="navbar">
+  <button class="navbar__hamburger"
+          [class.navbar__hamburger--open]="menuOpen()"
+          (click)="toggleMenu()"
+          [attr.aria-expanded]="menuOpen()"
+          aria-controls="main-nav"
+          aria-label="Menu nawigacji">
+    <span class="navbar__hamburger-line" aria-hidden="true"></span>
+    <span class="navbar__hamburger-line" aria-hidden="true"></span>
+    <span class="navbar__hamburger-line" aria-hidden="true"></span>
+  </button>
+
   <a routerLink="/" class="navbar__brand" aria-label="Strona główna" (click)="closeMenu()">
     <span class="navbar__icon" aria-hidden="true">
       <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -10,25 +21,18 @@
     <span class="navbar__title">Druk3D</span>
   </a>
 
-  <nav class="navbar__links" [class.navbar__links--open]="menuOpen()" id="main-nav" aria-label="Nawigacja główna">
-    <a routerLink="/zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
-      Zlecenia
-    </a>
-
+  <nav class="navbar__links-desktop" aria-label="Nawigacja główna">
+    <a routerLink="/zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">Zlecenia</a>
     @if (auth.isLoggedIn()) {
-      <a routerLink="/moje-zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="closeMenu()">
-        Moje zlecenia
-      </a>
-      <a routerLink="/wiadomosci" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-messages" (click)="closeMenu()">
+      <a routerLink="/moje-zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">Moje zlecenia</a>
+      <a routerLink="/wiadomosci" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-messages">
         Wiadomości
         @if (unreadCount() > 0) {
           <span class="unread-badge">{{ unreadCount() }}</span>
         }
       </a>
-      <a routerLink="/dodaj-zlecenie" routerLinkActive="active" ariaCurrentWhenActive="page" class="btn-primary" (click)="closeMenu()">
-        Dodaj zlecenie
-      </a>
-      <a routerLink="/profil" routerLinkActive="active" ariaCurrentWhenActive="page" class="user-chip" [title]="auth.currentUser()?.email ?? ''" (click)="closeMenu()">
+      <a routerLink="/dodaj-zlecenie" routerLinkActive="active" ariaCurrentWhenActive="page" class="btn-primary">Dodaj zlecenie</a>
+      <a routerLink="/profil" routerLinkActive="active" ariaCurrentWhenActive="page" class="user-chip" [title]="auth.currentUser()?.email ?? ''">
         <span class="user-avatar" aria-hidden="true">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <circle cx="5.5" cy="3.5" r="2" stroke="currentColor" stroke-width="1.25"/>
@@ -37,13 +41,9 @@
         </span>
         {{ auth.currentUser()?.email | slice:0:16 }}
       </a>
-      <button class="btn-logout" (click)="auth.logout(); closeMenu()" aria-label="Wyloguj się">
-        Wyloguj
-      </button>
+      <button class="btn-logout" (click)="auth.logout()" aria-label="Wyloguj się">Wyloguj</button>
     } @else {
-      <a routerLink="/logowanie" routerLinkActive="active" ariaCurrentWhenActive="page" class="btn-primary" (click)="closeMenu()">
-        Zaloguj się
-      </a>
+      <a routerLink="/logowanie" routerLinkActive="active" ariaCurrentWhenActive="page" class="btn-primary">Zaloguj się</a>
     }
   </nav>
 
@@ -69,21 +69,59 @@
         </svg>
       }
     </button>
-    <button class="navbar__hamburger"
-            [class.navbar__hamburger--open]="menuOpen()"
-            (click)="toggleMenu()"
-            [attr.aria-expanded]="menuOpen()"
-            aria-controls="main-nav"
-            aria-label="Menu nawigacji">
-      <span class="navbar__hamburger-line" aria-hidden="true"></span>
-      <span class="navbar__hamburger-line" aria-hidden="true"></span>
-      <span class="navbar__hamburger-line" aria-hidden="true"></span>
-    </button>
   </div>
 </header>
 
+<!-- Mobile sidebar — OUTSIDE header to avoid stacking context -->
+<aside class="sidebar" [class.sidebar--open]="menuOpen()" id="main-nav" aria-label="Nawigacja mobilna">
+  <a routerLink="/" class="sidebar__brand" (click)="closeMenu()">
+    <span class="navbar__icon" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z" fill="currentColor" opacity="0.9"/>
+        <path d="M7 1L13 4.5L7 8L1 4.5L7 1Z" fill="white" opacity="0.22"/>
+        <path d="M7 8V13L1 9.5V4.5L7 8Z" fill="white" opacity="0.1"/>
+      </svg>
+    </span>
+    <span class="navbar__title">Druk3D</span>
+  </a>
+  <nav class="sidebar__links">
+    <a routerLink="/zlecenia" routerLinkActive="active" (click)="closeMenu()">Zlecenia</a>
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/moje-zlecenia" routerLinkActive="active" (click)="closeMenu()">Moje zlecenia</a>
+      <a routerLink="/wiadomosci" routerLinkActive="active" class="nav-messages" (click)="closeMenu()">
+        Wiadomości
+        @if (unreadCount() > 0) {
+          <span class="unread-badge">{{ unreadCount() }}</span>
+        }
+      </a>
+      <a routerLink="/dodaj-zlecenie" routerLinkActive="active" class="sidebar__cta" (click)="closeMenu()">Dodaj zlecenie</a>
+      <a routerLink="/profil" routerLinkActive="active" class="sidebar__user" (click)="closeMenu()">
+        <span class="user-avatar" aria-hidden="true">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+            <circle cx="5.5" cy="3.5" r="2" stroke="currentColor" stroke-width="1.25"/>
+            <path d="M1 10c0-2.21 2.015-4 4.5-4S10 7.79 10 10" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          </svg>
+        </span>
+        {{ auth.currentUser()?.email | slice:0:20 }}
+      </a>
+      <button class="sidebar__logout" (click)="auth.logout(); closeMenu()">Wyloguj</button>
+    } @else {
+      <a routerLink="/logowanie" routerLinkActive="active" class="sidebar__cta" (click)="closeMenu()">Zaloguj się</a>
+    }
+  </nav>
+</aside>
+
 @if (menuOpen()) {
-  <div class="navbar__overlay" (click)="closeMenu()" aria-hidden="true"></div>
+  <div class="sidebar__overlay" (click)="closeMenu()" aria-hidden="true"></div>
+}
+
+@if (offline()) {
+  <div class="offline-banner" role="alert">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm0 10.5a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM8.75 8a.75.75 0 0 1-1.5 0V4.5a.75.75 0 0 1 1.5 0V8Z" fill="currentColor"/>
+    </svg>
+    <span>Brak połączenia z internetem</span>
+  </div>
 }
 
 <main class="main-content">

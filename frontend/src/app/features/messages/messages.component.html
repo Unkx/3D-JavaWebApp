@@ -1,7 +1,7 @@
 <div class="page">
   <h1 class="page__title">Wiadomości</h1>
 
-  <div class="chat-layout">
+  <div class="chat-layout" [class.chat-layout--conv-selected]="selectedId()">
     <!-- Conversation list -->
     <aside class="conv-list" aria-label="Lista rozmów">
       @if (loading()) {
@@ -54,10 +54,15 @@
         <!-- Listing preview header -->
         @if (selectedConversation()) {
           <div class="chat-header">
-            <a [routerLink]="['/zlecenia', selectedConversation()!.listingId]" class="chat-header__listing">
-              <span class="chat-header__icon" aria-hidden="true">📋</span>
-              <span class="chat-header__title">{{ selectedConversation()!.listingTitle }}</span>
-            </a>
+            <div class="chat-header__row">
+              <button class="chat-back" (click)="deselectConversation()" aria-label="Wróć do listy rozmów">
+                <span aria-hidden="true">←</span>
+              </button>
+              <a [routerLink]="['/zlecenia', selectedConversation()!.listingId]" class="chat-header__listing">
+                <span class="chat-header__icon" aria-hidden="true">📋</span>
+                <span class="chat-header__title">{{ selectedConversation()!.listingTitle }}</span>
+              </a>
+            </div>
             <span class="chat-header__with">Rozmowa z: {{ selectedConversation()!.otherParticipantEmail }}</span>
           </div>
         }
