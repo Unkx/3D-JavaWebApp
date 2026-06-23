@@ -181,6 +181,7 @@
   transition: box-shadow var(--t-base), border-color var(--t-base), transform var(--t-base);
   height: 100%;
   box-sizing: border-box;
+  animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .listing-card:hover {
@@ -324,9 +325,22 @@
   vertical-align: middle;
 }
 
+.listing-grid li:nth-child(2) .listing-card { animation-delay: 40ms; }
+.listing-grid li:nth-child(3) .listing-card { animation-delay: 80ms; }
+.listing-grid li:nth-child(4) .listing-card { animation-delay: 120ms; }
+.listing-grid li:nth-child(5) .listing-card { animation-delay: 160ms; }
+.listing-grid li:nth-child(6) .listing-card { animation-delay: 200ms; }
+.listing-grid li:nth-child(n+7) .listing-card { animation-delay: 240ms; }
+
 @media (max-width: 640px) {
   .page__header { flex-direction: column; align-items: stretch; gap: 0.75rem; }
   .page__title { font-size: 1.5rem; }
   .listing-grid { grid-template-columns: 1fr; }
   .listing-card__header { flex-wrap: wrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listing-card {
+    animation: none !important;
+  }
 }

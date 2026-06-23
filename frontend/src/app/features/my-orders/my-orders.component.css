@@ -66,6 +66,7 @@
   flex-direction: column;
   gap: 0.75rem;
   transition: border-color 0.15s;
+  animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .order-card:hover { border-color: var(--input-border); }
@@ -269,6 +270,19 @@
 .status-badge--delivered  { background: var(--success-bg); color: var(--success-text); }
 .status-badge--selected  { background: var(--accent-light); color: var(--accent-dark); }
 .status-badge--pending   { background: var(--tag-bg); color: var(--tag-text); }
+
+.order-list li:nth-child(2) .order-card,
+.order-list .order-card:nth-child(2) { animation-delay: 50ms; }
+.order-list li:nth-child(3) .order-card,
+.order-list .order-card:nth-child(3) { animation-delay: 100ms; }
+.order-list li:nth-child(4) .order-card,
+.order-list .order-card:nth-child(4) { animation-delay: 150ms; }
+.order-list li:nth-child(n+5) .order-card,
+.order-list .order-card:nth-child(n+5) { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .order-card { animation: none !important; }
+}
 
 @media (max-width: 600px) {
   .page__header { flex-direction: column; align-items: stretch; gap: 0.75rem; }

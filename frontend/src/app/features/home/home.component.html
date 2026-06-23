@@ -55,17 +55,18 @@
       <rect x="100" y="210" width="120" height="14" rx="2" fill="var(--accent)" opacity="0.42"/>
       <rect x="100" y="196" width="120" height="12" rx="2" fill="var(--accent)" opacity="0.72"/>
 
-      <!-- Current scan line -->
-      <rect x="56" y="188" width="208" height="1.5" rx="0.75" fill="var(--accent)" opacity="0.35"/>
+      <!-- Current scan line (animated) -->
+      <rect class="hero__scan-line" x="56" y="188" width="208" height="1.5" rx="0.75" fill="var(--accent)" opacity="0.35"/>
 
-      <!-- Print head -->
-      <rect x="130" y="173" width="60" height="15" rx="3" fill="var(--accent)"/>
-      <!-- Nozzle dots -->
-      <circle cx="148" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
-      <circle cx="160" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
-      <circle cx="172" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
-      <!-- Nozzle glow -->
-      <ellipse cx="160" cy="188" rx="22" ry="6" fill="var(--accent)" opacity="0.18"/>
+      <!-- Print head (animated) -->
+      <g class="hero__print-head">
+        <rect x="130" y="173" width="60" height="15" rx="3" fill="var(--accent)"/>
+        <circle cx="148" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
+        <circle cx="160" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
+        <circle cx="172" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
+      </g>
+      <!-- Nozzle glow (animated) -->
+      <ellipse class="hero__nozzle-glow" cx="160" cy="188" rx="22" ry="6" fill="var(--accent)" opacity="0.18"/>
 
       <!-- Future layers (dashed) -->
       <rect x="104" y="156" width="112" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.32"/>
@@ -90,7 +91,7 @@
 </section>
 
 <!-- TRUST -->
-<p class="trust-line" aria-label="Statystyki platformy">
+<p class="trust-line" appReveal aria-label="Statystyki platformy">
   <span class="trust-line__item">500+ zleceń</span>
   <span class="trust-line__sep" aria-hidden="true">·</span>
   <span class="trust-line__item">120+ drukarzy</span>
@@ -101,7 +102,7 @@
 </p>
 
 <!-- JAK TO DZIAŁA -->
-<section class="section" aria-labelledby="steps-title">
+<section class="section" appReveal aria-labelledby="steps-title">
   <h2 class="section__title" id="steps-title">Jak to działa?</h2>
   <div class="steps">
     @for (step of steps; track step.title; let i = $index) {
@@ -114,7 +115,7 @@
 </section>
 
 <!-- MATERIAŁY -->
-<section class="section" aria-labelledby="materials-title">
+<section class="section" appReveal aria-labelledby="materials-title">
   <h2 class="section__title" id="materials-title">Obsługiwane materiały</h2>
   <div class="materials">
     @for (mat of materials; track mat.name) {
@@ -127,7 +128,7 @@
 </section>
 
 <!-- CTA -->
-<section class="cta" aria-labelledby="cta-title">
+<section class="cta" appReveal aria-labelledby="cta-title">
   <h2 class="cta__title" id="cta-title">Gotowy na wydruk?</h2>
   <p class="cta__desc">Dołącz do społeczności i zrealizuj swój projekt już dziś.</p>
   @if (auth.isLoggedIn()) {

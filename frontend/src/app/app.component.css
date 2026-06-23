@@ -170,6 +170,7 @@
   min-width: 1rem;
   text-align: center;
   margin-left: 0.25rem;
+  animation: popIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ===== NAVBAR END ===== */
@@ -268,6 +269,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   text-align: center;
+  animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -411,6 +413,7 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
     -webkit-tap-highlight-color: transparent;
+    animation: fadeIn 0.2s ease both;
   }
 }
 
@@ -424,5 +427,10 @@
   }
   .navbar__hamburger-line {
     transition: none !important;
+  }
+  .sidebar__overlay,
+  .offline-banner,
+  .unread-badge {
+    animation: none !important;
   }
 }
