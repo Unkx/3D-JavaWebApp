@@ -270,6 +270,68 @@
 .status-badge--delivered  { background: var(--success-bg); color: var(--success-text); }
 .status-badge--selected  { background: var(--accent-light); color: var(--accent-dark); }
 .status-badge--pending   { background: var(--tag-bg); color: var(--tag-text); }
+.status-badge--label_created { background: var(--tag-bg); color: var(--tag-text); }
+.status-badge--dispatched { background: #dbeafe; color: #1e40af; }
+.status-badge--in_transit { background: #fef3c7; color: #92400e; }
+.status-badge--ready_to_pickup { background: var(--success-bg); color: var(--success-text); }
+
+/* Payment summary */
+.payment-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+.payment-summary__label { font-weight: 600; color: var(--success-text); }
+.payment-summary__value { font-weight: 700; color: var(--text-primary); font-size: 1rem; }
+.payment-summary__status { color: var(--success-text); margin-left: auto; }
+
+/* Shipment info */
+.shipment-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.75rem 1rem;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+.shipment-info__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.shipment-info__row code {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--accent-dark);
+}
+
+/* Shipment form */
+.shipment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.shipment-form__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.shipment-form__select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
 
 .order-list li:nth-child(2) .order-card,
 .order-list .order-card:nth-child(2) { animation-delay: 50ms; }

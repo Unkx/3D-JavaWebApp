@@ -1,12 +1,11 @@
 package com.printplatform.controller;
 
-import com.printplatform.dto.CreateOfferRequest;
-import com.printplatform.dto.UpdateOfferStatusRequest;
-import com.printplatform.dto.UpdateTrackingRequest;
+import com.printplatform.dto.*;
 import com.printplatform.model.*;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.OrderTrackingRepository;
+import com.printplatform.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -26,13 +25,16 @@ public class OfferController {
     private final OfferRepository offerRepository;
     private final ListingRepository listingRepository;
     private final OrderTrackingRepository orderTrackingRepository;
+    private final PaymentService paymentService;
 
     public OfferController(OfferRepository offerRepository,
                            ListingRepository listingRepository,
-                           OrderTrackingRepository orderTrackingRepository) {
+                           OrderTrackingRepository orderTrackingRepository,
+                           PaymentService paymentService) {
         this.offerRepository = offerRepository;
         this.listingRepository = listingRepository;
         this.orderTrackingRepository = orderTrackingRepository;
+        this.paymentService = paymentService;
     }
 
     @GetMapping("/listing/{listingId}")
@@ -72,6 +74,7 @@ public class OfferController {
 
     @PutMapping("/{offerId}/select")
     public Offer selectOffer(@PathVariable UUID offerId,
+                             @Valid @RequestBody SelectOfferRequest request,
                              @AuthenticationPrincipal User currentUser) {
         Offer offer = offerRepository.findById(offerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Oferta nie istnieje"));
@@ -80,11 +83,55 @@ public class OfferController {
         if (!listing.getUser().getId().equals(currentUser.getId())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tylko właściciel zlecenia może wybrać ofertę");
         }
+        if (offer.getStatus() != OfferStatus.PENDING) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Oferta nie jest w stanie oczekiwania");
+        }
+
+        paymentService.createPayment(offer, currentUser, request.getReceiverPaczkomat());
 
         offer.setStatus(OfferStatus.SELECTED);
         listing.setStatus(ListingStatus.AWARDED);
         listingRepository.save(listing);
+
+        offerRepository.findByListingIdAndStatus(listing.getId(), OfferStatus.PENDING)
+                .stream()
+                .filter(o -> !o.getId().equals(offerId))
+                .forEach(o -> {
+                    o.setStatus(OfferStatus.REJECTED);
+                    offerRepository.save(o);
+                });
+
         return offerRepository.save(offer);
+    }
+
+    @GetMapping("/{offerId}/payment")
+    public Payment getPayment(@PathVariable UUID offerId,
+                              @AuthenticationPrincipal User currentUser) {
+        Offer offer = offerRepository.findById(offerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Oferta nie istnieje"));
+
+        boolean isSeller = offer.getUser().getId().equals(currentUser.getId());
+        boolean isBuyer = offer.getListing().getUser().getId().equals(currentUser.getId());
+        if (!isSeller && !isBuyer) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu");
+        }
+
+        Payment payment = paymentService.getByOfferId(offerId);
+        if (payment == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Brak płatności");
+        }
+        return payment;
+    }
+
+    @GetMapping("/fee-breakdown")
+    public FeeBreakdownResponse feeBreakdown(@RequestParam java.math.BigDecimal price,
+                                              @RequestParam(required = false) String estimatorSize) {
+        String parcelSize = paymentService.getParcelSize(estimatorSize);
+        java.math.BigDecimal shipping = paymentService.getShippingPrice(parcelSize);
+        java.math.BigDecimal feePercent = paymentService.getFeePercent();
+        java.math.BigDecimal fee = price.multiply(feePercent).divide(java.math.BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        java.math.BigDecimal total = price.add(fee).add(shipping);
+        return new FeeBreakdownResponse(price, feePercent, fee, shipping, parcelSize, total);
     }
 
     @PutMapping("/{offerId}/status")

@@ -304,20 +304,60 @@
                 }
               </div>
               @if (currentUser() && (isOwner() || currentUser()?.userId === offer.user?.id)) {
+                @if (isOwner() && offer.status === 'PENDING' && listing()!.status === 'OPEN') {
+                  @let bd = feeBreakdown()(offer);
+                  <div class="offer-card__breakdown">
+                    <div class="breakdown__row">
+                      <span>Cena wykonawcy</span>
+                      <span>{{ bd.contractorPrice | number:'1.2-2' }} zł</span>
+                    </div>
+                    <div class="breakdown__row breakdown__row--muted">
+                      <span>Opłata serwisowa (10%)</span>
+                      <span>+ {{ bd.fee | number:'1.2-2' }} zł</span>
+                    </div>
+                    <div class="breakdown__row breakdown__row--muted">
+                      <span>Wysyłka InPost</span>
+                      <span>+ {{ bd.shipping | number:'1.2-2' }} zł</span>
+                    </div>
+                    <div class="breakdown__row breakdown__row--total">
+                      <span>Do zapłaty</span>
+                      <span>{{ bd.total | number:'1.2-2' }} zł</span>
+                    </div>
+                  </div>
+                }
+
                 <div class="offer-card__actions">
                   @if (isOwner() && offer.status === 'PENDING' && listing()!.status === 'OPEN') {
-                    <button
-                      class="btn btn--accept"
-                      (click)="acceptOffer(offer)"
-                      [disabled]="acceptingOfferId() === offer.id"
-                    >
-                      @if (acceptingOfferId() === offer.id) {
-                        <span class="btn-spinner" aria-hidden="true"></span>
-                        Akceptowanie...
-                      } @else {
-                        ✓ Akceptuj ofertę
-                      }
-                    </button>
+                    @if (checkoutOfferId() === offer.id) {
+                      <div class="checkout-panel">
+                        <label class="checkout-panel__label" for="paczkomat-select">
+                          📦 Paczkomat odbioru
+                        </label>
+                        <select id="paczkomat-select" class="checkout-panel__select"
+                                [ngModel]="checkoutPaczkomat()"
+                                (ngModelChange)="checkoutPaczkomat.set($event)">
+                          @for (p of paczkomatOptions; track p.id) {
+                            <option [value]="p.id">{{ p.label }}</option>
+                          }
+                        </select>
+                        <div class="checkout-panel__actions">
+                          <button class="btn btn--accept"
+                                  (click)="confirmCheckout(offer)"
+                                  [disabled]="checkoutPaying()">
+                            @if (checkoutPaying()) {
+                              <span class="btn-spinner" aria-hidden="true"></span> Płacenie...
+                            } @else {
+                              🛡️ Zapłać {{ feeBreakdown()(offer).total | number:'1.2-2' }} zł
+                            }
+                          </button>
+                          <button class="btn btn--outline" (click)="cancelCheckout()">Anuluj</button>
+                        </div>
+                      </div>
+                    } @else {
+                      <button class="btn btn--accept" (click)="openCheckout(offer)">
+                        💳 Zapłać {{ feeBreakdown()(offer).total | number:'1.2-2' }} zł
+                      </button>
+                    }
                   }
                   <button class="btn btn--outline" (click)="openMessage(offer)">
                     ✉ Napisz wiadomość

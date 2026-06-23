@@ -540,6 +540,74 @@
   .listing__manage .btn { width: 100%; justify-content: center; min-height: 44px; }
 }
 
+/* Price breakdown */
+.offer-card__breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.breakdown__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.breakdown__row--muted {
+  color: var(--text-muted);
+}
+
+.breakdown__row--total {
+  padding-top: 0.375rem;
+  margin-top: 0.25rem;
+  border-top: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+
+/* Checkout panel */
+.checkout-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem;
+  background: var(--accent-light);
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  width: 100%;
+  animation: fadeUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.checkout-panel__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.checkout-panel__select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  width: 100%;
+  cursor: pointer;
+}
+
+.checkout-panel__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .status-badge--printing  { background: #fef3c7; color: #92400e; }
 .status-badge--shipped   { background: #dbeafe; color: #1e40af; }
 .status-badge--delivered  { background: var(--success-bg); color: var(--success-text); }

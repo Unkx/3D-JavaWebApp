@@ -41,6 +41,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/listings/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/listing/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/offers/fee-breakdown").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/listings/{id}/upload-stl").authenticated()
                 .requestMatchers("/api/admin/codes/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/redeem").authenticated()

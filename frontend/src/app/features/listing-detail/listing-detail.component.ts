@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit, computed } from '@angular/core';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
 import { SlicePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { ListingService, Listing, StlFile, UpdateListingPayload } from '../../services/listing.service';
@@ -15,7 +16,7 @@ type EstimatorQuality = 'fast'  | 'normal' | 'ultra';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [RouterLink, ReactiveFormsModule, SlicePipe, StlViewerComponent, StlFileUploadComponent],
+  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, StlViewerComponent, StlFileUploadComponent],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -44,6 +45,32 @@ export class ListingDetailComponent implements OnInit {
   downloading = signal(false);
   acceptingOfferId = signal<string | null>(null);
   acceptError = signal<string | null>(null);
+
+  checkoutOfferId = signal<string | null>(null);
+  checkoutPaczkomat = signal('WAW001');
+  checkoutPaying = signal(false);
+
+  readonly paczkomatOptions = [
+    { id: 'WAW001', label: 'WAW001 — Warszawa, ul. Marszałkowska 10' },
+    { id: 'WAW045', label: 'WAW045 — Warszawa, ul. Puławska 120' },
+    { id: 'KRK012', label: 'KRK012 — Kraków, ul. Floriańska 5' },
+    { id: 'WRO008', label: 'WRO008 — Wrocław, ul. Świdnicka 25' },
+    { id: 'GDA003', label: 'GDA003 — Gdańsk, ul. Długa 15' },
+    { id: 'POZ019', label: 'POZ019 — Poznań, ul. Półwiejska 42' },
+  ];
+
+  feeBreakdown = computed(() => {
+    const listing = this.listing();
+    return (offer: Offer) => {
+      const price = offer.price;
+      const feePercent = 10;
+      const fee = Math.round(price * feePercent) / 100;
+      const size = listing?.estimatorSize ?? 'medium';
+      const shipping = size === 'small' ? 12.99 : size === 'large' ? 19.99 : 14.99;
+      const total = +(price + fee + shipping).toFixed(2);
+      return { contractorPrice: price, fee, shipping, total };
+    };
+  });
   currentUser = this.authService.currentUser;
   private draggedId: string | null = null;
 
@@ -341,13 +368,22 @@ export class ListingDetailComponent implements OnInit {
     });
   }
 
-  acceptOffer(offer: Offer): void {
+  openCheckout(offer: Offer): void {
+    this.checkoutOfferId.set(offer.id ?? null);
+    this.checkoutPaczkomat.set('WAW001');
+  }
+
+  cancelCheckout(): void {
+    this.checkoutOfferId.set(null);
+  }
+
+  confirmCheckout(offer: Offer): void {
     if (!offer.id) return;
-    this.acceptingOfferId.set(offer.id);
-    this.acceptError.set(null);
-    this.offerService.selectOffer(offer.id).subscribe({
+    this.checkoutPaying.set(true);
+    this.offerService.selectOffer(offer.id, this.checkoutPaczkomat()).subscribe({
       next: () => {
-        this.acceptingOfferId.set(null);
+        this.checkoutPaying.set(false);
+        this.checkoutOfferId.set(null);
         const listingId = this.listing()?.id;
         if (listingId) {
           this.loadOffers(listingId);
@@ -355,8 +391,8 @@ export class ListingDetailComponent implements OnInit {
         }
       },
       error: () => {
-        this.acceptingOfferId.set(null);
-        this.acceptError.set('Nie udało się zaakceptować oferty.');
+        this.checkoutPaying.set(false);
+        this.acceptError.set('Nie udało się dokonać płatności.');
       }
     });
   }

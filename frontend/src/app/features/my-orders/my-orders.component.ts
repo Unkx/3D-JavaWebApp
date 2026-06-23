@@ -4,7 +4,7 @@ import { SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { ListingService, Listing } from '../../services/listing.service';
-import { OfferService, Offer, OrderTracking } from '../../services/offer.service';
+import { OfferService, Offer, OrderTracking, Payment, Shipment } from '../../services/offer.service';
 import { ConversationService } from '../../services/conversation.service';
 
 interface ListingWithOffers extends Listing {
@@ -43,6 +43,21 @@ export class MyOrdersComponent implements OnInit {
 
   readonly carriers = ['DPD', 'InPost', 'Poczta Polska', 'Kurier', 'Inne'];
 
+  shipmentData = signal<Record<string, Shipment>>({});
+  paymentData = signal<Record<string, Payment>>({});
+  creatingShipmentId = signal<string | null>(null);
+  advancingShipmentId = signal<string | null>(null);
+  shipmentPaczkomat = signal('WAW001');
+
+  readonly paczkomatOptions = [
+    { id: 'WAW001', label: 'WAW001 — Warszawa, ul. Marszałkowska 10' },
+    { id: 'WAW045', label: 'WAW045 — Warszawa, ul. Puławska 120' },
+    { id: 'KRK012', label: 'KRK012 — Kraków, ul. Floriańska 5' },
+    { id: 'WRO008', label: 'WRO008 — Wrocław, ul. Świdnicka 25' },
+    { id: 'GDA003', label: 'GDA003 — Gdańsk, ul. Długa 15' },
+    { id: 'POZ019', label: 'POZ019 — Poznań, ul. Półwiejska 42' },
+  ];
+
   ngOnInit(): void {
     this.load();
     this.loadMyOffers();
@@ -60,9 +75,27 @@ export class MyOrdersComponent implements OnInit {
     this.offerService.getMyOffers().subscribe({
       next: data => {
         this.myOffers.set(data);
-        data.filter(o => ['PRINTING', 'SHIPPED', 'DELIVERED'].includes(o.status ?? ''))
-            .forEach(o => this.loadTracking(o.id!));
+        data.filter(o => ['SELECTED', 'PRINTING', 'SHIPPED', 'DELIVERED'].includes(o.status ?? ''))
+            .forEach(o => {
+              this.loadTracking(o.id!);
+              this.loadShipment(o.id!);
+              this.loadPayment(o.id!);
+            });
       },
+      error: () => {}
+    });
+  }
+
+  private loadShipment(offerId: string): void {
+    this.offerService.getShipment(offerId).subscribe({
+      next: s => this.shipmentData.update(d => ({ ...d, [offerId]: s })),
+      error: () => {}
+    });
+  }
+
+  private loadPayment(offerId: string): void {
+    this.offerService.getPayment(offerId).subscribe({
+      next: p => this.paymentData.update(d => ({ ...d, [offerId]: p })),
       error: () => {}
     });
   }
@@ -150,5 +183,41 @@ export class MyOrdersComponent implements OnInit {
   offerStatusStep(status: string | undefined): number {
     const steps: Record<string, number> = { SELECTED: 0, PRINTING: 1, SHIPPED: 2, DELIVERED: 3 };
     return steps[status ?? ''] ?? -1;
+  }
+
+  createShipment(offerId: string): void {
+    this.creatingShipmentId.set(offerId);
+    this.offerService.createShipment(offerId, this.shipmentPaczkomat()).subscribe({
+      next: s => {
+        this.shipmentData.update(d => ({ ...d, [offerId]: s }));
+        this.creatingShipmentId.set(null);
+      },
+      error: () => this.creatingShipmentId.set(null)
+    });
+  }
+
+  advanceShipment(offerId: string): void {
+    const shipment = this.shipmentData()[offerId];
+    if (!shipment) return;
+    this.advancingShipmentId.set(offerId);
+    this.offerService.advanceShipment(shipment.id).subscribe({
+      next: s => {
+        this.shipmentData.update(d => ({ ...d, [offerId]: s }));
+        this.advancingShipmentId.set(null);
+        this.loadMyOffers();
+      },
+      error: () => this.advancingShipmentId.set(null)
+    });
+  }
+
+  shipmentStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      LABEL_CREATED: 'Etykieta utworzona',
+      DISPATCHED: 'Nadano',
+      IN_TRANSIT: 'W drodze',
+      READY_TO_PICKUP: 'Czeka w paczkomacie',
+      DELIVERED: 'Odebrano'
+    };
+    return map[status] ?? status;
   }
 }

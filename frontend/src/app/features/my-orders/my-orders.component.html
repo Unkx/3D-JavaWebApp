@@ -160,8 +160,46 @@
                 </div>
               </div>
 
-              <!-- Tracking info -->
-              @if (trackingData()[offer.id!]) {
+              <!-- Payment info -->
+              @if (paymentData()[offer.id!]) {
+                @let pay = paymentData()[offer.id!];
+                <div class="payment-summary">
+                  <span class="payment-summary__label">💰 Twoje wynagrodzenie:</span>
+                  <span class="payment-summary__value">{{ pay.contractorPrice }} zł</span>
+                  <span class="payment-summary__status">
+                    @if (pay.status === 'HELD') { 🔒 Środki zabezpieczone }
+                    @else if (pay.status === 'RELEASED') { ✅ Wypłacono }
+                  </span>
+                </div>
+              }
+
+              <!-- InPost shipment info -->
+              @if (shipmentData()[offer.id!]) {
+                @let ship = shipmentData()[offer.id!];
+                <div class="shipment-info">
+                  <div class="shipment-info__row">
+                    <span>📦 Tracking:</span>
+                    <code>{{ ship.trackingNumber }}</code>
+                  </div>
+                  <div class="shipment-info__row">
+                    <span>📍 Paczkomat nadania:</span>
+                    <span>{{ ship.senderPaczkomat }}</span>
+                  </div>
+                  <div class="shipment-info__row">
+                    <span>📍 Paczkomat odbioru:</span>
+                    <span>{{ ship.receiverPaczkomat }}</span>
+                  </div>
+                  <div class="shipment-info__row">
+                    <span>Status:</span>
+                    <span class="status-badge status-badge--{{ ship.status.toLowerCase() }}">
+                      {{ shipmentStatusLabel(ship.status) }}
+                    </span>
+                  </div>
+                </div>
+              }
+
+              <!-- Legacy tracking info -->
+              @if (trackingData()[offer.id!] && !shipmentData()[offer.id!]) {
                 <div class="tracking-info">
                   @if (trackingData()[offer.id!].carrierName) {
                     <span>{{ trackingData()[offer.id!].carrierName }}: {{ trackingData()[offer.id!].trackingNumber }}</span>
@@ -179,41 +217,42 @@
                   </button>
                 }
                 @if (offer.status === 'PRINTING') {
-                  @if (shippingFormId() !== offer.id) {
-                    <button class="btn btn--primary" (click)="openShippingForm(offer.id!)">
-                      Oznacz jako wysłane
-                    </button>
-                  } @else {
-                    <div class="shipping-form">
-                      <select class="shipping-form__select"
-                              [ngModel]="carrierName()"
-                              (ngModelChange)="carrierName.set($event)"
-                              name="carrier">
-                        @for (c of carriers; track c) {
-                          <option [value]="c">{{ c }}</option>
+                  @if (!shipmentData()[offer.id!]) {
+                    <div class="shipment-form">
+                      <label class="shipment-form__label">📦 Nadaj paczkę InPost</label>
+                      <select class="shipment-form__select"
+                              [ngModel]="shipmentPaczkomat()"
+                              (ngModelChange)="shipmentPaczkomat.set($event)">
+                        @for (p of paczkomatOptions; track p.id) {
+                          <option [value]="p.id">{{ p.label }}</option>
                         }
                       </select>
-                      <input type="text"
-                             class="shipping-form__input"
-                             placeholder="Numer przesyłki"
-                             [ngModel]="trackingNumber()"
-                             (ngModelChange)="trackingNumber.set($event)"
-                             name="trackingNumber" />
                       <button class="btn btn--primary"
-                              (click)="submitTracking(offer.id!)"
-                              [disabled]="sendingTracking() || !trackingNumber().trim()">
-                        @if (sendingTracking()) { Wysyłanie... } @else { Wyślij }
+                              (click)="createShipment(offer.id!)"
+                              [disabled]="creatingShipmentId() === offer.id">
+                        @if (creatingShipmentId() === offer.id) { Tworzenie... } @else { 📄 Utwórz przesyłkę }
                       </button>
-                      <button class="btn btn--ghost" (click)="shippingFormId.set(null)">Anuluj</button>
                     </div>
+                  } @else if (shipmentData()[offer.id!].status === 'LABEL_CREATED') {
+                    <button class="btn btn--primary"
+                            (click)="advanceShipment(offer.id!)"
+                            [disabled]="advancingShipmentId() === offer.id">
+                      @if (advancingShipmentId() === offer.id) { Aktualizacja... } @else { ✅ Nadano w paczkomacie }
+                    </button>
                   }
                 }
-                @if (offer.status === 'SHIPPED') {
-                  <button class="btn btn--primary"
-                          (click)="updateStatus(offer.id!, 'DELIVERED')"
-                          [disabled]="updatingStatusId() === offer.id">
-                    @if (updatingStatusId() === offer.id) { Aktualizacja... } @else { Dostarczono }
-                  </button>
+                @if (offer.status === 'SHIPPED' && shipmentData()[offer.id!]) {
+                  @let ship = shipmentData()[offer.id!];
+                  @if (ship.status !== 'DELIVERED') {
+                    <button class="btn btn--primary"
+                            (click)="advanceShipment(offer.id!)"
+                            [disabled]="advancingShipmentId() === offer.id">
+                      @if (advancingShipmentId() === offer.id) { Aktualizacja... }
+                      @else if (ship.status === 'DISPATCHED') { 📦 W drodze }
+                      @else if (ship.status === 'IN_TRANSIT') { 📬 Czeka w paczkomacie }
+                      @else if (ship.status === 'READY_TO_PICKUP') { ✅ Odebrano }
+                    </button>
+                  }
                 }
               </div>
             }
