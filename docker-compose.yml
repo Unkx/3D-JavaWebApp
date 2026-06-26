@@ -27,16 +27,16 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/listings > /dev/null"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 15
-      start_period: 40s
+      start_period: 60s   # Increase to 60 seconds
 
-  frontend:
+  frontend:   # <-- Make sure this is at the SAME indentation level as 'db' and 'backend'
     build:
       context: ./frontend
-      dockerfile: ../Dockerfile.frontend
+      dockerfile: Dockerfile.frontend
     ports:
       - "4200:4200"
     environment:
