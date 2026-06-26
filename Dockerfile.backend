@@ -3,13 +3,13 @@ WORKDIR /app
 COPY pom.xml .
 RUN mvn dependency:go-offline -q
 COPY src ./src
-RUN mvn package -DskipTests -q && \
-    cp $(ls target/*.jar | grep -v original) target/app-exec.jar
+RUN mvn package -DskipTests -q
 
 FROM eclipse-temurin:21-jre-jammy
-ARG CACHEBUST=1
-RUN apt-get update && apt-get install -y --no-install-recommends curl postgresql-client && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY --from=build /app/target/app-exec.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["/bin/sh", "-c", "echo 'Container starting'; java -version 2>&1; ls -la /app/app.jar; echo 'Waiting for Postgres...'; i=0; while ! pg_isready -h ${DB_HOST:-db} -p ${DB_PORT:-5432} -U ${DB_USER:-postgres} 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && echo 'Timed out' && exit 1; printf '.'; sleep 1; done; echo ''; echo 'Postgres ready, starting Spring Boot'; exec java -jar /app/app.jar"]
+RUN apt-get update && apt-get install -y curl postgresql-client && rm -rf /var/lib/apt/lists/*
+COPY --from=build /app/target/*.jar app.jar
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
+ENTRYPOINT ["/wait-for-it.sh", "db", "java", "-jar", "app.jar"]
