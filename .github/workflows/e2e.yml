@@ -21,8 +21,9 @@ jobs:
 
       - name: Start Docker Compose stack
         run: |
-          docker compose up -d --build || true
-          sleep 15
+          docker compose build --build-arg CACHEBUST=$(date +%s) backend
+          docker compose up -d || true
+          sleep 20
           docker compose ps --all
         timeout-minutes: 10
 

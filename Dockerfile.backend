@@ -7,9 +7,9 @@ RUN mvn package -DskipTests -q && \
     cp $(ls target/*.jar | grep -v original) target/app-exec.jar
 
 FROM eclipse-temurin:21-jre-jammy
+ARG CACHEBUST=1
 RUN apt-get update && apt-get install -y --no-install-recommends curl postgresql-client && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app/target/app-exec.jar app.jar
-RUN printf '#!/bin/sh\nset -e\nDB_HOST="${DB_HOST:-db}"\nDB_PORT="${DB_PORT:-5432}"\nDB_USER="${DB_USER:-postgres}"\necho "Waiting for Postgres at $DB_HOST:$DB_PORT..."\ni=0\nwhile ! pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" >/dev/null 2>&1; do\n  i=$((i+1))\n  if [ "$i" -ge 60 ]; then echo "Timed out waiting for Postgres"; exit 1; fi\n  printf "."\n  sleep 1\ndone\necho "Postgres ready, starting app"\nexec java -jar /app/app.jar\n' > /app/start.sh && chmod +x /app/start.sh
 EXPOSE 8080
-ENTRYPOINT ["/app/start.sh"]
+ENTRYPOINT ["/bin/sh", "-c", "echo 'Container starting'; java -version 2>&1; ls -la /app/app.jar; echo 'Waiting for Postgres...'; i=0; while ! pg_isready -h ${DB_HOST:-db} -p ${DB_PORT:-5432} -U ${DB_USER:-postgres} 2>/dev/null; do i=$((i+1)); [ $i -ge 60 ] && echo 'Timed out' && exit 1; printf '.'; sleep 1; done; echo ''; echo 'Postgres ready, starting Spring Boot'; exec java -jar /app/app.jar"]
