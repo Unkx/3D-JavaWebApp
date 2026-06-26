@@ -19,63 +19,97 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start Docker Compose stack
+      - name: Build and start Docker Compose stack
         run: |
-          docker compose build --build-arg CACHEBUST=$(date +%s) backend
-          docker compose up -d || true
-          sleep 20
+          echo "🔨 Building containers..."
+          docker compose build --build-arg CACHEBUST=$(date +%s)
+          
+          echo "🚀 Starting containers..."
+          docker compose up -d
+          
+          echo "⏳ Waiting 30 seconds for services to initialize..."
+          sleep 30
+          
+          echo "📋 Checking container status..."
           docker compose ps --all
         timeout-minutes: 10
 
-      - name: Dump backend logs (always)
+      - name: 📋 Dump ALL logs (always runs)
         if: always()
         run: |
-          echo "==== docker compose ps ===="
+          echo ""
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  DOCKER COMPOSE PS"
+          echo "═══════════════════════════════════════════════════════════════"
           docker compose ps --all || true
           echo ""
-          echo "==== backend logs ===="
-          docker compose logs --no-color --timestamps --tail 300 backend 2>&1 || echo "(no logs)"
+          
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  BACKEND LOGS (full)"
+          echo "═══════════════════════════════════════════════════════════════"
+          docker compose logs --no-color --timestamps backend || echo "❌ No backend logs available"
           echo ""
-          echo "==== backend container inspect ===="
-          docker inspect 3d-javawebapp-backend-1 2>/dev/null | python3 -c "import sys,json; s=json.load(sys.stdin)[0]['State']; print(s)" || echo "(no container)"
-
-      - name: Wait for backend container
-        run: |
-          echo "Waiting for backend container to start..."
-          for i in $(seq 1 20); do
-            STATUS=$(docker inspect -f '{{.State.Status}}' 3d-javawebapp-backend-1 2>/dev/null || echo "not_found")
-            echo "Attempt $i: backend status = $STATUS"
-            
-            if [ "$STATUS" = "running" ]; then
-              echo "✅ Backend is running!"
-              docker compose logs --tail 20 backend || true
-              exit 0
-            elif [ "$STATUS" = "exited" ]; then
-              echo "❌ Backend exited. Showing logs:"
-              docker compose logs --tail 100 backend || true
-              exit 1
-            fi
-            sleep 5
+          
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  FRONTEND LOGS (full)"
+          echo "═══════════════════════════════════════════════════════════════"
+          docker compose logs --no-color --timestamps frontend || echo "❌ No frontend logs available"
+          echo ""
+          
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  DATABASE LOGS"
+          echo "═══════════════════════════════════════════════════════════════"
+          docker compose logs --no-color --timestamps db || echo "❌ No db logs available"
+          echo ""
+          
+          echo "═══════════════════════════════════════════════════════════════"
+          echo "  CONTAINER STATUS (detailed)"
+          echo "═══════════════════════════════════════════════════════════════"
+          
+          for container in 3d-javawebapp-backend-1 3d-javawebapp-frontend-1 3d-javawebapp-db-1; do
+            echo "🔍 Container: $container"
+            STATUS=$(docker inspect -f '{{.State.Status}}' "$container" 2>/dev/null || echo "NOT_FOUND")
+            EXITCODE=$(docker inspect -f '{{.State.ExitCode}}' "$container" 2>/dev/null || echo "N/A")
+            ERROR=$(docker inspect -f '{{.State.Error}}' "$container" 2>/dev/null || echo "N/A")
+            echo "   Status:    $STATUS"
+            echo "   Exit Code: $EXITCODE"
+            echo "   Error:     $ERROR"
+            echo ""
           done
-          echo "❌ Timeout waiting for backend"
-          docker compose logs --tail 100 backend || true
-          exit 1
-        timeout-minutes: 5
 
-      - name: Wait for frontend healthy
+      - name: ✅ Verify backend is running
+        id: check-backend
         run: |
-          for i in $(seq 1 18); do
-            if curl -sf http://localhost:4200 > /dev/null 2>&1; then
-              echo "Frontend healthy after ${i} attempts"
-              exit 0
-            fi
-            echo "Attempt $i: frontend not ready, waiting 10s..."
-            sleep 10
-          done
-          echo "=== Timeout: final frontend logs ==="
-          docker compose logs --no-color --timestamps frontend || true
-          exit 1
-        timeout-minutes: 4
+          echo "🔍 Checking if backend is running..."
+          STATUS=$(docker inspect -f '{{.State.Status}}' 3d-javawebapp-backend-1 2>/dev/null || echo "not_found")
+          
+          if [ "$STATUS" = "running" ]; then
+            echo "✅ Backend is running!"
+            exit 0
+          else
+            echo "❌ Backend is NOT running (status: $STATUS)"
+            echo ""
+            echo "📋 Full backend logs:"
+            docker compose logs --no-color --timestamps backend || true
+            exit 1
+          fi
+
+      - name: ✅ Verify frontend is running
+        id: check-frontend
+        run: |
+          echo "🔍 Checking if frontend is running..."
+          STATUS=$(docker inspect -f '{{.State.Status}}' 3d-javawebapp-frontend-1 2>/dev/null || echo "not_found")
+          
+          if [ "$STATUS" = "running" ]; then
+            echo "✅ Frontend is running!"
+            exit 0
+          else
+            echo "❌ Frontend is NOT running (status: $STATUS)"
+            echo ""
+            echo "📋 Full frontend logs:"
+            docker compose logs --no-color --timestamps frontend || true
+            exit 1
+          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
