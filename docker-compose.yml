@@ -26,14 +26,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 15
-      start_period: 60s   # Increase to 60 seconds
 
-  frontend:   # <-- Make sure this is at the SAME indentation level as 'db' and 'backend'
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.frontend
@@ -43,9 +37,3 @@ services:
       API_URL: http://backend:8080
     depends_on:
       - backend
-    healthcheck:
-      test: ["CMD-SHELL", "wget -q --spider http://localhost:4200 || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 15
-      start_period: 120s
