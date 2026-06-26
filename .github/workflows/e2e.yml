@@ -19,19 +19,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start Docker Compose stack (no wait)
-        run: docker compose up -d
-        timeout-minutes: 2
-
-      - name: Wait and capture backend startup
+      - name: Start Docker Compose stack
         run: |
-          sleep 15
-          echo "=== docker ps ==="
-          docker ps -a
-          echo "=== backend logs ==="
-          docker logs 3d-javawebapp-backend-1 2>&1
-          echo "=== backend inspect (State) ==="
-          docker inspect 3d-javawebapp-backend-1 --format '{{json .State}}' 2>&1
+          docker compose up -d --build
+          sleep 5
+          docker compose ps --all
+        timeout-minutes: 10
+
+      - name: Dump Docker Compose status & backend logs
+        if: always()
+        run: |
+          echo "==== docker compose ps ===="
+          docker compose ps --all || true
+          echo "==== backend logs (last 200 lines) ===="
+          docker compose logs --no-color --timestamps backend --tail 200 || true
 
       - name: Wait for backend healthy
         run: |
@@ -40,11 +41,17 @@ jobs:
               echo "Backend healthy after ${i} attempts"
               exit 0
             fi
-            echo "Attempt $i: backend not ready, waiting 10s..."
+            STATUS=$(docker inspect -f '{{.State.Status}}' 3d-javawebapp-backend-1 2>/dev/null || echo "missing")
+            if [ "$STATUS" = "exited" ]; then
+              echo "Backend container exited — printing logs:"
+              docker compose logs --no-color --timestamps backend || true
+              exit 1
+            fi
+            echo "Attempt $i: backend not ready (status=$STATUS), waiting 10s..."
             sleep 10
           done
-          echo "=== FINAL backend logs ==="
-          docker logs 3d-javawebapp-backend-1 2>&1
+          echo "=== Timeout: final backend logs ==="
+          docker compose logs --no-color --timestamps backend || true
           exit 1
         timeout-minutes: 6
 
@@ -58,8 +65,8 @@ jobs:
             echo "Attempt $i: frontend not ready, waiting 10s..."
             sleep 10
           done
-          echo "=== FINAL frontend logs ==="
-          docker logs 3d-javawebapp-frontend-1 2>&1
+          echo "=== Timeout: final frontend logs ==="
+          docker compose logs --no-color --timestamps frontend || true
           exit 1
         timeout-minutes: 4
 
