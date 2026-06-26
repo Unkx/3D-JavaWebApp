@@ -19,13 +19,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Start Docker Compose stack
-        run: docker compose up -d --wait
-        timeout-minutes: 10
+      - name: Start Docker Compose stack (no wait)
+        run: docker compose up -d
+        timeout-minutes: 2
 
-      - name: Print backend logs (always)
-        if: always()
-        run: docker compose logs backend
+      - name: Wait and capture backend startup
+        run: |
+          sleep 15
+          echo "=== docker ps ==="
+          docker ps -a
+          echo "=== backend logs ==="
+          docker logs 3d-javawebapp-backend-1 2>&1
+          echo "=== backend inspect (State) ==="
+          docker inspect 3d-javawebapp-backend-1 --format '{{json .State}}' 2>&1
+
+      - name: Wait for backend healthy
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/api/listings > /dev/null 2>&1; then
+              echo "Backend healthy after ${i} attempts"
+              exit 0
+            fi
+            echo "Attempt $i: backend not ready, waiting 10s..."
+            sleep 10
+          done
+          echo "=== FINAL backend logs ==="
+          docker logs 3d-javawebapp-backend-1 2>&1
+          exit 1
+        timeout-minutes: 6
+
+      - name: Wait for frontend healthy
+        run: |
+          for i in $(seq 1 18); do
+            if curl -sf http://localhost:4200 > /dev/null 2>&1; then
+              echo "Frontend healthy after ${i} attempts"
+              exit 0
+            fi
+            echo "Attempt $i: frontend not ready, waiting 10s..."
+            sleep 10
+          done
+          echo "=== FINAL frontend logs ==="
+          docker logs 3d-javawebapp-frontend-1 2>&1
+          exit 1
+        timeout-minutes: 4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
