@@ -39,26 +39,28 @@ jobs:
           echo "==== backend container inspect ===="
           docker inspect 3d-javawebapp-backend-1 2>/dev/null | python3 -c "import sys,json; s=json.load(sys.stdin)[0]['State']; print(s)" || echo "(no container)"
 
-      - name: Wait for backend healthy
+      - name: Wait for backend container
         run: |
-          for i in $(seq 1 30); do
-            if curl -sf http://localhost:8080/api/listings > /dev/null 2>&1; then
-              echo "Backend healthy after ${i} attempts"
+          echo "Waiting for backend container to start..."
+          for i in $(seq 1 20); do
+            STATUS=$(docker inspect -f '{{.State.Status}}' 3d-javawebapp-backend-1 2>/dev/null || echo "not_found")
+            echo "Attempt $i: backend status = $STATUS"
+            
+            if [ "$STATUS" = "running" ]; then
+              echo "✅ Backend is running!"
+              docker compose logs --tail 20 backend || true
               exit 0
-            fi
-            STATUS=$(docker inspect -f '{{.State.Status}}' 3d-javawebapp-backend-1 2>/dev/null || echo "missing")
-            if [ "$STATUS" = "exited" ]; then
-              echo "Backend container exited — printing logs:"
-              docker compose logs --no-color --timestamps backend || true
+            elif [ "$STATUS" = "exited" ]; then
+              echo "❌ Backend exited. Showing logs:"
+              docker compose logs --tail 100 backend || true
               exit 1
             fi
-            echo "Attempt $i: backend not ready (status=$STATUS), waiting 10s..."
-            sleep 10
+            sleep 5
           done
-          echo "=== Timeout: final backend logs ==="
-          docker compose logs --no-color --timestamps backend || true
+          echo "❌ Timeout waiting for backend"
+          docker compose logs --tail 100 backend || true
           exit 1
-        timeout-minutes: 6
+        timeout-minutes: 5
 
       - name: Wait for frontend healthy
         run: |
