@@ -10,7 +10,7 @@ test.describe('Public pages smoke', () => {
 
   test('listings page loads with page title', async ({ page }) => {
     await page.goto('/zlecenia');
-    await expect(page.locator('h1.page__title')).toContainText('Zlecenia druku');
+    await expect(page.getByRole('heading', { name: 'Zlecenia druku', level: 1 })).toBeVisible();
   });
 
   test('login page renders login form', async ({ page }) => {
@@ -26,7 +26,7 @@ test.describe('Public pages smoke', () => {
     ) as { id: string };
 
     await page.goto(`/zlecenia/${id}`);
-    await expect(page.locator('h1.listing__title')).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('h1.listing__title')).toContainText('E2E Smoke Test Listing');
+    await expect(page.locator('article[aria-label="Szczegóły zlecenia"] h1')).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator('article[aria-label="Szczegóły zlecenia"] h1')).toContainText('E2E Smoke Test Listing');
   });
 });

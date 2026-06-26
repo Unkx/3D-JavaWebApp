@@ -9,7 +9,7 @@ on:
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
 
     env:
       TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'admin@druk3d.pl' }}

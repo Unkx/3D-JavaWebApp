@@ -39,15 +39,18 @@ export default async function globalSetup() {
 
   // 3. Log in via browser UI to capture localStorage storageState
   const browser = await chromium.launch();
-  const ctx = await browser.newContext({ baseURL: BASE });
-  const page = await ctx.newPage();
+  try {
+    const ctx = await browser.newContext({ baseURL: BASE });
+    const page = await ctx.newPage();
 
-  await page.goto('/logowanie');
-  await page.fill('#login-email', EMAIL);
-  await page.fill('#login-pw', PASSWORD);
-  await page.click('button[type=submit]');
-  await page.waitForURL(url => !url.pathname.includes('logowanie'), { timeout: 15_000 });
+    await page.goto('/logowanie');
+    await page.fill('#login-email', EMAIL);
+    await page.fill('#login-pw', PASSWORD);
+    await page.click('button[type=submit]');
+    await page.waitForURL(url => !url.pathname.includes('logowanie'), { timeout: 15_000 });
 
-  await ctx.storageState({ path: join(AUTH_DIR, 'user.json') });
-  await browser.close();
+    await ctx.storageState({ path: join(AUTH_DIR, 'user.json') });
+  } finally {
+    await browser.close();
+  }
 }
