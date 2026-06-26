@@ -21,18 +21,22 @@ jobs:
 
       - name: Start Docker Compose stack
         run: |
-          docker compose up -d --build
-          sleep 5
+          docker compose up -d --build || true
+          sleep 15
           docker compose ps --all
         timeout-minutes: 10
 
-      - name: Dump Docker Compose status & backend logs
+      - name: Dump backend logs (always)
         if: always()
         run: |
           echo "==== docker compose ps ===="
           docker compose ps --all || true
-          echo "==== backend logs (last 200 lines) ===="
-          docker compose logs --no-color --timestamps backend --tail 200 || true
+          echo ""
+          echo "==== backend logs ===="
+          docker compose logs --no-color --timestamps --tail 300 backend 2>&1 || echo "(no logs)"
+          echo ""
+          echo "==== backend container inspect ===="
+          docker inspect 3d-javawebapp-backend-1 2>/dev/null | python3 -c "import sys,json; s=json.load(sys.stdin)[0]['State']; print(s)" || echo "(no container)"
 
       - name: Wait for backend healthy
         run: |
