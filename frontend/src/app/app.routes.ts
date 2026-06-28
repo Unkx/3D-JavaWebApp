@@ -26,5 +26,6 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/messages/messages.component').then(m => m.MessagesComponent)
   },
+  { path: 'reset-password', loadComponent: () => import('./features/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
   { path: '**', redirectTo: '' }
 ];
