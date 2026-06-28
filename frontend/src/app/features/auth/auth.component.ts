@@ -56,6 +56,7 @@ export class AuthComponent implements OnInit {
     this.activeTab.set(tab);
     this.serverError.set(null);
     this.forgotSent.set(false);
+    this.forgotForm.reset();
   }
 
   login(): void {

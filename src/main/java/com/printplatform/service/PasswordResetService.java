@@ -4,7 +4,10 @@ import com.printplatform.model.PasswordResetToken;
 import com.printplatform.model.User;
 import com.printplatform.repository.PasswordResetTokenRepository;
 import com.printplatform.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.MailException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +18,8 @@ import java.util.UUID;
 
 @Service
 public class PasswordResetService {
+
+    private static final Logger log = LoggerFactory.getLogger(PasswordResetService.class);
 
     private final UserRepository userRepository;
     private final PasswordResetTokenRepository tokenRepository;
@@ -33,6 +38,7 @@ public class PasswordResetService {
 
     @Transactional
     public void initReset(String email) {
+        tokenRepository.deleteExpired(LocalDateTime.now());
         userRepository.findByEmail(email).ifPresent(user -> {
             tokenRepository.deleteByUser(user);
             PasswordResetToken prt = new PasswordResetToken();
@@ -40,7 +46,11 @@ public class PasswordResetService {
             prt.setToken(UUID.randomUUID());
             prt.setExpiresAt(LocalDateTime.now().plusHours(1));
             tokenRepository.save(prt);
-            emailService.sendPasswordResetEmail(email, prt.getToken());
+            try {
+                emailService.sendPasswordResetEmail(email, prt.getToken());
+            } catch (MailException e) {
+                log.warn("Failed to send password reset email to {}: {}", email, e.getMessage());
+            }
         });
         // silently no-ops when email not found — prevents enumeration
     }
