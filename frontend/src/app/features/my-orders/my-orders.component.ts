@@ -3,9 +3,15 @@ import { RouterLink, Router } from '@angular/router';
 import { SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  tablerInbox, tablerMail, tablerCurrencyZloty, tablerLock, tablerCircleCheck,
+  tablerPackage, tablerMapPin, tablerFileText, tablerTruck
+} from '@ng-icons/tabler-icons';
 import { ListingService, Listing } from '../../services/listing.service';
 import { OfferService, Offer, OrderTracking, Payment, Shipment } from '../../services/offer.service';
 import { ConversationService } from '../../services/conversation.service';
+import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
 
 interface ListingWithOffers extends Listing {
   offersCount?: number;
@@ -13,7 +19,11 @@ interface ListingWithOffers extends Listing {
 
 @Component({
   selector: 'app-my-orders',
-  imports: [RouterLink, SlicePipe, FormsModule],
+  imports: [RouterLink, SlicePipe, FormsModule, NgIcon, PaczkomatPickerComponent],
+  providers: [provideIcons({
+    tablerInbox, tablerMail, tablerCurrencyZloty, tablerLock, tablerCircleCheck,
+    tablerPackage, tablerMapPin, tablerFileText, tablerTruck
+  })],
   templateUrl: './my-orders.component.html',
   styleUrl: './my-orders.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -47,16 +57,7 @@ export class MyOrdersComponent implements OnInit {
   paymentData = signal<Record<string, Payment>>({});
   creatingShipmentId = signal<string | null>(null);
   advancingShipmentId = signal<string | null>(null);
-  shipmentPaczkomat = signal('WAW001');
-
-  readonly paczkomatOptions = [
-    { id: 'WAW001', label: 'WAW001 — Warszawa, ul. Marszałkowska 10' },
-    { id: 'WAW045', label: 'WAW045 — Warszawa, ul. Puławska 120' },
-    { id: 'KRK012', label: 'KRK012 — Kraków, ul. Floriańska 5' },
-    { id: 'WRO008', label: 'WRO008 — Wrocław, ul. Świdnicka 25' },
-    { id: 'GDA003', label: 'GDA003 — Gdańsk, ul. Długa 15' },
-    { id: 'POZ019', label: 'POZ019 — Poznań, ul. Półwiejska 42' },
-  ];
+  shipmentPaczkomat = signal('');
 
   ngOnInit(): void {
     this.load();

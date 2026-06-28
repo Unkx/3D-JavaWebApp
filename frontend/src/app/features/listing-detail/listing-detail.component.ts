@@ -4,19 +4,38 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angu
 import { DecimalPipe } from '@angular/common';
 import { SlicePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import {
+  tablerArrowLeft, tablerAlertTriangle, tablerBox, tablerRuler, tablerSettings,
+  tablerCurrencyZloty, tablerPaperclip, tablerKey, tablerTrash, tablerGripVertical,
+  tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
+  tablerInbox, tablerClock, tablerLayers, tablerPrinter, tablerTrendingDown,
+  tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
+  tablerCircleCheck, tablerCircleX
+} from '@ng-icons/tabler-icons';
 import { ListingService, Listing, StlFile, UpdateListingPayload } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
 import { AuthService } from '../../services/auth.service';
 import { ConversationService } from '../../services/conversation.service';
 import { StlViewerComponent } from '../../components/stl-viewer.component';
 import { StlFileUploadComponent } from '../../components/stl-file-upload.component';
+import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
+import { SlicerAdvisorComponent } from '../../components/slicer-advisor.component';
 
 type EstimatorSize    = 'small' | 'medium' | 'large';
 type EstimatorQuality = 'fast'  | 'normal' | 'ultra';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, StlViewerComponent, StlFileUploadComponent],
+  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, NgIcon, StlViewerComponent, StlFileUploadComponent, PaczkomatPickerComponent, SlicerAdvisorComponent],
+  providers: [provideIcons({
+    tablerArrowLeft, tablerAlertTriangle, tablerBox, tablerRuler, tablerSettings,
+    tablerCurrencyZloty, tablerPaperclip, tablerKey, tablerTrash, tablerGripVertical,
+    tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
+    tablerInbox, tablerClock, tablerLayers, tablerPrinter, tablerTrendingDown,
+    tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
+    tablerCircleCheck, tablerCircleX
+  })],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -47,17 +66,9 @@ export class ListingDetailComponent implements OnInit {
   acceptError = signal<string | null>(null);
 
   checkoutOfferId = signal<string | null>(null);
-  checkoutPaczkomat = signal('WAW001');
+  checkoutPaczkomat = signal('');
   checkoutPaying = signal(false);
 
-  readonly paczkomatOptions = [
-    { id: 'WAW001', label: 'WAW001 — Warszawa, ul. Marszałkowska 10' },
-    { id: 'WAW045', label: 'WAW045 — Warszawa, ul. Puławska 120' },
-    { id: 'KRK012', label: 'KRK012 — Kraków, ul. Floriańska 5' },
-    { id: 'WRO008', label: 'WRO008 — Wrocław, ul. Świdnicka 25' },
-    { id: 'GDA003', label: 'GDA003 — Gdańsk, ul. Długa 15' },
-    { id: 'POZ019', label: 'POZ019 — Poznań, ul. Półwiejska 42' },
-  ];
 
   feeBreakdown = computed(() => {
     const listing = this.listing();
@@ -370,7 +381,7 @@ export class ListingDetailComponent implements OnInit {
 
   openCheckout(offer: Offer): void {
     this.checkoutOfferId.set(offer.id ?? null);
-    this.checkoutPaczkomat.set('WAW001');
+    this.checkoutPaczkomat.set('');
   }
 
   cancelCheckout(): void {

@@ -29,7 +29,7 @@
       <div class="state-box state-box--error" role="alert">{{ error() }}</div>
     } @else if (listings().length === 0) {
       <div class="state-box state-box--empty">
-        <span class="state-box__icon" aria-hidden="true">&#x1F4ED;</span>
+        <ng-icon name="tablerInbox" class="state-box__icon" aria-hidden="true" />
         <p>Nie masz jeszcze żadnych zleceń.</p>
         <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
       </div>
@@ -100,7 +100,7 @@
   @if (activeTab() === 'offers') {
     @if (myOffers().length === 0) {
       <div class="state-box state-box--empty">
-        <span class="state-box__icon" aria-hidden="true">&#x1F4ED;</span>
+        <ng-icon name="tablerInbox" class="state-box__icon" aria-hidden="true" />
         <p>Nie złożyłeś jeszcze żadnych ofert.</p>
       </div>
     } @else {
@@ -117,7 +117,9 @@
               <div class="order-card__actions">
                 @if (offer.listing?.id) {
                   <a [routerLink]="['/zlecenia', offer.listing!.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
-                  <button class="btn btn--outline" (click)="openMessage(offer)">&#x2709; Wiadomość</button>
+                  <button class="btn btn--outline" (click)="openMessage(offer)">
+                    <ng-icon name="tablerMail" aria-hidden="true" /> Wiadomość
+                  </button>
                 }
               </div>
             </div>
@@ -164,11 +166,16 @@
               @if (paymentData()[offer.id!]) {
                 @let pay = paymentData()[offer.id!];
                 <div class="payment-summary">
-                  <span class="payment-summary__label">💰 Twoje wynagrodzenie:</span>
+                  <span class="payment-summary__label">
+                    <ng-icon name="tablerCurrencyZloty" aria-hidden="true" /> Twoje wynagrodzenie:
+                  </span>
                   <span class="payment-summary__value">{{ pay.contractorPrice }} zł</span>
                   <span class="payment-summary__status">
-                    @if (pay.status === 'HELD') { 🔒 Środki zabezpieczone }
-                    @else if (pay.status === 'RELEASED') { ✅ Wypłacono }
+                    @if (pay.status === 'HELD') {
+                      <ng-icon name="tablerLock" aria-hidden="true" /> Środki zabezpieczone
+                    } @else if (pay.status === 'RELEASED') {
+                      <ng-icon name="tablerCircleCheck" aria-hidden="true" /> Wypłacono
+                    }
                   </span>
                 </div>
               }
@@ -178,15 +185,15 @@
                 @let ship = shipmentData()[offer.id!];
                 <div class="shipment-info">
                   <div class="shipment-info__row">
-                    <span>📦 Tracking:</span>
+                    <span><ng-icon name="tablerPackage" aria-hidden="true" /> Tracking:</span>
                     <code>{{ ship.trackingNumber }}</code>
                   </div>
                   <div class="shipment-info__row">
-                    <span>📍 Paczkomat nadania:</span>
+                    <span><ng-icon name="tablerMapPin" aria-hidden="true" /> Paczkomat nadania:</span>
                     <span>{{ ship.senderPaczkomat }}</span>
                   </div>
                   <div class="shipment-info__row">
-                    <span>📍 Paczkomat odbioru:</span>
+                    <span><ng-icon name="tablerMapPin" aria-hidden="true" /> Paczkomat odbioru:</span>
                     <span>{{ ship.receiverPaczkomat }}</span>
                   </div>
                   <div class="shipment-info__row">
@@ -219,25 +226,36 @@
                 @if (offer.status === 'PRINTING') {
                   @if (!shipmentData()[offer.id!]) {
                     <div class="shipment-form">
-                      <label class="shipment-form__label">📦 Nadaj paczkę InPost</label>
-                      <select class="shipment-form__select"
-                              [ngModel]="shipmentPaczkomat()"
-                              (ngModelChange)="shipmentPaczkomat.set($event)">
-                        @for (p of paczkomatOptions; track p.id) {
-                          <option [value]="p.id">{{ p.label }}</option>
-                        }
-                      </select>
+                      <p class="shipment-form__label">
+                        <ng-icon name="tablerPackage" aria-hidden="true" /> Wybierz paczkomat nadania
+                      </p>
+                      <app-paczkomat-picker
+                        (paczkomatSelected)="shipmentPaczkomat.set($event)"
+                      ></app-paczkomat-picker>
+                      @if (shipmentPaczkomat()) {
+                        <p class="shipment-form__selected">
+                          Wybrany paczkomat: <strong>{{ shipmentPaczkomat() }}</strong>
+                        </p>
+                      }
                       <button class="btn btn--primary"
                               (click)="createShipment(offer.id!)"
-                              [disabled]="creatingShipmentId() === offer.id">
-                        @if (creatingShipmentId() === offer.id) { Tworzenie... } @else { 📄 Utwórz przesyłkę }
+                              [disabled]="creatingShipmentId() === offer.id || !shipmentPaczkomat()">
+                        @if (creatingShipmentId() === offer.id) {
+                          Tworzenie...
+                        } @else {
+                          <ng-icon name="tablerFileText" aria-hidden="true" /> Utwórz przesyłkę
+                        }
                       </button>
                     </div>
                   } @else if (shipmentData()[offer.id!].status === 'LABEL_CREATED') {
                     <button class="btn btn--primary"
                             (click)="advanceShipment(offer.id!)"
                             [disabled]="advancingShipmentId() === offer.id">
-                      @if (advancingShipmentId() === offer.id) { Aktualizacja... } @else { ✅ Nadano w paczkomacie }
+                      @if (advancingShipmentId() === offer.id) {
+                        Aktualizacja...
+                      } @else {
+                        <ng-icon name="tablerCircleCheck" aria-hidden="true" /> Nadano w paczkomacie
+                      }
                     </button>
                   }
                 }
@@ -247,10 +265,15 @@
                     <button class="btn btn--primary"
                             (click)="advanceShipment(offer.id!)"
                             [disabled]="advancingShipmentId() === offer.id">
-                      @if (advancingShipmentId() === offer.id) { Aktualizacja... }
-                      @else if (ship.status === 'DISPATCHED') { 📦 W drodze }
-                      @else if (ship.status === 'IN_TRANSIT') { 📬 Czeka w paczkomacie }
-                      @else if (ship.status === 'READY_TO_PICKUP') { ✅ Odebrano }
+                      @if (advancingShipmentId() === offer.id) {
+                        Aktualizacja...
+                      } @else if (ship.status === 'DISPATCHED') {
+                        <ng-icon name="tablerTruck" aria-hidden="true" /> W drodze
+                      } @else if (ship.status === 'IN_TRANSIT') {
+                        <ng-icon name="tablerMapPin" aria-hidden="true" /> Czeka w paczkomacie
+                      } @else if (ship.status === 'READY_TO_PICKUP') {
+                        <ng-icon name="tablerCircleCheck" aria-hidden="true" /> Odebrano
+                      }
                     </button>
                   }
                 }

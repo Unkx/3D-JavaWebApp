@@ -1,6 +1,6 @@
 <div class="page">
   <a routerLink="/zlecenia" class="back-link">
-    <span aria-hidden="true">← </span>Wróć do zleceń
+    <ng-icon name="tablerArrowLeft" aria-hidden="true" />Wróć do zleceń
   </a>
 
   @if (listingLoading()) {
@@ -10,7 +10,7 @@
     </div>
   } @else if (listingError()) {
     <div class="state-box state-box--error" role="alert">
-      <span aria-hidden="true">⚠️</span>
+      <ng-icon name="tablerAlertTriangle" aria-hidden="true" />
       <p>{{ listingError() }}</p>
       <a routerLink="/zlecenia" class="btn btn--secondary">Wróć do listy</a>
     </div>
@@ -25,19 +25,19 @@
         </div>
 
         <div class="listing__meta">
-          <span class="tag">🧱 {{ listing()!.requiredMaterial }}</span>
+          <span class="tag"><ng-icon name="tablerBox" aria-hidden="true" /> {{ listing()!.requiredMaterial }}</span>
           @if (listing()!.estimatorSize) {
-            <span class="tag tag--size">📐 {{ sizeLabel(listing()!.estimatorSize) }}</span>
+            <span class="tag tag--size"><ng-icon name="tablerRuler" aria-hidden="true" /> {{ sizeLabel(listing()!.estimatorSize) }}</span>
           }
           @if (listing()!.estimatorQuality) {
-            <span class="tag tag--size">⚙️ {{ qualityLabel(listing()!.estimatorQuality) }}</span>
+            <span class="tag tag--size"><ng-icon name="tablerSettings" aria-hidden="true" /> {{ qualityLabel(listing()!.estimatorQuality) }}</span>
           }
           @if (listing()!.maxBudget) {
-            <span class="tag tag--budget">💰 Budżet: do {{ listing()!.maxBudget }} zł</span>
+            <span class="tag tag--budget"><ng-icon name="tablerCurrencyZloty" aria-hidden="true" /> Budżet: do {{ listing()!.maxBudget }} zł</span>
           }
           @if (listing()!.stlFileUrl) {
             <a [href]="listing()!.stlFileUrl" target="_blank" rel="noopener noreferrer" class="tag tag--link">
-              📎 Pobierz plik STL
+              <ng-icon name="tablerPaperclip" aria-hidden="true" /> Pobierz plik STL
             </a>
           }
           @if (listing()!.createdAt) {
@@ -50,14 +50,14 @@
         @if (canManage()) {
           <div class="listing__manage">
             @if (isAdmin() && currentUser()?.userId !== listing()!.user?.id) {
-              <span class="admin-flag" title="Akcja administratora">🔑 Administrator</span>
+              <span class="admin-flag" title="Akcja administratora"><ng-icon name="tablerKey" aria-hidden="true" /> Administrator</span>
             }
             <button
               class="btn btn--danger"
               (click)="deleteListing()"
               [disabled]="deletingListing()"
             >
-              @if (deletingListing()) { Usuwanie... } @else { 🗑️ Usuń zlecenie }
+              @if (deletingListing()) { Usuwanie... } @else { <ng-icon name="tablerTrash" aria-hidden="true" /> Usuń zlecenie }
             </button>
           </div>
         }
@@ -93,9 +93,16 @@
                   tabindex="0"
                 >
                   @if (canManage()) {
-                    <span class="file-tab__grip" aria-hidden="true">⠿</span>
+                    <ng-icon name="tablerGripVertical" class="file-tab__grip" aria-hidden="true" />
                   }
-                  <span class="file-tab__name">{{ f.kind === 'image' ? '🖼️' : '📄' }} {{ f.fileName }}</span>
+                  <span class="file-tab__name">
+                    @if (f.kind === 'image') {
+                      <ng-icon name="tablerPhoto" aria-hidden="true" />
+                    } @else {
+                      <ng-icon name="tablerFile" aria-hidden="true" />
+                    }
+                    {{ f.fileName }}
+                  </span>
                   @if (f.fileSize) {
                     <span class="file-tab__size">{{ fileSizeLabel(f.fileSize) }}</span>
                   }
@@ -106,7 +113,7 @@
                       [disabled]="deletingFileId() === f.id"
                       aria-label="Usuń plik"
                       title="Usuń plik"
-                    >✕</button>
+                    ><ng-icon name="tablerX" aria-hidden="true" /></button>
                   }
                 </div>
               }
@@ -121,9 +128,11 @@
                 </div>
               } @else if (selectedFile()?.kind === 'obj') {
                 <div class="model-placeholder">
-                  <span class="model-placeholder__icon" aria-hidden="true">📦</span>
+                  <ng-icon name="tablerBox" class="model-placeholder__icon" aria-hidden="true" />
                   <p class="model-placeholder__text">Podgląd plików .obj nie jest dostępny w przeglądarce.</p>
-                  <a [href]="selectedFileUrl()!" class="btn btn--download" download>⬇ Pobierz plik OBJ</a>
+                  <a [href]="selectedFileUrl()!" class="btn btn--download" download>
+                    <ng-icon name="tablerDownload" aria-hidden="true" /> Pobierz plik OBJ
+                  </a>
                 </div>
               } @else {
                 <app-stl-viewer [stlUrl]="selectedFileUrl()"></app-stl-viewer>
@@ -139,7 +148,7 @@
                 [disabled]="downloading()"
                 title="Pobierz wszystkie pliki jako ZIP — otwórz .stl w Cura, PrusaSlicer lub innym slicerze"
               >
-                @if (downloading()) { ⏳ Pobieranie... } @else { ⬇ Pobierz pliki (.zip) }
+                @if (downloading()) { Pobieranie... } @else { <ng-icon name="tablerDownload" aria-hidden="true" /> Pobierz pliki (.zip) }
               </button>
               <span class="viewer-actions__hint">Zawiera pliki STL, obrazy i README — otwórz w Cura lub innym slicerze</span>
             </div>
@@ -153,7 +162,11 @@
           @if (canManage()) {
             <button class="btn-edit-toggle" (click)="editMode() ? cancelEdit() : openEdit()"
                     [attr.aria-expanded]="editMode()">
-              {{ editMode() ? '✕ Anuluj' : '✏️ Edytuj' }}
+              @if (editMode()) {
+                <ng-icon name="tablerX" aria-hidden="true" /> Anuluj
+              } @else {
+                <ng-icon name="tablerPencil" aria-hidden="true" /> Edytuj
+              }
             </button>
           }
         </h2>
@@ -220,7 +233,7 @@
 
       <section class="estimator" aria-label="Szybki estymator kosztów druku">
         <h2 class="section-title">
-          <span class="estimator__icon" aria-hidden="true">⚡</span>
+          <ng-icon name="tablerBolt" class="estimator__icon" aria-hidden="true" />
           Szybki estymator kosztów
         </h2>
 
@@ -244,7 +257,7 @@
 
         <div class="estimator__result">
           <span class="estimator__result-label">
-            <span aria-hidden="true">⚡</span> SZACUNKOWY KOSZT
+            <ng-icon name="tablerBolt" aria-hidden="true" /> SZACUNKOWY KOSZT
           </span>
           <span class="estimator__result-value">
             {{ printEstimate().low }} – {{ printEstimate().high }} zł
@@ -254,6 +267,12 @@
           Podana cena jest jedynie szacunkiem i zależy od wagi modelu oraz czasu druku.
         </p>
       </section>
+
+      <app-slicer-advisor
+        [contextMaterial]="listing()!.requiredMaterial ?? ''"
+        [contextSize]="listing()!.estimatorSize ?? 'medium'"
+        [contextQuality]="listing()!.estimatorQuality ?? 'normal'"
+      ></app-slicer-advisor>
     </article>
 
     <!-- Oferty -->
@@ -271,7 +290,7 @@
         </div>
       } @else if (offers().length === 0) {
         <div class="state-box state-box--empty">
-          <span aria-hidden="true">📭</span>
+          <ng-icon name="tablerInbox" aria-hidden="true" />
           <p>Brak ofert. Złóż pierwszą!</p>
         </div>
       } @else {
@@ -285,22 +304,22 @@
                 </span>
               </div>
               <div class="offer-card__details">
-                <span>⏱ {{ offer.printingTimeHours }} h</span>
-                <span>🧵 {{ offer.filamentGrams }} g filamentu</span>
+                <span><ng-icon name="tablerClock" aria-hidden="true" /> {{ offer.printingTimeHours }} h</span>
+                <span><ng-icon name="tablerLayers" aria-hidden="true" /> {{ offer.filamentGrams }} g filamentu</span>
                 @if (offer.printerModel) {
-                  <span>🖨️ {{ offer.printerModel }}</span>
+                  <span><ng-icon name="tablerPrinter" aria-hidden="true" /> {{ offer.printerModel }}</span>
                 }
               </div>
               <div class="offer-card__estimate">
                 <span class="estimate-range">
-                  ⚡ Szac. koszt: {{ estimateCost(offer).low }}–{{ estimateCost(offer).high }} zł
+                  <ng-icon name="tablerBolt" aria-hidden="true" /> Szac. koszt: {{ estimateCost(offer).low }}–{{ estimateCost(offer).high }} zł
                 </span>
                 @if (priceVsEstimate(offer) === 'cheap') {
-                  <span class="price-verdict price-verdict--cheap">↓ Poniżej szacunku</span>
+                  <span class="price-verdict price-verdict--cheap"><ng-icon name="tablerTrendingDown" aria-hidden="true" /> Poniżej szacunku</span>
                 } @else if (priceVsEstimate(offer) === 'expensive') {
-                  <span class="price-verdict price-verdict--expensive">↑ Powyżej szacunku</span>
+                  <span class="price-verdict price-verdict--expensive"><ng-icon name="tablerTrendingUp" aria-hidden="true" /> Powyżej szacunku</span>
                 } @else {
-                  <span class="price-verdict price-verdict--fair">✓ W szacowanym przedziale</span>
+                  <span class="price-verdict price-verdict--fair"><ng-icon name="tablerCheck" aria-hidden="true" /> W szacowanym przedziale</span>
                 }
               </div>
               @if (currentUser() && (isOwner() || currentUser()?.userId === offer.user?.id)) {
@@ -330,24 +349,25 @@
                   @if (isOwner() && offer.status === 'PENDING' && listing()!.status === 'OPEN') {
                     @if (checkoutOfferId() === offer.id) {
                       <div class="checkout-panel">
-                        <label class="checkout-panel__label" for="paczkomat-select">
-                          📦 Paczkomat odbioru
-                        </label>
-                        <select id="paczkomat-select" class="checkout-panel__select"
-                                [ngModel]="checkoutPaczkomat()"
-                                (ngModelChange)="checkoutPaczkomat.set($event)">
-                          @for (p of paczkomatOptions; track p.id) {
-                            <option [value]="p.id">{{ p.label }}</option>
-                          }
-                        </select>
+                        <p class="checkout-panel__label">
+                          <ng-icon name="tablerPackage" aria-hidden="true" /> Wybierz paczkomat odbioru
+                        </p>
+                        <app-paczkomat-picker
+                          (paczkomatSelected)="checkoutPaczkomat.set($event)"
+                        ></app-paczkomat-picker>
+                        @if (checkoutPaczkomat()) {
+                          <p class="checkout-panel__selected">
+                            Wybrany paczkomat: <strong>{{ checkoutPaczkomat() }}</strong>
+                          </p>
+                        }
                         <div class="checkout-panel__actions">
                           <button class="btn btn--accept"
                                   (click)="confirmCheckout(offer)"
-                                  [disabled]="checkoutPaying()">
+                                  [disabled]="checkoutPaying() || !checkoutPaczkomat()">
                             @if (checkoutPaying()) {
                               <span class="btn-spinner" aria-hidden="true"></span> Płacenie...
                             } @else {
-                              🛡️ Zapłać {{ feeBreakdown()(offer).total | number:'1.2-2' }} zł
+                              <ng-icon name="tablerShieldCheck" aria-hidden="true" /> Zapłać {{ feeBreakdown()(offer).total | number:'1.2-2' }} zł
                             }
                           </button>
                           <button class="btn btn--outline" (click)="cancelCheckout()">Anuluj</button>
@@ -355,12 +375,12 @@
                       </div>
                     } @else {
                       <button class="btn btn--accept" (click)="openCheckout(offer)">
-                        💳 Zapłać {{ feeBreakdown()(offer).total | number:'1.2-2' }} zł
+                        <ng-icon name="tablerShieldCheck" aria-hidden="true" /> Zapłać {{ feeBreakdown()(offer).total | number:'1.2-2' }} zł
                       </button>
                     }
                   }
                   <button class="btn btn--outline" (click)="openMessage(offer)">
-                    ✉ Napisz wiadomość
+                    <ng-icon name="tablerMail" aria-hidden="true" /> Napisz wiadomość
                   </button>
                 </div>
               }
@@ -377,13 +397,13 @@
 
         @if (submitSuccess()) {
           <div class="alert alert--success" role="alert" aria-live="polite">
-            <span aria-hidden="true">✅</span>
+            <ng-icon name="tablerCircleCheck" aria-hidden="true" />
             Oferta złożona pomyślnie!
           </div>
         }
         @if (submitError()) {
           <div class="alert alert--error" role="alert" aria-live="polite">
-            <span aria-hidden="true">❌</span>
+            <ng-icon name="tablerCircleX" aria-hidden="true" />
             {{ submitError() }}
           </div>
         }
