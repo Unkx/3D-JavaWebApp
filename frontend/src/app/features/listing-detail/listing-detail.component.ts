@@ -9,7 +9,7 @@ import {
   tablerArrowLeft, tablerAlertTriangle, tablerBox, tablerRuler, tablerSettings,
   tablerCurrencyZloty, tablerPaperclip, tablerKey, tablerTrash, tablerGripVertical,
   tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
-  tablerInbox, tablerClock, tablerLayers, tablerPrinter, tablerTrendingDown,
+  tablerInbox, tablerClock, tablerStack, tablerPrinter, tablerTrendingDown,
   tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
   tablerCircleCheck, tablerCircleX
 } from '@ng-icons/tabler-icons';
@@ -32,7 +32,7 @@ type EstimatorQuality = 'fast'  | 'normal' | 'ultra';
     tablerArrowLeft, tablerAlertTriangle, tablerBox, tablerRuler, tablerSettings,
     tablerCurrencyZloty, tablerPaperclip, tablerKey, tablerTrash, tablerGripVertical,
     tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
-    tablerInbox, tablerClock, tablerLayers, tablerPrinter, tablerTrendingDown,
+    tablerInbox, tablerClock, tablerStack, tablerPrinter, tablerTrendingDown,
     tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
     tablerCircleCheck, tablerCircleX
   })],
