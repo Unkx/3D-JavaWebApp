@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Generate ephemeral JWT_SECRET for CI
+        run: echo "JWT_SECRET=$(openssl rand -base64 48)" >> $GITHUB_ENV
+
       - name: Build and start Docker Compose stack
         run: |
           echo "🔨 Building containers..."
@@ -141,4 +144,4 @@ jobs:
 
       - name: Tear down Docker Compose stack
         if: always()
-        run: docker compose down -v
+        run: docker compose down -v /web-setup

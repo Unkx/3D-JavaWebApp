@@ -1,20 +1,107 @@
-target/
+# ────────────────────────────────────────────────
+#  SECRETS & CREDENTIALS  (never commit these)
+# ────────────────────────────────────────────────
 .env
-!.mvn/wrapper/maven-wrapper.jar
+.env.local
+.env.*.local
+*.env
+
+# Private keys, certificates, keystores
+*.key
+*.pem
+*.p12
+*.jks
+*.keystore
+*.pfx
+*.ppk
+*.cert
+*.crt
+*.cer
+*.der
+*.csr
+*.gpg
+*.asc
+
+# Cloud / service-account credentials
+credentials.json
+credentials.yml
+credentials.yaml
+service-account*.json
+*-service-account.json
+secrets.json
+secrets.yml
+secrets.yaml
+gcloud-key.json
+
+# ────────────────────────────────────────────────
+#  JAVA / MAVEN
+# ────────────────────────────────────────────────
+target/
 !**/src/main/**/target/
 !**/src/test/**/target/
-.kotlin
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
 
-### IntelliJ IDEA ###
-.idea/modules.xml
-.idea/jarRepositories.xml
-.idea/compiler.xml
-.idea/libraries/
+# Maven wrapper jar is intentionally kept
+!.mvn/wrapper/maven-wrapper.jar
+
+# ────────────────────────────────────────────────
+#  NODE / ANGULAR (frontend)
+# ────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+.angular/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn
+.pnpm-store
+
+# ────────────────────────────────────────────────
+#  LOGS & RUNTIME ARTIFACTS
+# ────────────────────────────────────────────────
+*.log
+logs/
+spring.log
+startup.txt
+
+# ────────────────────────────────────────────────
+#  TEST / E2E ARTIFACTS
+# ────────────────────────────────────────────────
+e2e/playwright-report/
+e2e/test-results/
+e2e/node_modules/
+
+# ────────────────────────────────────────────────
+#  DOCKER RUNTIME
+# ────────────────────────────────────────────────
+# Dockerfiles and docker-compose.yml are intentionally tracked.
+# Local overrides (volumes, dev mounts, port tweaks) stay local.
+docker-compose.override.yml
+docker-compose.*.local.yml
+
+# ────────────────────────────────────────────────
+#  IDE — IntelliJ IDEA
+# ────────────────────────────────────────────────
+.idea/
 *.iws
 *.iml
 *.ipr
 
-### Eclipse ###
+# ────────────────────────────────────────────────
+#  IDE — VS Code
+# ────────────────────────────────────────────────
+.vscode/
+
+# ────────────────────────────────────────────────
+#  IDE — Eclipse / STS
+# ────────────────────────────────────────────────
 .apt_generated
 .classpath
 .factorypath
@@ -23,23 +110,35 @@ target/
 .springBeans
 .sts4-cache
 
-### NetBeans ###
+# ────────────────────────────────────────────────
+#  IDE — NetBeans
+# ────────────────────────────────────────────────
 /nbproject/private/
 /nbbuild/
-/dist/
 /nbdist/
 /.nb-gradle/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
-.vscode/
-
-### Mac OS ###
+# ────────────────────────────────────────────────
+#  OS
+# ────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
+Desktop.ini
+*.tmp
+*.bak
+*.swp
+*.swo
 
+# ────────────────────────────────────────────────
+#  AI / DEV-TOOL WORKSPACES
+# ────────────────────────────────────────────────
 .agents
 .continue
-
-startup.txt
+.claude/
+.impeccable/
+.superpowers/
+.kotlin
+skills-lock.json
