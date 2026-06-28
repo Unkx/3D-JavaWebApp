@@ -48,6 +48,14 @@ export class AuthService {
     );
   }
 
+  forgotPassword(email: string): Observable<void> {
+    return this.http.post<void>('/api/auth/forgot-password', { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<void> {
+    return this.http.post<void>('/api/auth/reset-password', { token, newPassword });
+  }
+
   /** Redeem an admin code to become administrator; persists the fresh token/role. */
   redeemAdminCode(code: string): Observable<AuthUser> {
     return this.http.post<AuthUser>('/api/admin/redeem', { code }).pipe(

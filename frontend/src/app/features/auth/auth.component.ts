@@ -4,7 +4,7 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
-type Tab = 'login' | 'register';
+type Tab = 'login' | 'register' | 'forgot';
 
 @Component({
   selector: 'app-auth',
@@ -22,6 +22,7 @@ export class AuthComponent implements OnInit {
   activeTab   = signal<Tab>('login');
   loading     = signal(false);
   serverError = signal<string | null>(null);
+  forgotSent  = signal(false);
   returnUrl   = '/';
 
   loginForm = this.fb.group({
@@ -36,8 +37,13 @@ export class AuthComponent implements OnInit {
     adminCode:       ['']
   }, { validators: this.passwordsMatch });
 
+  forgotForm = this.fb.group({
+    email: ['', [Validators.required, Validators.email]]
+  });
+
   get le() { return this.loginForm.controls; }
   get re() { return this.registerForm.controls; }
+  get fe() { return this.forgotForm.controls; }
 
   ngOnInit(): void {
     if (this.auth.isLoggedIn()) { this.router.navigate(['/']); return; }
@@ -49,6 +55,7 @@ export class AuthComponent implements OnInit {
   switchTab(tab: Tab): void {
     this.activeTab.set(tab);
     this.serverError.set(null);
+    this.forgotSent.set(false);
   }
 
   login(): void {
@@ -75,6 +82,24 @@ export class AuthComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         this.serverError.set(err.error?.message ?? 'Rejestracja nie powiodła się.');
+      }
+    });
+  }
+
+  submitForgot(): void {
+    if (this.forgotForm.invalid) { this.forgotForm.markAllAsTouched(); return; }
+    this.loading.set(true);
+    this.serverError.set(null);
+    const { email } = this.forgotForm.getRawValue();
+    this.auth.forgotPassword(email!).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.forgotSent.set(true);
+      },
+      error: () => {
+        this.loading.set(false);
+        // still show success to avoid email enumeration
+        this.forgotSent.set(true);
       }
     });
   }

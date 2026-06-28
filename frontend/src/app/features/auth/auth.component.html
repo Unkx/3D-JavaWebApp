@@ -13,27 +13,29 @@
       <span>Druk3D</span>
     </a>
 
-    <!-- Tabs -->
-    <div class="tabs" role="tablist" aria-label="Logowanie lub rejestracja">
-      <button
-        role="tab"
-        class="tab"
-        [class.tab--active]="activeTab() === 'login'"
-        [attr.aria-selected]="activeTab() === 'login'"
-        (click)="switchTab('login')"
-        id="tab-login"
-        aria-controls="panel-login"
-      >Zaloguj się</button>
-      <button
-        role="tab"
-        class="tab"
-        [class.tab--active]="activeTab() === 'register'"
-        [attr.aria-selected]="activeTab() === 'register'"
-        (click)="switchTab('register')"
-        id="tab-register"
-        aria-controls="panel-register"
-      >Zarejestruj się</button>
-    </div>
+    <!-- Tabs (hidden when in forgot state) -->
+    @if (activeTab() !== 'forgot') {
+      <div class="tabs" role="tablist" aria-label="Logowanie lub rejestracja">
+        <button
+          role="tab"
+          class="tab"
+          [class.tab--active]="activeTab() === 'login'"
+          [attr.aria-selected]="activeTab() === 'login'"
+          (click)="switchTab('login')"
+          id="tab-login"
+          aria-controls="panel-login"
+        >Zaloguj się</button>
+        <button
+          role="tab"
+          class="tab"
+          [class.tab--active]="activeTab() === 'register'"
+          [attr.aria-selected]="activeTab() === 'register'"
+          (click)="switchTab('register')"
+          id="tab-register"
+          aria-controls="panel-register"
+        >Zarejestruj się</button>
+      </div>
+    }
 
     <!-- Server error -->
     @if (serverError()) {
@@ -102,6 +104,12 @@
             <span class="spinner" aria-hidden="true"></span> Logowanie...
           } @else { Zaloguj się }
         </button>
+
+        <p class="form__switch">
+          <button type="button" class="link-btn" (click)="switchTab('forgot')">
+            Zapomniałem hasła
+          </button>
+        </p>
 
         <p class="form__switch">
           Nie masz konta?
@@ -219,6 +227,63 @@
           <button type="button" class="link-btn" (click)="switchTab('login')">Zaloguj się</button>
         </p>
       </form>
+    }
+
+    <!-- FORGOT PASSWORD PANEL -->
+    @if (activeTab() === 'forgot') {
+      <div class="form">
+        <button
+          type="button"
+          class="link-btn form__back"
+          (click)="switchTab('login')"
+          aria-label="Wróć do logowania"
+        >← Wróć</button>
+
+        <h2 class="form__title">Reset hasła</h2>
+
+        @if (forgotSent()) {
+          <div class="alert alert--success" role="status" aria-live="polite">
+            Jeśli konto istnieje, wysłaliśmy link na podany adres.
+          </div>
+          <p class="form__switch">
+            <button type="button" class="link-btn" (click)="switchTab('login')">Wróć do logowania</button>
+          </p>
+        } @else {
+          <form [formGroup]="forgotForm" (ngSubmit)="submitForgot()" novalidate>
+            <div class="field">
+              <label class="field__label" for="forgot-email">Email</label>
+              <input
+                id="forgot-email"
+                type="email"
+                class="field__input"
+                [class.field__input--error]="fe['email'].invalid && fe['email'].touched"
+                formControlName="email"
+                placeholder="jan@kowalski.pl"
+                autocomplete="email"
+                [attr.aria-invalid]="fe['email'].invalid && fe['email'].touched ? 'true' : null"
+                aria-describedby="fe-email-err"
+              />
+              @if (fe['email'].invalid && fe['email'].touched) {
+                <p id="fe-email-err" class="field__error" role="alert">
+                  @if (fe['email'].errors?.['required']) { Email jest wymagany. }
+                  @else { Podaj poprawny adres email. }
+                </p>
+              }
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn--primary btn--full"
+              [disabled]="loading()"
+              [attr.aria-busy]="loading()"
+            >
+              @if (loading()) {
+                <span class="spinner" aria-hidden="true"></span> Wysyłanie...
+              } @else { Wyślij link resetujący }
+            </button>
+          </form>
+        }
+      </div>
     }
 
   </div>
