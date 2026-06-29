@@ -23,6 +23,6 @@ export class ThemeService {
   private loadPreference(): boolean {
     const saved = localStorage.getItem(this.STORAGE_KEY);
     if (saved) return saved === 'dark';
-    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
   }
 }

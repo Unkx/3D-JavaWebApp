@@ -66,7 +66,12 @@
     <ul class="listing-grid" aria-label="Lista zleceń druku">
       @for (listing of listings(); track listing.id) {
         <li>
-          <a [routerLink]="['/zlecenia', listing.id]" class="listing-card" aria-label="Zlecenie: {{ listing.title }}">
+          <a [routerLink]="['/zlecenia', listing.id]"
+             class="listing-card"
+             [class.listing-card--open]="(listing.status ?? 'OPEN') === 'OPEN'"
+             [class.listing-card--awarded]="listing.status === 'AWARDED'"
+             [class.listing-card--closed]="listing.status === 'CLOSED'"
+             aria-label="Zlecenie: {{ listing.title }}">
             <div class="listing-card__header">
               <h2 class="listing-card__title">{{ listing.title }}</h2>
               <span class="status-badge status-badge--{{ (listing.status ?? 'open').toLowerCase() }}">

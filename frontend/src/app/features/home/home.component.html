@@ -31,83 +31,105 @@
   </div>
 
   <div class="hero__visual" aria-hidden="true">
-    <svg class="hero__svg" viewBox="0 0 320 320" fill="none">
+    <svg class="hero__svg" viewBox="0 0 360 360" fill="none" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="hero-dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-          <circle cx="0" cy="0" r="1" fill="var(--accent-border)"/>
+          <circle cx="0" cy="0" r="1" fill="var(--accent)" opacity="0.18"/>
         </pattern>
+        <radialGradient id="hero-glow" cx="50%" cy="55%" r="45%">
+          <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.12"/>
+          <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+        </radialGradient>
       </defs>
-      <rect width="320" height="320" fill="url(#hero-dots)" opacity="0.7"/>
+      <rect width="360" height="360" fill="url(#hero-dots)"/>
+      <rect width="360" height="360" fill="url(#hero-glow)"/>
 
       <!-- Outer frame -->
-      <rect x="36" y="36" width="248" height="248" rx="6" stroke="var(--border)" stroke-width="1"/>
-
-      <!-- Vertical guide rails -->
-      <line x1="100" y1="56" x2="100" y2="272" stroke="var(--accent-border)" stroke-width="1" stroke-dasharray="3,7"/>
-      <line x1="220" y1="56" x2="220" y2="272" stroke="var(--accent-border)" stroke-width="1" stroke-dasharray="3,7"/>
-
-      <!-- Print bed platform -->
-      <rect x="76" y="264" width="168" height="6" rx="2" fill="var(--accent-border)"/>
-
-      <!-- Printed layers — bottom to top -->
-      <rect x="100" y="244" width="120" height="18" rx="2" fill="var(--accent)" opacity="0.22"/>
-      <rect x="100" y="226" width="120" height="16" rx="2" fill="var(--accent)" opacity="0.32"/>
-      <rect x="100" y="210" width="120" height="14" rx="2" fill="var(--accent)" opacity="0.42"/>
-      <rect x="100" y="196" width="120" height="12" rx="2" fill="var(--accent)" opacity="0.72"/>
-
-      <!-- Current scan line (animated) -->
-      <rect class="hero__scan-line" x="56" y="188" width="208" height="1.5" rx="0.75" fill="var(--accent)" opacity="0.35"/>
-
-      <!-- Print head (animated) -->
-      <g class="hero__print-head">
-        <rect x="130" y="173" width="60" height="15" rx="3" fill="var(--accent)"/>
-        <circle cx="148" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
-        <circle cx="160" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
-        <circle cx="172" cy="180.5" r="2.5" fill="white" opacity="0.65"/>
-      </g>
-      <!-- Nozzle glow (animated) -->
-      <ellipse class="hero__nozzle-glow" cx="160" cy="188" rx="22" ry="6" fill="var(--accent)" opacity="0.18"/>
-
-      <!-- Future layers (dashed) -->
-      <rect x="104" y="156" width="112" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.32"/>
-      <rect x="108" y="140" width="104" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.22"/>
-      <rect x="112" y="124" width="96" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.15"/>
-      <rect x="116" y="108" width="88" height="12" rx="2" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3" opacity="0.1"/>
-
-      <!-- Dimension callouts (precision feel) -->
-      <line x1="56" y1="196" x2="90" y2="196" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
-      <line x1="56" y1="244" x2="90" y2="244" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
-      <line x1="62" y1="196" x2="62" y2="244" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
-      <line x1="59" y1="196" x2="65" y2="196" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
-      <line x1="59" y1="244" x2="65" y2="244" stroke="var(--accent)" stroke-width="0.75" opacity="0.45"/>
+      <rect x="40" y="40" width="280" height="280" rx="6" stroke="var(--border)" stroke-width="1"/>
 
       <!-- Corner accent marks -->
-      <path d="M36 56L36 36L56 36" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-      <path d="M284 56L284 36L264 36" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-      <path d="M36 264L36 284L56 284" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-      <path d="M284 264L284 284L264 284" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
+      <path d="M40 64L40 40L64 40" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+      <path d="M320 64L320 40L296 40" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+      <path d="M40 296L40 320L64 320" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+      <path d="M320 296L320 320L296 320" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" opacity="0.7"/>
+
+      <!-- Vertical guide rails -->
+      <line x1="110" y1="62" x2="110" y2="308" stroke="var(--accent)" stroke-width="0.75" stroke-dasharray="3,7" opacity="0.28"/>
+      <line x1="250" y1="62" x2="250" y2="308" stroke="var(--accent)" stroke-width="0.75" stroke-dasharray="3,7" opacity="0.28"/>
+
+      <!-- Print bed platform -->
+      <rect x="84" y="298" width="192" height="7" rx="2" fill="var(--accent)" opacity="0.25"/>
+
+      <!-- Printed layers — bottom to top -->
+      <rect x="110" y="275" width="140" height="20" rx="2" fill="var(--accent)" opacity="0.18"/>
+      <rect x="110" y="255" width="140" height="18" rx="2" fill="var(--accent)" opacity="0.28"/>
+      <rect x="110" y="237" width="140" height="16" rx="2" fill="var(--accent)" opacity="0.38"/>
+      <rect x="110" y="221" width="140" height="14" rx="2" fill="var(--accent)" opacity="0.55"/>
+      <rect x="110" y="207" width="140" height="12" rx="2" fill="var(--accent)" opacity="0.72"/>
+
+      <!-- Scan line (animated via scanPulse) -->
+      <rect class="hero__scan-line" x="62" y="200" width="236" height="1.5" rx="0.75" fill="var(--accent)"/>
+
+      <!-- Print head (animated via printHeadMove) -->
+      <g class="hero__print-head">
+        <rect x="145" y="183" width="70" height="17" rx="3" fill="var(--accent)"/>
+        <circle cx="163" cy="191.5" r="2.5" fill="white" opacity="0.65"/>
+        <circle cx="180" cy="191.5" r="2.5" fill="white" opacity="0.65"/>
+        <circle cx="197" cy="191.5" r="2.5" fill="white" opacity="0.65"/>
+      </g>
+
+      <!-- Nozzle glow (animated via nozzleGlow) -->
+      <ellipse class="hero__nozzle-glow" cx="180" cy="201" rx="26" ry="7" fill="var(--accent)"/>
+
+      <!-- Future layers (dashed) -->
+      <rect x="114" y="170" width="132" height="12" rx="2" stroke="var(--accent)" stroke-width="0.75" stroke-dasharray="3,3" opacity="0.30"/>
+      <rect x="118" y="154" width="124" height="12" rx="2" stroke="var(--accent)" stroke-width="0.75" stroke-dasharray="3,3" opacity="0.20"/>
+      <rect x="122" y="138" width="116" height="12" rx="2" stroke="var(--accent)" stroke-width="0.75" stroke-dasharray="3,3" opacity="0.13"/>
+
+      <!-- Dimension callouts -->
+      <line x1="62" y1="207" x2="100" y2="207" stroke="var(--accent)" stroke-width="0.75" opacity="0.40"/>
+      <line x1="62" y1="275" x2="100" y2="275" stroke="var(--accent)" stroke-width="0.75" opacity="0.40"/>
+      <line x1="70" y1="207" x2="70" y2="275" stroke="var(--accent)" stroke-width="0.75" opacity="0.40"/>
+      <line x1="66" y1="207" x2="74" y2="207" stroke="var(--accent)" stroke-width="0.75" opacity="0.40"/>
+      <line x1="66" y1="275" x2="74" y2="275" stroke="var(--accent)" stroke-width="0.75" opacity="0.40"/>
     </svg>
   </div>
 </section>
 
-<!-- TRUST -->
-<p class="trust-line" appReveal aria-label="Statystyki platformy">
-  <span class="trust-line__item">500+ zleceń</span>
-  <span class="trust-line__sep" aria-hidden="true">·</span>
-  <span class="trust-line__item">120+ drukarzy</span>
-  <span class="trust-line__sep" aria-hidden="true">·</span>
-  <span class="trust-line__item">Średni czas 48h</span>
-  <span class="trust-line__sep" aria-hidden="true">·</span>
-  <span class="trust-line__item">Ocena 4.8★</span>
-</p>
+<!-- TRUST BAR -->
+<div class="trust-bar" appReveal aria-label="Statystyki platformy">
+  <div class="trust-stat">
+    <span class="trust-stat__num">500+</span>
+    <span class="trust-stat__label">Zleceń</span>
+  </div>
+  <span class="trust-bar__div" aria-hidden="true"></span>
+  <div class="trust-stat">
+    <span class="trust-stat__num">120+</span>
+    <span class="trust-stat__label">Drukarzy</span>
+  </div>
+  <span class="trust-bar__div" aria-hidden="true"></span>
+  <div class="trust-stat">
+    <span class="trust-stat__num">48h</span>
+    <span class="trust-stat__label">Średni czas</span>
+  </div>
+  <span class="trust-bar__div" aria-hidden="true"></span>
+  <div class="trust-stat">
+    <span class="trust-stat__num">4.8★</span>
+    <span class="trust-stat__label">Ocena</span>
+  </div>
+</div>
 
 <!-- JAK TO DZIAŁA -->
 <section class="section" appReveal aria-labelledby="steps-title">
   <h2 class="section__title" id="steps-title">Jak to działa?</h2>
   <div class="steps">
+    <div class="steps__connector" aria-hidden="true"></div>
     @for (step of steps; track step.title; let i = $index) {
       <div class="step">
-        <h3 class="step__title"><span class="step__num">{{ i + 1 }}</span>{{ step.title }}</h3>
+        <div class="step__circle" [class.step__circle--active]="i === 0" aria-hidden="true">
+          <span>{{ i + 1 }}</span>
+        </div>
+        <h3 class="step__title">{{ step.title }}</h3>
         <p class="step__desc">{{ step.desc }}</p>
       </div>
     }
@@ -118,10 +140,10 @@
 <section class="section" appReveal aria-labelledby="materials-title">
   <h2 class="section__title" id="materials-title">Obsługiwane materiały</h2>
   <div class="materials">
-    @for (mat of materials; track mat.name) {
-      <div class="material-card">
-        <span class="material-card__name">{{ mat.name }}</span>
-        <p class="material-card__desc">{{ mat.desc }}</p>
+    @for (mat of materials; track mat.name; let i = $index) {
+      <div class="material-chip" [class.material-chip--featured]="i === 0">
+        <span class="material-chip__name">{{ mat.name }}</span>
+        <span class="material-chip__desc">{{ mat.desc }}</span>
       </div>
     }
   </div>
@@ -129,15 +151,39 @@
 
 <!-- CTA -->
 <section class="cta" appReveal aria-labelledby="cta-title">
-  <h2 class="cta__title" id="cta-title">Gotowy na wydruk?</h2>
-  <p class="cta__desc">Dołącz do społeczności i zrealizuj swój projekt już dziś.</p>
-  @if (auth.isLoggedIn()) {
-    <a routerLink="/dodaj-zlecenie" class="btn btn--primary btn--lg">
-      Dodaj zlecenie
-    </a>
-  } @else {
-    <a routerLink="/logowanie" class="btn btn--primary btn--lg">
-      Zacznij za darmo
-    </a>
-  }
+  <div class="cta__left">
+    <p class="cta__eyebrow">Gotowy?</p>
+    <h2 class="cta__title" id="cta-title">Zrealizuj projekt<br>już dziś</h2>
+    <p class="cta__desc">Dołącz do społeczności. Bezpłatna rejestracja, brak ukrytych kosztów.</p>
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/dodaj-zlecenie" class="btn btn--primary btn--lg">
+        Dodaj zlecenie
+      </a>
+    } @else {
+      <a routerLink="/logowanie" class="btn btn--primary btn--lg">
+        Zacznij za darmo
+      </a>
+    }
+  </div>
+
+  <div class="cta__panel" aria-hidden="true">
+    <div class="cta__panel-header">
+      <span class="cta__panel-dot cta__panel-dot--r"></span>
+      <span class="cta__panel-dot cta__panel-dot--y"></span>
+      <span class="cta__panel-dot cta__panel-dot--g"></span>
+      <span class="cta__panel-label">druk3d_estimate.sh</span>
+    </div>
+    <pre class="cta__panel-body"><span class="cta__cmd">$</span> druk3d estimate \
+  --material <span class="cta__hl">PLA</span> \
+  --size     <span class="cta__hl">medium</span> \
+  --quality  <span class="cta__hl">normal</span>
+
+<span class="cta__comment">Szacowanie kosztów...</span>
+
+<span class="cta__key">Materiał:</span>  <span class="cta__val">PLA · Średni</span>
+<span class="cta__key">Czas druku:</span> <span class="cta__val">~4–6h</span>
+<span class="cta__key">Szacunek:</span>   <span class="cta__price">60–120 zł</span>
+
+<span class="cta__prompt">_</span></pre>
+  </div>
 </section>
