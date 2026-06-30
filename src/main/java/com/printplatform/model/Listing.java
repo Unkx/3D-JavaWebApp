@@ -48,4 +48,17 @@ public class Listing {
     private String estimatorQuality; // "fast" | "normal" | "ultra"
 
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** Populated at query time — URL of the first uploaded image for this listing, or null. */
+    @Transient
+    private String previewImageUrl;
+
+    /** Populated at query time — true if any StlFile (image or model) is attached. */
+    @Transient
+    private boolean hasAttachments;
+
+    public String getPreviewImageUrl() { return previewImageUrl; }
+    public void setPreviewImageUrl(String previewImageUrl) { this.previewImageUrl = previewImageUrl; }
+    public boolean isHasAttachments() { return hasAttachments; }
+    public void setHasAttachments(boolean hasAttachments) { this.hasAttachments = hasAttachments; }
 }

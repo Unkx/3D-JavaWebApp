@@ -1,13 +1,17 @@
 package com.printplatform.service;
 
 import com.printplatform.dto.AdminCodeDto;
+import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
+import com.printplatform.dto.UserSummaryDto;
 import com.printplatform.model.AdminCode;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.AdminCodeRepository;
+import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -25,13 +29,16 @@ public class AdminService {
 
     private final AdminCodeRepository codeRepository;
     private final UserRepository userRepository;
+    private final ListingRepository listingRepository;
     private final JwtService jwtService;
 
     public AdminService(AdminCodeRepository codeRepository,
                         UserRepository userRepository,
+                        ListingRepository listingRepository,
                         JwtService jwtService) {
         this.codeRepository = codeRepository;
         this.userRepository = userRepository;
+        this.listingRepository = listingRepository;
         this.jwtService = jwtService;
     }
 
@@ -42,6 +49,22 @@ public class AdminService {
         code.setCreatedByEmail(admin.getEmail());
         codeRepository.save(code);
         return new AdminCodeDto(code);
+    }
+
+    /** List all listings, newest first (admin only). */
+    public List<AdminListingDto> listAllListings() {
+        return listingRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(AdminListingDto::new)
+                .toList();
+    }
+
+    /** List all users, newest first (admin only). */
+    public List<UserSummaryDto> listUsers() {
+        return userRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(UserSummaryDto::new)
+                .toList();
     }
 
     /** List all admin codes, newest first (admin only). */

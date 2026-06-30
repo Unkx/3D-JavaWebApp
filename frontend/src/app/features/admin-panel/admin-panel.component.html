@@ -1,0 +1,328 @@
+<div class="page">
+  <h1 class="page__title">Panel administratora</h1>
+
+  @if (loading()) {
+    <div class="state-box" aria-busy="true">
+      <div class="spinner" aria-hidden="true"></div>
+      <p>Ładowanie...</p>
+    </div>
+  } @else if (error()) {
+    <div class="state-box state-box--error" role="alert">⚠️ {{ error() }}</div>
+  } @else if (profile()) {
+    <div class="panel-grid">
+
+      <!-- ── Profile header ── -->
+      <section class="card profile-card" aria-label="Profil administratora">
+        <div class="profile-avatar admin-avatar" aria-hidden="true">{{ avatarChar(profile()!) }}</div>
+        <div class="profile-info">
+          <h2 class="profile-name">{{ displayName(profile()!) }}</h2>
+          @if (profile()!.firstName || profile()!.lastName) {
+            <p class="profile-email">{{ profile()!.email }}</p>
+          }
+          @if (profile()!.bio) {
+            <p class="profile-bio">{{ profile()!.bio }}</p>
+          }
+          <span class="role-badge role-badge--admin">🔑 Administrator</span>
+          <p class="profile-since">Konto od: <strong>{{ formatDate(profile()!.createdAt) }}</strong></p>
+        </div>
+      </section>
+
+      <!-- ── Listings ── -->
+      <section class="card listings-card" aria-label="Ogłoszenia">
+        <h2 class="card__title">Ogłoszenia ({{ listings().length }})</h2>
+        @if (listingsLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (listings().length === 0) {
+          <p class="muted">Brak ogłoszeń.</p>
+        } @else {
+          <div class="table-wrap" role="region" aria-label="Tabela ogłoszeń" tabindex="0">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th scope="col">Tytuł</th>
+                  <th scope="col">Właściciel</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Data</th>
+                  <th scope="col"><span class="sr-only">Akcje</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (l of listings(); track l.id) {
+                  <tr>
+                    <td class="listing-title">{{ l.title }}</td>
+                    <td class="listing-owner">{{ l.ownerEmail }}</td>
+                    <td>
+                      <span class="status-pill" [class.status-pill--closed]="l.status === 'CLOSED'" [class.status-pill--progress]="l.status === 'IN_PROGRESS'">
+                        {{ statusLabel(l.status) }}
+                      </span>
+                    </td>
+                    <td class="date-cell">{{ formatDate(l.createdAt) }}</td>
+                    <td class="action-cell">
+                      @if (confirmDeleteId() === l.id) {
+                        <span class="confirm-text">Usunąć?</span>
+                        <button class="btn btn--danger btn--sm" (click)="deleteListing(l.id)" [disabled]="deleting()">
+                          @if (deleting()) { … } @else { Tak }
+                        </button>
+                        <button class="btn btn--ghost btn--sm" (click)="cancelDelete()" [disabled]="deleting()">Nie</button>
+                      } @else {
+                        <button class="btn btn--danger btn--sm" (click)="deleteListing(l.id)">Usuń</button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <!-- ── Users table ── -->
+      <section class="card users-card" aria-label="Lista użytkowników">
+        <h2 class="card__title">Użytkownicy ({{ users().length }})</h2>
+        @if (usersLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (users().length === 0) {
+          <p class="muted">Brak użytkowników.</p>
+        } @else {
+          <div class="table-wrap" role="region" aria-label="Tabela użytkowników" tabindex="0">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th scope="col">Email</th>
+                  <th scope="col">Imię i nazwisko</th>
+                  <th scope="col">Rola</th>
+                  <th scope="col">Data rejestracji</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of users(); track u.id) {
+                  <tr>
+                    <td>{{ u.email }}</td>
+                    <td>{{ userDisplayName(u) }}</td>
+                    <td>
+                      <span class="role-pill" [class.role-pill--admin]="u.role === 'ADMIN'">
+                        {{ u.role === 'ADMIN' ? '🔑 Admin' : '👤 User' }}
+                      </span>
+                    </td>
+                    <td class="date-cell">{{ formatDate(u.createdAt) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
+      <!-- ── Admin codes ── -->
+      <section class="card codes-card" aria-label="Kody administratora">
+        <h2 class="card__title">🔑 Kody administratora</h2>
+        <p class="admin-desc">
+          Wygeneruj kod i przekaż go zaufanej osobie. Po wpisaniu kodu jej konto otrzyma
+          uprawnienia administratora.
+        </p>
+        <button class="btn btn--primary" (click)="generate()" [disabled]="generating()">
+          @if (generating()) { Generowanie… } @else { + Wygeneruj nowy kod }
+        </button>
+        @if (codesLoading()) {
+          <p class="muted">Ładowanie kodów...</p>
+        } @else if (codes().length === 0) {
+          <p class="muted">Nie wygenerowano jeszcze żadnych kodów.</p>
+        } @else {
+          <ul class="code-list">
+            @for (c of codes(); track c.code) {
+              <li class="code-row" [class.code-row--used]="c.used">
+                <code class="code-row__code">{{ c.code }}</code>
+                @if (c.used) {
+                  <span class="code-row__status code-row__status--used">
+                    Użyty{{ c.usedByEmail ? ' — ' + c.usedByEmail : '' }}
+                  </span>
+                } @else {
+                  <span class="code-row__status code-row__status--free">Aktywny</span>
+                  <button class="btn btn--ghost btn--sm" (click)="copy(c.code)">
+                    @if (copiedCode() === c.code) { Skopiowano ✓ } @else { Kopiuj }
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <!-- ── Szczegóły profilu ── -->
+      <section class="card" aria-label="Szczegóły profilu">
+        <div class="section-header">
+          <h2 class="card__title">Szczegóły profilu</h2>
+          @if (!editingDetails()) {
+            <button class="btn btn--ghost btn--sm" (click)="startEditDetails()">Edytuj</button>
+          }
+        </div>
+        @if (editingDetails()) {
+          <form class="edit-form" (ngSubmit)="saveDetails()">
+            @if (detailsError()) {
+              <div class="alert alert--error" role="alert">⚠️ {{ detailsError() }}</div>
+            }
+            <div class="edit-grid edit-grid--3">
+              <div class="edit-field">
+                <label class="edit-field__label" for="aFirst">Imię</label>
+                <input id="aFirst" type="text" class="field__input" placeholder="Jan"
+                  autocomplete="given-name" name="aFirst"
+                  [ngModel]="editFirstName()" (ngModelChange)="editFirstName.set($event)" />
+              </div>
+              <div class="edit-field">
+                <label class="edit-field__label" for="aLast">Nazwisko</label>
+                <input id="aLast" type="text" class="field__input" placeholder="Kowalski"
+                  autocomplete="family-name" name="aLast"
+                  [ngModel]="editLastName()" (ngModelChange)="editLastName.set($event)" />
+              </div>
+              <div class="edit-field">
+                <label class="edit-field__label" for="aDob">Data urodzenia</label>
+                <input id="aDob" type="date" class="field__input"
+                  autocomplete="bday" name="aDob"
+                  [ngModel]="editDateOfBirth()" (ngModelChange)="editDateOfBirth.set($event)" />
+              </div>
+              <div class="edit-field">
+                <label class="edit-field__label" for="aGender">Płeć</label>
+                <select id="aGender" class="field__input field__select" name="aGender"
+                  [ngModel]="editGender()" (ngModelChange)="editGender.set($event)">
+                  <option value="">Nie podano</option>
+                  <option value="MALE">Mężczyzna</option>
+                  <option value="FEMALE">Kobieta</option>
+                  <option value="OTHER">Inne</option>
+                  <option value="PREFER_NOT_TO_SAY">Wolę nie podawać</option>
+                </select>
+              </div>
+              <div class="edit-field edit-field--full">
+                <label class="edit-field__label" for="aBio">O mnie</label>
+                <textarea id="aBio" class="field__input field__textarea" name="aBio"
+                  placeholder="Krótki opis…" rows="3" maxlength="500"
+                  [ngModel]="editBio()" (ngModelChange)="editBio.set($event)"></textarea>
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button type="submit" class="btn btn--primary" [disabled]="savingDetails()">
+                @if (savingDetails()) { Zapisywanie… } @else { Zapisz }
+              </button>
+              <button type="button" class="btn btn--ghost" (click)="cancelEditDetails()" [disabled]="savingDetails()">
+                Anuluj
+              </button>
+            </div>
+          </form>
+        } @else {
+          <dl class="info-list">
+            <div class="info-row"><dt>Imię</dt><dd>{{ profile()!.firstName || '—' }}</dd></div>
+            <div class="info-row"><dt>Nazwisko</dt><dd>{{ profile()!.lastName || '—' }}</dd></div>
+            <div class="info-row"><dt>Data urodzenia</dt><dd>{{ formatDob(profile()!.dateOfBirth) }}</dd></div>
+            <div class="info-row"><dt>Płeć</dt><dd>{{ genderLabel(profile()!.gender) }}</dd></div>
+            <div class="info-row"><dt>O mnie</dt><dd>{{ profile()!.bio || '—' }}</dd></div>
+          </dl>
+        }
+      </section>
+
+      <!-- ── Dane konta ── -->
+      <section class="card" aria-label="Dane konta">
+        <div class="section-header">
+          <h2 class="card__title">Dane konta</h2>
+          @if (!editingAccount()) {
+            <button class="btn btn--ghost btn--sm" (click)="startEditAccount()">Edytuj</button>
+          }
+        </div>
+        @if (editingAccount()) {
+          <form class="edit-form" (ngSubmit)="saveAccount()">
+            @if (accountError()) {
+              <div class="alert alert--error" role="alert">⚠️ {{ accountError() }}</div>
+            }
+            <div class="edit-grid edit-grid--1">
+              <div class="edit-field">
+                <label class="edit-field__label" for="aPhone">Telefon</label>
+                <input id="aPhone" type="tel" class="field__input" placeholder="+48 123 456 789"
+                  autocomplete="tel" name="aPhone"
+                  [ngModel]="editPhone()" (ngModelChange)="editPhone.set($event)" />
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button type="submit" class="btn btn--primary" [disabled]="savingAccount()">
+                @if (savingAccount()) { Zapisywanie… } @else { Zapisz }
+              </button>
+              <button type="button" class="btn btn--ghost" (click)="cancelEditAccount()" [disabled]="savingAccount()">
+                Anuluj
+              </button>
+            </div>
+          </form>
+        } @else {
+          <dl class="info-list">
+            <div class="info-row"><dt>Email</dt><dd>{{ profile()!.email }}</dd></div>
+            <div class="info-row"><dt>Telefon</dt><dd>{{ profile()!.phone || '—' }}</dd></div>
+            <div class="info-row"><dt>ID konta</dt><dd class="monospace">{{ profile()!.id }}</dd></div>
+            <div class="info-row"><dt>Data rejestracji</dt><dd>{{ formatDate(profile()!.createdAt) }}</dd></div>
+          </dl>
+          <button class="btn btn--danger" (click)="auth.logout()">Wyloguj się</button>
+        }
+      </section>
+
+      <!-- ── Wysyłka ── -->
+      <section class="card" aria-label="Adres wysyłki">
+        <div class="section-header">
+          <h2 class="card__title">Wysyłka</h2>
+          @if (!editingShipping()) {
+            <button class="btn btn--ghost btn--sm" (click)="startEditShipping()">Edytuj</button>
+          }
+        </div>
+        @if (editingShipping()) {
+          <form class="edit-form" (ngSubmit)="saveShipping()">
+            @if (shippingError()) {
+              <div class="alert alert--error" role="alert">⚠️ {{ shippingError() }}</div>
+            }
+            <div class="edit-grid edit-grid--3">
+              <div class="edit-field edit-field--2">
+                <label class="edit-field__label" for="aStreet">Ulica</label>
+                <input id="aStreet" type="text" class="field__input" placeholder="ul. Kwiatowa"
+                  autocomplete="address-line1" name="aStreet"
+                  [ngModel]="editStreet()" (ngModelChange)="editStreet.set($event)" />
+              </div>
+              <div class="edit-field">
+                <label class="edit-field__label" for="aHouse">Nr domu / mieszkania</label>
+                <input id="aHouse" type="text" class="field__input" placeholder="12A"
+                  autocomplete="address-line2" name="aHouse"
+                  [ngModel]="editHouseNumber()" (ngModelChange)="editHouseNumber.set($event)" />
+              </div>
+              <div class="edit-field">
+                <label class="edit-field__label" for="aPostal">Kod pocztowy</label>
+                <input id="aPostal" type="text" class="field__input" placeholder="00-001"
+                  autocomplete="postal-code" name="aPostal"
+                  [ngModel]="editPostalCode()" (ngModelChange)="editPostalCode.set($event)" />
+              </div>
+              <div class="edit-field edit-field--2">
+                <label class="edit-field__label" for="aCity">Miasto</label>
+                <input id="aCity" type="text" class="field__input" placeholder="Warszawa"
+                  autocomplete="address-level2" name="aCity"
+                  [ngModel]="editCity()" (ngModelChange)="editCity.set($event)" />
+              </div>
+            </div>
+            <div class="edit-actions">
+              <button type="submit" class="btn btn--primary" [disabled]="savingShipping()">
+                @if (savingShipping()) { Zapisywanie… } @else { Zapisz }
+              </button>
+              <button type="button" class="btn btn--ghost" (click)="cancelEditShipping()" [disabled]="savingShipping()">
+                Anuluj
+              </button>
+            </div>
+          </form>
+        } @else {
+          <dl class="info-list">
+            <div class="info-row">
+              <dt>Ulica i numer</dt>
+              <dd>
+                @if (profile()!.street || profile()!.houseNumber) {
+                  {{ [profile()!.street, profile()!.houseNumber].join(' ') }}
+                } @else { — }
+              </dd>
+            </div>
+            <div class="info-row"><dt>Kod pocztowy</dt><dd>{{ profile()!.postalCode || '—' }}</dd></div>
+            <div class="info-row"><dt>Miasto</dt><dd>{{ profile()!.city || '—' }}</dd></div>
+          </dl>
+        }
+      </section>
+
+    </div>
+  }
+</div>

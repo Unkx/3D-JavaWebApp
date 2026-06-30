@@ -4,6 +4,7 @@ import { SlicePipe } from '@angular/common';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ListingService, Listing } from '../../services/listing.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-listings',
@@ -14,6 +15,7 @@ import { ListingService, Listing } from '../../services/listing.service';
 })
 export class ListingsComponent implements OnInit, OnDestroy {
   private listingService = inject(ListingService);
+  auth = inject(AuthService);
   private readonly destroy$ = new Subject<void>();
   private readonly search$ = new Subject<string>();
 

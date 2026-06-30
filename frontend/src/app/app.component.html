@@ -12,11 +12,27 @@
 
   <a routerLink="/" class="navbar__brand" aria-label="Strona główna" (click)="closeMenu()">
     <span class="navbar__icon" aria-hidden="true">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z" fill="currentColor" opacity="0.9"/>
-        <path d="M7 1L13 4.5L7 8L1 4.5L7 1Z" fill="white" opacity="0.22"/>
-        <path d="M7 8V13L1 9.5V4.5L7 8Z" fill="white" opacity="0.1"/>
-      </svg>
+      @if (theme.isDark()) {
+        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
+          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0EC8B4"/>
+          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#0A9882"/>
+          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#076B5A"/>
+          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
+          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
+          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+        </svg>
+      } @else {
+        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
+          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0A9882"/>
+          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#076B5A"/>
+          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#044840"/>
+          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
+          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
+        </svg>
+      }
     </span>
     <span class="navbar__title">Druk3D</span>
   </a>
@@ -24,15 +40,17 @@
   <nav class="navbar__links-desktop" aria-label="Nawigacja główna">
     <a routerLink="/zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">Zlecenia</a>
     @if (auth.isLoggedIn()) {
-      <a routerLink="/moje-zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">Moje zlecenia</a>
-      <a routerLink="/wiadomosci" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-messages">
-        Wiadomości
-        @if (unreadCount() > 0) {
-          <span class="unread-badge">{{ unreadCount() }}</span>
-        }
-      </a>
-      <a routerLink="/dodaj-zlecenie" routerLinkActive="active" ariaCurrentWhenActive="page" class="btn-primary">Dodaj zlecenie</a>
-      <a routerLink="/profil" routerLinkActive="active" ariaCurrentWhenActive="page" class="user-chip" [title]="auth.currentUser()?.email ?? ''">
+      @if (!auth.isAdmin()) {
+        <a routerLink="/moje-zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">Moje zlecenia</a>
+        <a routerLink="/wiadomosci" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-messages">
+          Wiadomości
+          @if (unreadCount() > 0) {
+            <span class="unread-badge">{{ unreadCount() }}</span>
+          }
+        </a>
+        <a routerLink="/dodaj-zlecenie" routerLinkActive="active" ariaCurrentWhenActive="page" class="btn-primary">Dodaj zlecenie</a>
+      }
+      <a [routerLink]="auth.isAdmin() ? '/admin' : '/profil'" routerLinkActive="active" ariaCurrentWhenActive="page" class="user-chip" [title]="auth.currentUser()?.email ?? ''">
         <span class="user-avatar" aria-hidden="true">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <circle cx="5.5" cy="3.5" r="2" stroke="currentColor" stroke-width="1.25"/>
@@ -76,26 +94,44 @@
 <aside class="sidebar" [class.sidebar--open]="menuOpen()" id="main-nav" aria-label="Nawigacja mobilna">
   <a routerLink="/" class="sidebar__brand" (click)="closeMenu()">
     <span class="navbar__icon" aria-hidden="true">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M7 1L13 4.5V9.5L7 13L1 9.5V4.5L7 1Z" fill="currentColor" opacity="0.9"/>
-        <path d="M7 1L13 4.5L7 8L1 4.5L7 1Z" fill="white" opacity="0.22"/>
-        <path d="M7 8V13L1 9.5V4.5L7 8Z" fill="white" opacity="0.1"/>
-      </svg>
+      @if (theme.isDark()) {
+        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
+          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0EC8B4"/>
+          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#0A9882"/>
+          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#076B5A"/>
+          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
+          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
+          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+        </svg>
+      } @else {
+        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
+          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0A9882"/>
+          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#076B5A"/>
+          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#044840"/>
+          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
+          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
+          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
+        </svg>
+      }
     </span>
     <span class="navbar__title">Druk3D</span>
   </a>
   <nav class="sidebar__links">
     <a routerLink="/zlecenia" routerLinkActive="active" (click)="closeMenu()">Zlecenia</a>
     @if (auth.isLoggedIn()) {
-      <a routerLink="/moje-zlecenia" routerLinkActive="active" (click)="closeMenu()">Moje zlecenia</a>
-      <a routerLink="/wiadomosci" routerLinkActive="active" class="nav-messages" (click)="closeMenu()">
-        Wiadomości
-        @if (unreadCount() > 0) {
-          <span class="unread-badge">{{ unreadCount() }}</span>
-        }
-      </a>
-      <a routerLink="/dodaj-zlecenie" routerLinkActive="active" class="sidebar__cta" (click)="closeMenu()">Dodaj zlecenie</a>
-      <a routerLink="/profil" routerLinkActive="active" class="sidebar__user" (click)="closeMenu()">
+      @if (!auth.isAdmin()) {
+        <a routerLink="/moje-zlecenia" routerLinkActive="active" (click)="closeMenu()">Moje zlecenia</a>
+        <a routerLink="/wiadomosci" routerLinkActive="active" class="nav-messages" (click)="closeMenu()">
+          Wiadomości
+          @if (unreadCount() > 0) {
+            <span class="unread-badge">{{ unreadCount() }}</span>
+          }
+        </a>
+        <a routerLink="/dodaj-zlecenie" routerLinkActive="active" class="sidebar__cta" (click)="closeMenu()">Dodaj zlecenie</a>
+      }
+      <a [routerLink]="auth.isAdmin() ? '/admin' : '/profil'" routerLinkActive="active" class="sidebar__user" (click)="closeMenu()">
         <span class="user-avatar" aria-hidden="true">
           <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
             <circle cx="5.5" cy="3.5" r="2" stroke="currentColor" stroke-width="1.25"/>

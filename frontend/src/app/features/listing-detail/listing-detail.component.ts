@@ -144,10 +144,18 @@ export class ListingDetailComponent implements OnInit {
     const user = this.currentUser();
     const listing = this.listing();
     if (!user || !listing) return false;
-    return user.userId === listing.user?.id || user.role === 'ADMIN';
+    return user.userId === listing.user?.id;
   });
 
   canManage = this.canUploadFile;
+
+  canDelete = computed(() => {
+    const user = this.currentUser();
+    const listing = this.listing();
+    if (!user || !listing) return false;
+    return user.userId === listing.user?.id || user.role === 'ADMIN';
+  });
+
   isAdmin = computed(() => this.currentUser()?.role === 'ADMIN');
   isOwner = computed(() => this.currentUser()?.userId === this.listing()?.user?.id);
 

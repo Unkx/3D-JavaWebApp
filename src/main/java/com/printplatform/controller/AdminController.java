@@ -1,8 +1,10 @@
 package com.printplatform.controller;
 
 import com.printplatform.dto.AdminCodeDto;
+import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.RedeemCodeRequest;
+import com.printplatform.dto.UserSummaryDto;
 import com.printplatform.model.User;
 import com.printplatform.service.AdminService;
 import jakarta.validation.Valid;
@@ -20,6 +22,18 @@ public class AdminController {
 
     public AdminController(AdminService adminService) {
         this.adminService = adminService;
+    }
+
+    /** List all listings (admin only). */
+    @GetMapping("/listings")
+    public List<AdminListingDto> listAllListings() {
+        return adminService.listAllListings();
+    }
+
+    /** List all users (admin only). */
+    @GetMapping("/users")
+    public List<UserSummaryDto> listUsers() {
+        return adminService.listUsers();
     }
 
     /** Generate a new admin code (admin only). */

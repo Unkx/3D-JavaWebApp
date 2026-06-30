@@ -29,8 +29,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -59,10 +62,34 @@ public class ListingController {
         int safeSize = Math.clamp(size, 1, 50);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        if (search.isBlank()) {
-            return new PageResponse<>(listingRepository.findByStatus(ListingStatus.OPEN, pageable));
+        var resultPage = search.isBlank()
+                ? listingRepository.findByStatus(ListingStatus.OPEN, pageable)
+                : listingRepository.searchByStatus(ListingStatus.OPEN, search.strip(), pageable);
+
+        List<Listing> content = resultPage.getContent();
+        if (!content.isEmpty()) {
+            List<UUID> ids = content.stream().map(Listing::getId).toList();
+            Map<UUID, UUID> imageMap = new LinkedHashMap<>();
+            Set<UUID> withFiles = new HashSet<>();
+            stlFileRepository.findFilePreviewInfoByListingIds(ids).forEach(row -> {
+                UUID listingId = (UUID) row[0];
+                UUID fileId    = (UUID) row[1];
+                String ct      = (String) row[2];
+                withFiles.add(listingId);
+                if (ct != null && ct.startsWith("image/")) {
+                    imageMap.putIfAbsent(listingId, fileId);
+                }
+            });
+            content.forEach(l -> {
+                UUID imgId = imageMap.get(l.getId());
+                if (imgId != null) {
+                    l.setPreviewImageUrl("/api/listings/" + l.getId() + "/stl-files/" + imgId);
+                }
+                l.setHasAttachments(withFiles.contains(l.getId()) || l.getStlFileName() != null);
+            });
         }
-        return new PageResponse<>(listingRepository.searchByStatus(ListingStatus.OPEN, search.strip(), pageable));
+
+        return new PageResponse<>(resultPage);
     }
 
     @GetMapping("/{id}")

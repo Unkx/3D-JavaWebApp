@@ -15,6 +15,8 @@ export interface Listing {
   user?: { id: string };
   estimatorSize?: string;
   estimatorQuality?: string;
+  previewImageUrl?: string;
+  hasAttachments?: boolean;
 }
 
 export interface UpdateListingPayload {

@@ -47,7 +47,7 @@
           }
         </div>
 
-        @if (canManage()) {
+        @if (canDelete()) {
           <div class="listing__manage">
             @if (isAdmin() && currentUser()?.userId !== listing()!.user?.id) {
               <span class="admin-flag" title="Akcja administratora"><ng-icon name="tablerKey" aria-hidden="true" /> Administrator</span>
@@ -231,48 +231,50 @@
         }
       </section>
 
-      <section class="estimator" aria-label="Szybki estymator kosztów druku">
-        <h2 class="section-title">
-          <ng-icon name="tablerBolt" class="estimator__icon" aria-hidden="true" />
-          Szybki estymator kosztów
-        </h2>
+      @if (!isAdmin()) {
+        <section class="estimator" aria-label="Szybki estymator kosztów druku">
+          <h2 class="section-title">
+            <ng-icon name="tablerBolt" class="estimator__icon" aria-hidden="true" />
+            Szybki estymator kosztów
+          </h2>
 
-        <fieldset class="estimator__row">
-          <legend class="estimator__label">WIELKOŚĆ OBIEKTU</legend>
-          <div class="estimator__chips">
-            <button class="chip" [class.chip--active]="estimatorSize() === 'small'"  (click)="estimatorSize.set('small')">Mały</button>
-            <button class="chip" [class.chip--active]="estimatorSize() === 'medium'" (click)="estimatorSize.set('medium')">Średni</button>
-            <button class="chip" [class.chip--active]="estimatorSize() === 'large'"  (click)="estimatorSize.set('large')">Duży</button>
+          <fieldset class="estimator__row">
+            <legend class="estimator__label">WIELKOŚĆ OBIEKTU</legend>
+            <div class="estimator__chips">
+              <button class="chip" [class.chip--active]="estimatorSize() === 'small'"  (click)="estimatorSize.set('small')">Mały</button>
+              <button class="chip" [class.chip--active]="estimatorSize() === 'medium'" (click)="estimatorSize.set('medium')">Średni</button>
+              <button class="chip" [class.chip--active]="estimatorSize() === 'large'"  (click)="estimatorSize.set('large')">Duży</button>
+            </div>
+          </fieldset>
+
+          <fieldset class="estimator__row">
+            <legend class="estimator__label">JAKOŚĆ WYKOŃCZENIA</legend>
+            <div class="estimator__chips">
+              <button class="chip" [class.chip--active]="estimatorQuality() === 'fast'"   (click)="estimatorQuality.set('fast')">Szybki</button>
+              <button class="chip" [class.chip--active]="estimatorQuality() === 'normal'" (click)="estimatorQuality.set('normal')">Normal</button>
+              <button class="chip" [class.chip--active]="estimatorQuality() === 'ultra'"  (click)="estimatorQuality.set('ultra')">Ultra</button>
+            </div>
+          </fieldset>
+
+          <div class="estimator__result">
+            <span class="estimator__result-label">
+              <ng-icon name="tablerBolt" aria-hidden="true" /> SZACUNKOWY KOSZT
+            </span>
+            <span class="estimator__result-value">
+              {{ printEstimate().low }} – {{ printEstimate().high }} zł
+            </span>
           </div>
-        </fieldset>
+          <p class="estimator__disclaimer">
+            Podana cena jest jedynie szacunkiem i zależy od wagi modelu oraz czasu druku.
+          </p>
+        </section>
 
-        <fieldset class="estimator__row">
-          <legend class="estimator__label">JAKOŚĆ WYKOŃCZENIA</legend>
-          <div class="estimator__chips">
-            <button class="chip" [class.chip--active]="estimatorQuality() === 'fast'"   (click)="estimatorQuality.set('fast')">Szybki</button>
-            <button class="chip" [class.chip--active]="estimatorQuality() === 'normal'" (click)="estimatorQuality.set('normal')">Normal</button>
-            <button class="chip" [class.chip--active]="estimatorQuality() === 'ultra'"  (click)="estimatorQuality.set('ultra')">Ultra</button>
-          </div>
-        </fieldset>
-
-        <div class="estimator__result">
-          <span class="estimator__result-label">
-            <ng-icon name="tablerBolt" aria-hidden="true" /> SZACUNKOWY KOSZT
-          </span>
-          <span class="estimator__result-value">
-            {{ printEstimate().low }} – {{ printEstimate().high }} zł
-          </span>
-        </div>
-        <p class="estimator__disclaimer">
-          Podana cena jest jedynie szacunkiem i zależy od wagi modelu oraz czasu druku.
-        </p>
-      </section>
-
-      <app-slicer-advisor
-        [contextMaterial]="listing()!.requiredMaterial ?? ''"
-        [contextSize]="listing()!.estimatorSize ?? 'medium'"
-        [contextQuality]="listing()!.estimatorQuality ?? 'normal'"
-      ></app-slicer-advisor>
+        <app-slicer-advisor
+          [contextMaterial]="listing()!.requiredMaterial ?? ''"
+          [contextSize]="listing()!.estimatorSize ?? 'medium'"
+          [contextQuality]="listing()!.estimatorQuality ?? 'normal'"
+        ></app-slicer-advisor>
+      }
     </article>
 
     <!-- Oferty -->
