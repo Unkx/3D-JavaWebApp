@@ -270,22 +270,28 @@
             </p>
           </fieldset>
 
-          <button
-            type="button"
-            class="estimator__ai-btn"
-            (click)="estimatePrice()"
-            [disabled]="priceEstimateLoading() || !listing()?.description?.trim()"
-          >
-            @if (priceEstimateLoading()) {
-              <span class="spinner" aria-hidden="true"></span>
-              Wycenianie...
-            } @else {
-              Wyceń z AI
-            }
-          </button>
+          @if (currentUser()) {
+            <button
+              type="button"
+              class="estimator__ai-btn"
+              (click)="estimatePrice()"
+              [disabled]="priceEstimateLoading() || !listing()?.description?.trim()"
+            >
+              @if (priceEstimateLoading()) {
+                <span class="spinner" aria-hidden="true"></span>
+                Wycenianie...
+              } @else {
+                Wyceń z AI
+              }
+            </button>
 
-          @if (priceEstimateError()) {
-            <p class="estimator__error" role="alert">{{ priceEstimateError() }}</p>
+            @if (priceEstimateError()) {
+              <p class="estimator__error" role="alert">{{ priceEstimateError() }}</p>
+            }
+          } @else {
+            <p class="estimator__hint">
+              <a routerLink="/logowanie">Zaloguj się</a>, aby skorzystać z wyceny AI.
+            </p>
           }
 
           @if (priceEstimate(); as est) {
