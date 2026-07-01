@@ -24,6 +24,9 @@ public class SlicerAdviceService {
     @Value("${ai.api.provider:claude}")
     private String provider;
 
+    @Value("${ai.grok.model:grok-4-latest}")
+    private String grokModel;
+
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -50,6 +53,10 @@ public class SlicerAdviceService {
             url = "https://api.openai.com/v1/chat/completions";
             headers.setBearerAuth(apiKey);
             body = buildOpenAiBody(prompt);
+        } else if ("grok".equalsIgnoreCase(provider)) {
+            url = "https://api.x.ai/v1/chat/completions";
+            headers.setBearerAuth(apiKey);
+            body = buildGrokBody(prompt);
         } else {
             url = "https://api.anthropic.com/v1/messages";
             headers.set("x-api-key", apiKey);
@@ -112,10 +119,22 @@ public class SlicerAdviceService {
         }
     }
 
+    private String buildGrokBody(String prompt) {
+        try {
+            Map<String, Object> body = new LinkedHashMap<>();
+            body.put("model", grokModel);
+            body.put("max_tokens", 1024);
+            body.put("messages", List.of(Map.of("role", "user", "content", prompt)));
+            return objectMapper.writeValueAsString(body);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private String extractContent(String responseBody) {
         try {
             JsonNode root = objectMapper.readTree(responseBody);
-            if ("openai".equalsIgnoreCase(provider)) {
+            if ("openai".equalsIgnoreCase(provider) || "grok".equalsIgnoreCase(provider)) {
                 return root.at("/choices/0/message/content").asText();
             }
             return root.at("/content/0/text").asText();
