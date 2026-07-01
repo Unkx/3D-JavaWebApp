@@ -1,9 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { startWith } from 'rxjs';
 import { ListingService } from '../../services/listing.service';
+import { PriceEstimateService, PriceEstimateResponse } from '../../services/price-estimate.service';
 
 @Component({
   selector: 'app-add-listing',
@@ -15,6 +14,7 @@ import { ListingService } from '../../services/listing.service';
 export class AddListingComponent {
   private readonly fb = inject(FormBuilder);
   private readonly listingService = inject(ListingService);
+  private readonly priceEstimateService = inject(PriceEstimateService);
   private readonly router = inject(Router);
 
   readonly materials = ['PLA', 'PETG', 'ABS', 'ASA', 'RESIN', 'TPU', 'Inny'];
@@ -43,24 +43,31 @@ export class AddListingComponent {
   get budgetCtrl() { return this.form.get('maxBudget')!; }
   get stlUrlCtrl() { return this.form.get('stlFileUrl')!; }
 
-  private readonly materialValue = toSignal(
-    this.materialCtrl.valueChanges.pipe(startWith('PLA')),
-    { initialValue: 'PLA' }
-  );
+  priceEstimate = signal<PriceEstimateResponse | null>(null);
+  priceEstimateLoading = signal(false);
+  priceEstimateError = signal<string | null>(null);
 
-  printEstimate = computed(() => {
-    const material = (this.materialValue() ?? 'PLA').toUpperCase();
-    const grams = { small: 50, medium: 150, large: 350 }[this.estimatorSize()];
-    const hours = { small: 1.5, medium: 4, large: 10 }[this.estimatorSize()];
-    const qualityTimeScale = { fast: 0.7, normal: 1, ultra: 1.4 }[this.estimatorQuality()];
-    const qualityFilamentScale = { fast: 1, normal: 1, ultra: 1.1 }[this.estimatorQuality()];
-    const pricePerGram: Record<string, number> = {
-      PLA: 0.05, PETG: 0.07, ABS: 0.06, ASA: 0.08, TPU: 0.12, RESIN: 0.15
-    };
-    const pgram = pricePerGram[material] ?? 0.06;
-    const base = grams * qualityFilamentScale * pgram + hours * qualityTimeScale * 5;
-    return { low: Math.max(1, Math.round(base * 0.85)), high: Math.round(base * 1.3) };
-  });
+  estimatePrice(): void {
+    const description = this.descriptionCtrl.value?.trim();
+    if (!description) return;
+    this.priceEstimateLoading.set(true);
+    this.priceEstimateError.set(null);
+    this.priceEstimateService.getEstimate({
+      description,
+      material: this.materialCtrl.value ?? undefined,
+      size: this.estimatorSize(),
+      quality: this.estimatorQuality()
+    }).subscribe({
+      next: (resp) => {
+        this.priceEstimate.set(resp);
+        this.priceEstimateLoading.set(false);
+      },
+      error: () => {
+        this.priceEstimateError.set('Nie udało się uzyskać wyceny. Spróbuj ponownie.');
+        this.priceEstimateLoading.set(false);
+      }
+    });
+  }
 
   // --- file upload ---
 
