@@ -131,6 +131,7 @@ public class PriceEstimateService {
             }
             PriceEstimateResponse resp = objectMapper.readValue(json, PriceEstimateResponse.class);
             resp.setAiGenerated(true);
+            if (resp.getWarnings() == null) resp.setWarnings(new ArrayList<>());
             return resp;
         } catch (Exception e) {
             log.warn("Failed to parse AI JSON, using rule-based: {}", e.getMessage());
