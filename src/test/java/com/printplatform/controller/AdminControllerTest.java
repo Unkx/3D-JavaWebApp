@@ -112,6 +112,35 @@ class AdminControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void redeem_sameCodeTwice_secondAttemptReturns400AndDoesNotPromote() throws Exception {
+        User firstUser = persistUser();
+        User secondUser = persistUser();
+        AdminCode code = new AdminCode();
+        code.setCode("SINGLE-USE-CODE");
+        code.setCreatedByEmail("someone-else@test.local");
+        adminCodeRepository.save(code);
+
+        RedeemCodeRequest request = new RedeemCodeRequest();
+        request.setCode("SINGLE-USE-CODE");
+
+        mockMvc.perform(post("/api/admin/redeem")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(firstUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("ADMIN"));
+
+        mockMvc.perform(post("/api/admin/redeem")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(secondUser))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        User reloadedSecondUser = userRepository.findById(secondUser.getId()).orElseThrow();
+        assertThat(reloadedSecondUser.getRole()).isEqualTo(Role.USER);
+    }
+
+    @Test
     void redeem_alreadyAdmin_returns400() throws Exception {
         User admin = persistUser(Role.ADMIN);
 

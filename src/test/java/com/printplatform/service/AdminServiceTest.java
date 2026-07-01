@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -124,6 +125,7 @@ class AdminServiceTest {
         code.setUsed(false);
 
         when(codeRepository.findByCode("ABCD-EFGH-JKLM")).thenReturn(Optional.of(code));
+        when(codeRepository.markUsedIfUnused(eq(code.getId()), eq(user.getEmail()), any())).thenReturn(1);
         when(jwtService.generateToken(user)).thenReturn("new-jwt-token");
 
         AuthResponse response = adminService.redeemCode(user, "abcd-efgh-jklm");
@@ -131,10 +133,29 @@ class AdminServiceTest {
         assertThat(user.getRole()).isEqualTo(Role.ADMIN);
         assertThat(response.getToken()).isEqualTo("new-jwt-token");
         assertThat(response.getRole()).isEqualTo(Role.ADMIN.name());
-        assertThat(code.isUsed()).isTrue();
-        assertThat(code.getUsedByEmail()).isEqualTo(user.getEmail());
         verify(userRepository).save(user);
-        verify(codeRepository).save(code);
+        verify(codeRepository).markUsedIfUnused(eq(code.getId()), eq(user.getEmail()), any());
+    }
+
+    @Test
+    void redeemCode_concurrentlyClaimedCode_throwsBadRequestAndDoesNotPromote() {
+        User user = buildUser(Role.USER);
+        AdminCode code = new AdminCode();
+        code.setCode("ABCD-EFGH-JKLM");
+        code.setUsed(false);
+
+        when(codeRepository.findByCode("ABCD-EFGH-JKLM")).thenReturn(Optional.of(code));
+        // Simulates another request winning the race between validate() and the claim.
+        when(codeRepository.markUsedIfUnused(eq(code.getId()), eq(user.getEmail()), any())).thenReturn(0);
+
+        assertThatThrownBy(() -> adminService.redeemCode(user, "ABCD-EFGH-JKLM"))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
+                        .isEqualTo(HttpStatus.BAD_REQUEST));
+
+        assertThat(user.getRole()).isEqualTo(Role.USER);
+        verifyNoInteractions(userRepository);
+        verifyNoInteractions(jwtService);
     }
 
     @Test
@@ -197,12 +218,12 @@ class AdminServiceTest {
         code.setUsed(false);
 
         when(codeRepository.findByCode("ABCD-EFGH-JKLM")).thenReturn(Optional.of(code));
+        when(codeRepository.markUsedIfUnused(eq(code.getId()), eq(user.getEmail()), any())).thenReturn(1);
 
         adminService.applyCodeToNewUser("abcd-efgh-jklm", user);
 
         assertThat(user.getRole()).isEqualTo(Role.ADMIN);
-        assertThat(code.isUsed()).isTrue();
-        verify(codeRepository).save(code);
+        verify(codeRepository).markUsedIfUnused(eq(code.getId()), eq(user.getEmail()), any());
         verifyNoInteractions(userRepository);
         verifyNoInteractions(jwtService);
     }

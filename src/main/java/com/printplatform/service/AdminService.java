@@ -14,6 +14,7 @@ import com.printplatform.security.JwtService;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.security.SecureRandom;
@@ -76,12 +77,13 @@ public class AdminService {
     }
 
     /** A logged-in user redeems a code to become admin. Returns a fresh token with the new role. */
+    @Transactional
     public AuthResponse redeemCode(User user, String rawCode) {
         if (user.getRole() == Role.ADMIN) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Jesteś już administratorem");
         }
         AdminCode code = validate(rawCode);
-        markUsed(code, user.getEmail());
+        claimCode(code, user.getEmail());
         user.setRole(Role.ADMIN);
         userRepository.save(user);
 
@@ -90,9 +92,10 @@ public class AdminService {
     }
 
     /** Used during registration: validate a code and promote the (not-yet-saved) user to admin. */
+    @Transactional
     public void applyCodeToNewUser(String rawCode, User user) {
         AdminCode code = validate(rawCode);
-        markUsed(code, user.getEmail());
+        claimCode(code, user.getEmail());
         user.setRole(Role.ADMIN);
     }
 
@@ -108,11 +111,16 @@ public class AdminService {
         return code;
     }
 
-    private void markUsed(AdminCode code, String userEmail) {
-        code.setUsed(true);
-        code.setUsedByEmail(userEmail);
-        code.setRedeemedAt(LocalDateTime.now());
-        codeRepository.save(code);
+    /**
+     * Atomically claims the code (conditional UPDATE ... WHERE used = false). If a concurrent
+     * request already claimed it between validate()'s read and this write, the update affects
+     * zero rows and we reject this request instead of silently double-promoting.
+     */
+    private void claimCode(AdminCode code, String userEmail) {
+        int updated = codeRepository.markUsedIfUnused(code.getId(), userEmail, LocalDateTime.now());
+        if (updated == 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ten kod został już wykorzystany");
+        }
     }
 
     private String randomCode() {
