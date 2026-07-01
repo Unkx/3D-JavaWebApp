@@ -17,6 +17,7 @@ import { ListingService, Listing, StlFile, UpdateListingPayload } from '../../se
 import { OfferService, Offer } from '../../services/offer.service';
 import { AuthService } from '../../services/auth.service';
 import { ConversationService } from '../../services/conversation.service';
+import { PriceEstimateService, PriceEstimateResponse } from '../../services/price-estimate.service';
 import { StlViewerComponent } from '../../components/stl-viewer.component';
 import { StlFileUploadComponent } from '../../components/stl-file-upload.component';
 import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
@@ -49,6 +50,7 @@ export class ListingDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly http = inject(HttpClient);
   private readonly conversationService = inject(ConversationService);
+  private readonly priceEstimateService = inject(PriceEstimateService);
 
   listing = signal<Listing | null>(null);
   offers = signal<Offer[]>([]);
@@ -104,19 +106,31 @@ export class ListingDetailComponent implements OnInit {
   estimatorSize = signal<EstimatorSize>('medium');
   estimatorQuality = signal<EstimatorQuality>('normal');
 
-  printEstimate = computed(() => {
-    const material = (this.listing()?.requiredMaterial ?? '').toUpperCase();
-    const grams = { small: 50, medium: 150, large: 350 }[this.estimatorSize()];
-    const hours = { small: 1.5, medium: 4, large: 10 }[this.estimatorSize()];
-    const qualityTimeScale = { fast: 0.7, normal: 1, ultra: 1.4 }[this.estimatorQuality()];
-    const qualityFilamentScale = { fast: 1, normal: 1, ultra: 1.1 }[this.estimatorQuality()];
-    const pricePerGram: Record<string, number> = {
-      PLA: 0.05, PETG: 0.07, ABS: 0.06, ASA: 0.08, TPU: 0.12, RESIN: 0.15
-    };
-    const pgram = pricePerGram[material] ?? 0.06;
-    const base = grams * qualityFilamentScale * pgram + hours * qualityTimeScale * 5;
-    return { low: Math.max(1, Math.round(base * 0.85)), high: Math.round(base * 1.3) };
-  });
+  priceEstimate = signal<PriceEstimateResponse | null>(null);
+  priceEstimateLoading = signal(false);
+  priceEstimateError = signal<string | null>(null);
+
+  estimatePrice(): void {
+    const description = this.listing()?.description?.trim();
+    if (!description) return;
+    this.priceEstimateLoading.set(true);
+    this.priceEstimateError.set(null);
+    this.priceEstimateService.getEstimate({
+      description,
+      material: this.listing()?.requiredMaterial ?? undefined,
+      size: this.estimatorSize(),
+      quality: this.estimatorQuality()
+    }).subscribe({
+      next: (resp) => {
+        this.priceEstimate.set(resp);
+        this.priceEstimateLoading.set(false);
+      },
+      error: () => {
+        this.priceEstimateError.set('Nie udało się uzyskać wyceny. Spróbuj ponownie.');
+        this.priceEstimateLoading.set(false);
+      }
+    });
+  }
 
   // Multiple STL files
   stlFiles = signal<StlFile[]>([]);

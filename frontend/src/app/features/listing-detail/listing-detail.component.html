@@ -232,10 +232,10 @@
       </section>
 
       @if (!isAdmin()) {
-        <section class="estimator" aria-label="Szybki estymator kosztów druku">
+        <section class="estimator" aria-label="Wycena AI kosztu druku">
           <h2 class="section-title">
             <ng-icon name="tablerBolt" class="estimator__icon" aria-hidden="true" />
-            Szybki estymator kosztów
+            Wycena AI
           </h2>
 
           <fieldset class="estimator__row">
@@ -245,6 +245,13 @@
               <button class="chip" [class.chip--active]="estimatorSize() === 'medium'" (click)="estimatorSize.set('medium')">Średni</button>
               <button class="chip" [class.chip--active]="estimatorSize() === 'large'"  (click)="estimatorSize.set('large')">Duży</button>
             </div>
+            <p class="estimator__hint">
+              @switch (estimatorSize()) {
+                @case ('small') { Do ok. 10 cm, ~50 g filamentu. }
+                @case ('large') { Powyżej 20 cm, ~350 g filamentu. }
+                @default { 10–20 cm, ~150 g filamentu. }
+              }
+            </p>
           </fieldset>
 
           <fieldset class="estimator__row">
@@ -254,18 +261,56 @@
               <button class="chip" [class.chip--active]="estimatorQuality() === 'normal'" (click)="estimatorQuality.set('normal')">Normal</button>
               <button class="chip" [class.chip--active]="estimatorQuality() === 'ultra'"  (click)="estimatorQuality.set('ultra')">Ultra</button>
             </div>
+            <p class="estimator__hint">
+              @switch (estimatorQuality()) {
+                @case ('fast') { Grubsza warstwa, krótszy czas druku. }
+                @case ('ultra') { Cienka warstwa, najwyższy detal, najdłuższy czas druku. }
+                @default { Standardowa jakość. }
+              }
+            </p>
           </fieldset>
 
-          <div class="estimator__result">
-            <span class="estimator__result-label">
-              <ng-icon name="tablerBolt" aria-hidden="true" /> SZACUNKOWY KOSZT
+          <button
+            type="button"
+            class="estimator__ai-btn"
+            (click)="estimatePrice()"
+            [disabled]="priceEstimateLoading() || !listing()?.description?.trim()"
+          >
+            @if (priceEstimateLoading()) {
+              <span class="spinner" aria-hidden="true"></span>
+              Wycenianie...
+            } @else {
+              Wyceń z AI
+            }
+          </button>
+
+          @if (priceEstimateError()) {
+            <p class="estimator__error" role="alert">{{ priceEstimateError() }}</p>
+          }
+
+          @if (priceEstimate(); as est) {
+            <div class="estimator__result">
+              <span class="estimator__result-label">
+                <ng-icon name="tablerBolt" aria-hidden="true" /> SZACUNKOWY KOSZT
+              </span>
+              <span class="estimator__result-value">
+                {{ est.priceLow }} – {{ est.priceHigh }} zł
+              </span>
+            </div>
+            <span class="estimator__badge" [class.estimator__badge--ai]="est.aiGenerated">
+              {{ est.aiGenerated ? 'AI' : 'Reguły' }}
             </span>
-            <span class="estimator__result-value">
-              {{ printEstimate().low }} – {{ printEstimate().high }} zł
-            </span>
-          </div>
+            <p class="estimator__reasoning">{{ est.reasoning }}</p>
+            @if (est.warnings.length > 0) {
+              <ul class="estimator__warnings">
+                @for (w of est.warnings; track w) {
+                  <li>{{ w }}</li>
+                }
+              </ul>
+            }
+          }
           <p class="estimator__disclaimer">
-            Podana cena jest jedynie szacunkiem i zależy od wagi modelu oraz czasu druku.
+            Wycena AI to szacunek — ostateczną cenę ustalają drukarze w ofertach.
           </p>
         </section>
 

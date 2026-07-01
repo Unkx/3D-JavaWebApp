@@ -518,6 +518,69 @@
   margin: 0;
 }
 
+.estimator__hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.estimator__ai-btn {
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+.estimator__ai-btn:hover:not(:disabled) { background: var(--accent-hover); }
+.estimator__ai-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.estimator__badge {
+  align-self: flex-end;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: var(--badge-bg);
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.estimator__badge--ai {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.estimator__reasoning {
+  font-size: 0.85rem;
+  color: var(--text-body);
+  margin: 0;
+}
+
+.estimator__warnings {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.85rem;
+  color: var(--error-text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.estimator__error {
+  font-size: 0.85rem;
+  color: var(--error-text-bright);
+  margin: 0;
+}
+
 @media (max-width: 600px) {
   .listing { padding: 1.25rem; }
   .offer-form__grid { grid-template-columns: 1fr; }
