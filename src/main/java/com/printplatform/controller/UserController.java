@@ -7,10 +7,13 @@ import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -40,8 +43,7 @@ public class UserController {
         user.setPhone(trimOrNull(req.getPhone()));
         user.setGender(trimOrNull(req.getGender()));
         user.setBio(trimOrNull(req.getBio()));
-        user.setDateOfBirth(req.getDateOfBirth() != null && !req.getDateOfBirth().isBlank()
-                ? LocalDate.parse(req.getDateOfBirth()) : null);
+        user.setDateOfBirth(parseDateOfBirth(req.getDateOfBirth()));
         userRepository.save(user);
         return toDto(user);
     }
@@ -78,6 +80,17 @@ public class UserController {
                 user.getCity(),
                 user.getPostalCode()
         );
+    }
+
+    private static LocalDate parseDateOfBirth(String dateOfBirth) {
+        if (dateOfBirth == null || dateOfBirth.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(dateOfBirth);
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nieprawidłowy format daty urodzenia");
+        }
     }
 
     private static String trimOrNull(String s) {

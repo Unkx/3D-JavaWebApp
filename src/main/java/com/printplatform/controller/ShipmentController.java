@@ -55,6 +55,19 @@ public class ShipmentController {
     @PutMapping("/{shipmentId}/advance")
     public Shipment advanceStatus(@PathVariable UUID shipmentId,
                                   @AuthenticationPrincipal User currentUser) {
+        Shipment existingShipment = shipmentService.getById(shipmentId);
+        Offer existingOffer = existingShipment.getOffer();
+        boolean isSeller = existingOffer.getUser().getId().equals(currentUser.getId());
+        boolean isBuyer = existingOffer.getListing().getUser().getId().equals(currentUser.getId());
+        if (!isSeller && !isBuyer) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu");
+        }
+        // Only the buyer may confirm receipt — this transition auto-releases the
+        // seller's escrowed payment, so it must mirror PaymentController's buyer-only rule.
+        if (existingShipment.getStatus() == ShipmentStatus.READY_TO_PICKUP && !isBuyer) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Tylko kupujący może potwierdzić odbiór przesyłki");
+        }
+
         Shipment shipment = shipmentService.advanceStatus(shipmentId);
 
         if (shipment.getStatus() == ShipmentStatus.DISPATCHED) {

@@ -9,6 +9,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Throttles requests to /api/auth/** per client IP (fixed window) to blunt
@@ -19,8 +20,12 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     private static final int MAX_REQUESTS_PER_WINDOW = 10;
     private static final long WINDOW_MILLIS = 60_000;
+    // Every this many requests, opportunistically evict windows that have been idle
+    // for a full cycle, so the map doesn't grow unbounded under sustained unique-IP traffic.
+    private static final long SWEEP_EVERY_N_REQUESTS = 500;
 
     private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
+    private final AtomicLong requestCount = new AtomicLong();
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -40,13 +45,26 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
+        if (requestCount.incrementAndGet() % SWEEP_EVERY_N_REQUESTS == 0) {
+            evictStaleWindows();
+        }
+
         chain.doFilter(request, response);
+    }
+
+    private void evictStaleWindows() {
+        long now = System.currentTimeMillis();
+        windows.entrySet().removeIf(entry -> entry.getValue().isStale(now));
     }
 
     /** Resets its counter once WINDOW_MILLIS has elapsed since the first request in the window. */
     private static final class Window {
         private long windowStart = System.currentTimeMillis();
         private int count = 0;
+
+        synchronized boolean isStale(long now) {
+            return now - windowStart > WINDOW_MILLIS;
+        }
 
         synchronized boolean tooManyRequests() {
             long now = System.currentTimeMillis();

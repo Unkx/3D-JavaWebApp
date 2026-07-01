@@ -41,9 +41,13 @@ public class ShipmentService {
         return shipmentRepository.save(saved);
     }
 
-    public Shipment advanceStatus(UUID shipmentId) {
-        Shipment shipment = shipmentRepository.findById(shipmentId)
+    public Shipment getById(UUID shipmentId) {
+        return shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Przesyłka nie istnieje"));
+    }
+
+    public Shipment advanceStatus(UUID shipmentId) {
+        Shipment shipment = getById(shipmentId);
 
         Map<ShipmentStatus, ShipmentStatus> transitions = Map.of(
                 ShipmentStatus.LABEL_CREATED, ShipmentStatus.DISPATCHED,

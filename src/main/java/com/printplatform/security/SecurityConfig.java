@@ -45,6 +45,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/listings/my").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/listings/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/listing/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/fee-breakdown").permitAll()

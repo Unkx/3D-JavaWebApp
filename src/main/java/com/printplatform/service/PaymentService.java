@@ -82,9 +82,13 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
-    public Payment releasePayment(UUID paymentId) {
-        Payment payment = paymentRepository.findById(paymentId)
+    public Payment getById(UUID paymentId) {
+        return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Płatność nie istnieje"));
+    }
+
+    public Payment releasePayment(UUID paymentId) {
+        Payment payment = getById(paymentId);
         if (payment.getStatus() != PaymentStatus.HELD) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Płatność nie jest w stanie HELD");
         }
