@@ -13,6 +13,8 @@ import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.StlFileRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,6 +29,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.URI;
+import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,6 +46,8 @@ import java.util.zip.ZipOutputStream;
 @RestController
 @RequestMapping("/api/listings")
 public class ListingController {
+
+    private static final Logger log = LoggerFactory.getLogger(ListingController.class);
 
     private final ListingRepository listingRepository;
     private final OfferRepository offerRepository;
@@ -178,6 +185,7 @@ public class ListingController {
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
                     .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+                    .header("X-Content-Type-Options", "nosniff")
                     .body(listing.getStlFileData());
         }
 
@@ -194,12 +202,19 @@ public class ListingController {
                     "Link Thingiverse to strona, nie plik STL. Prześlij plik .stl, aby zobaczyć podgląd 3D.");
         }
 
+        // SSRF guard: this endpoint is public and the URL is data-driven, so refuse
+        // to let the server fetch internal/loopback/link-local/private addresses.
+        assertPublicHttpUrl(url);
+
         byte[] fileContent;
         try {
             RestTemplate restTemplate = new RestTemplate();
             fileContent = restTemplate.getForObject(url, byte[].class);
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nie udało się pobrać pliku STL: " + e.getMessage());
+            log.warn("Failed to proxy STL from {}: {}", url, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nie udało się pobrać pliku STL.");
         }
 
         // Guard: never serve an HTML page (login/error page) as if it were an STL.
@@ -211,6 +226,7 @@ public class ListingController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"model.stl\"")
                 .header(HttpHeaders.CONTENT_TYPE, "application/octet-stream")
+                .header("X-Content-Type-Options", "nosniff")
                 .body(fileContent);
     }
 
@@ -273,6 +289,40 @@ public class ListingController {
         int slash = path.lastIndexOf('/');
         if (dot > slash) return path.substring(0, dot) + " (" + count + ")" + path.substring(dot);
         return path + " (" + count + ")";
+    }
+
+    /**
+     * Rejects any URL that is not a plain http(s) URL pointing at a public host.
+     * Blocks loopback, link-local, site-local (private) and wildcard addresses to
+     * prevent server-side request forgery against internal infrastructure/metadata.
+     */
+    private void assertPublicHttpUrl(String rawUrl) {
+        URI uri;
+        try {
+            uri = URI.create(rawUrl);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Nieprawidłowy adres URL pliku STL.");
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null || !(scheme.equalsIgnoreCase("http") || scheme.equalsIgnoreCase("https"))) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Dozwolone są tylko adresy http/https.");
+        }
+        String host = uri.getHost();
+        if (host == null || host.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Nieprawidłowy adres URL pliku STL.");
+        }
+        try {
+            for (InetAddress addr : InetAddress.getAllByName(host)) {
+                if (addr.isLoopbackAddress() || addr.isLinkLocalAddress()
+                        || addr.isSiteLocalAddress() || addr.isAnyLocalAddress()
+                        || addr.isMulticastAddress()) {
+                    throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY,
+                            "Adres URL wskazuje na zasób wewnętrzny i został odrzucony.");
+                }
+            }
+        } catch (UnknownHostException e) {
+            throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Nie można rozpoznać hosta adresu URL.");
+        }
     }
 
     private boolean looksLikeHtml(byte[] data) {

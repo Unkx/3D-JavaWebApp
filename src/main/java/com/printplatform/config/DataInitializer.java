@@ -28,6 +28,12 @@ public class DataInitializer implements CommandLineRunner {
     @Value("${app.admin.password:admin123}")
     private String adminPassword;
 
+    /** Escape hatch for local dev and tests only. Never enable in a real environment. */
+    @Value("${app.security.allow-insecure-secret:false}")
+    private boolean allowInsecureSecret;
+
+    private static final String INSECURE_DEFAULT_ADMIN_PASSWORD = "admin123";
+
     public DataInitializer(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -37,6 +43,12 @@ public class DataInitializer implements CommandLineRunner {
     public void run(String... args) {
         if (userRepository.findByEmail(adminEmail).isPresent()) {
             return;
+        }
+        if (INSECURE_DEFAULT_ADMIN_PASSWORD.equals(adminPassword) && !allowInsecureSecret) {
+            throw new IllegalStateException(
+                    "Refusing to seed the default admin account with the committed default password. "
+                            + "Set a unique ADMIN_PASSWORD, or set app.security.allow-insecure-secret=true "
+                            + "for local development only.");
         }
         User admin = new User();
         admin.setEmail(adminEmail);

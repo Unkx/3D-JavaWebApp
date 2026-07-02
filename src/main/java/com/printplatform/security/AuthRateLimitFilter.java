@@ -36,7 +36,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain chain) throws ServletException, IOException {
-        Window window = windows.computeIfAbsent(request.getRemoteAddr(), k -> new Window());
+        Window window = windows.computeIfAbsent(clientIp(request), k -> new Window());
 
         if (window.tooManyRequests()) {
             response.setStatus(429); // 429 Too Many Requests
@@ -50,6 +50,22 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
         }
 
         chain.doFilter(request, response);
+    }
+
+    /**
+     * Best-effort per-client key. When the app sits behind the frontend/reverse proxy,
+     * getRemoteAddr() is the proxy's IP (one shared bucket for everyone), so prefer the
+     * first hop of X-Forwarded-For. Falls back to the socket address when absent.
+     */
+    private String clientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            String first = forwarded.split(",")[0].strip();
+            if (!first.isEmpty()) {
+                return first;
+            }
+        }
+        return request.getRemoteAddr();
     }
 
     private void evictStaleWindows() {
