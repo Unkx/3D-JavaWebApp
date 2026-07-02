@@ -64,6 +64,8 @@ public class StlFileController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, disposition.toString())
                 .header(HttpHeaders.CONTENT_TYPE, contentType)
+                // Prevent MIME sniffing: a user-uploaded file must render only as its declared type.
+                .header("X-Content-Type-Options", "nosniff")
                 .body(file.getFileData());
     }
 
@@ -100,7 +102,7 @@ public class StlFileController {
                 saved.add(new StlFileDto(stlFileRepository.save(entity)));
             } catch (IOException e) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Nie udało się przesłać pliku: " + e.getMessage());
+                        "Nie udało się przesłać pliku.");
             }
         }
         return saved;

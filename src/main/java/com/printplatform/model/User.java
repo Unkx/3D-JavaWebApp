@@ -1,5 +1,6 @@
 package com.printplatform.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,21 +31,27 @@ public class User implements UserDetails {
 
     private String firstName;
     private String lastName;
-    private String phone;
-    private String gender;
 
+    // --- Sensitive PII: never expose when the entity is serialized as a nested object
+    //     (listings/offers/messages are publicly readable). The owner reads these via
+    //     the /api/users/me UserProfileDto, not through the raw entity. ---
+    @JsonIgnore private String phone;
+    @JsonIgnore private String gender;
+
+    @JsonIgnore
     @Column(length = 500)
     private String bio;
 
+    @JsonIgnore
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
-    private String street;
-    private String houseNumber;
-    private String city;
-    private String postalCode;
+    @JsonIgnore private String street;
+    @JsonIgnore private String houseNumber;
+    @JsonIgnore private String city;
+    @JsonIgnore private String postalCode;
 
-    private String stripeCustomerId;
+    @JsonIgnore private String stripeCustomerId;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 

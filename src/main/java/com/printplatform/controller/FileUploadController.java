@@ -61,7 +61,8 @@ public class FileUploadController {
             log.info("STL uploaded for listing {} by {} ({} bytes)", id, user.getEmail(), fileData.length);
             return saved;
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie udało się przesłać plik: " + e.getMessage());
+            log.warn("Failed to read uploaded STL for listing {}: {}", id, e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie udało się przesłać pliku.");
         }
     }
 

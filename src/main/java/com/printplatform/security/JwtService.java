@@ -4,6 +4,7 @@ import com.printplatform.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +15,44 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
+    /** The base64 secret committed to the repo for local dev/tests. Must never sign real tokens. */
+    private static final String INSECURE_DEFAULT_SECRET =
+            "dGhpcy1pcy1hLXZlcnktc2VjcmV0LWtleS10aGF0LWlzLWxvbmctZW5vdWdo";
+
     @Value("${app.jwt.secret}")
     private String secretKey;
 
     @Value("${app.jwt.expiration}")
     private long expiration;
+
+    /** Escape hatch for local dev and tests only. Never enable in a real environment. */
+    @Value("${app.security.allow-insecure-secret:false}")
+    private boolean allowInsecureSecret;
+
+    @PostConstruct
+    void validateSecret() {
+        if (secretKey == null || secretKey.isBlank()) {
+            throw new IllegalStateException(
+                    "app.jwt.secret (env JWT_SECRET) must be set to a base64-encoded key of at least 256 bits.");
+        }
+        byte[] decoded;
+        try {
+            decoded = Decoders.BASE64.decode(secretKey);
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("app.jwt.secret (env JWT_SECRET) must be valid base64.", e);
+        }
+        if (decoded.length < 32) {
+            throw new IllegalStateException(
+                    "app.jwt.secret (env JWT_SECRET) must decode to at least 256 bits (32 bytes); got "
+                            + (decoded.length * 8) + " bits.");
+        }
+        if (INSECURE_DEFAULT_SECRET.equals(secretKey) && !allowInsecureSecret) {
+            throw new IllegalStateException(
+                    "Refusing to start with the committed default JWT secret. Set a unique JWT_SECRET "
+                            + "(e.g. `openssl rand -base64 48`), or set app.security.allow-insecure-secret=true "
+                            + "for local development only.");
+        }
+    }
 
     public String generateToken(User user) {
         return Jwts.builder()
