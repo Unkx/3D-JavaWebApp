@@ -101,6 +101,7 @@ import { FailedPrintSceneComponent } from '../../components/failed-print-scene.c
       cursor: pointer;
       text-decoration: none;
       border: none;
+      text-shadow: none;
       transition: background var(--t-fast), box-shadow var(--t-base), transform var(--t-fast), border-color var(--t-fast);
     }
 

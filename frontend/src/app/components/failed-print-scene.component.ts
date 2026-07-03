@@ -99,6 +99,7 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
       const layer = new THREE.Mesh(geometry, this.layerMaterial);
       layer.position.y = i * LAYER_HEIGHT;
       layer.scale.y = 0;
+      layer.visible = false;
       this.scene.add(layer);
       this.layers.push(layer);
     }
