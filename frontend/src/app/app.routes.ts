@@ -33,5 +33,9 @@ export const routes: Routes = [
     loadComponent: () => import('./features/messages/messages.component').then(m => m.MessagesComponent)
   },
   { path: 'reset-password', loadComponent: () => import('./features/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
-  { path: '**', redirectTo: '' }
+  {
+    path: '**',
+    data: { fullscreen: true },
+    loadComponent: () => import('./features/not-found/not-found.component').then(m => m.NotFoundComponent)
+  }
 ];
