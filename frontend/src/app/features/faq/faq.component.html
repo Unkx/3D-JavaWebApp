@@ -1,0 +1,50 @@
+<!-- HERO -->
+<section class="faq-hero" aria-labelledby="faq-hero-title">
+  <span class="faq-hero__badge">Pomoc</span>
+  <h1 class="faq-hero__title" id="faq-hero-title">Najczęściej zadawane pytania</h1>
+  <p class="faq-hero__desc">
+    Odpowiedzi na pytania o zlecenia, płatności i pracę jako drukarz na Druk3D.
+  </p>
+</section>
+
+<!-- CATEGORIES -->
+@for (category of categories; track category.title; let ci = $index) {
+  <section class="section" appReveal [attr.aria-labelledby]="'faq-cat-' + ci">
+    <h2 class="section__title" [id]="'faq-cat-' + ci">{{ category.title }}</h2>
+    <div class="faq-list">
+      @for (item of category.items; track item.q; let i = $index) {
+        <div class="faq-item" [class.faq-item--open]="isOpen(ci + '-' + i)">
+          <h3 class="faq-item__heading">
+            <button
+              type="button"
+              class="faq-item__trigger"
+              [id]="'faq-trigger-' + ci + '-' + i"
+              [attr.aria-expanded]="isOpen(ci + '-' + i)"
+              [attr.aria-controls]="'faq-panel-' + ci + '-' + i"
+              (click)="toggle(ci + '-' + i)">
+              <span>{{ item.q }}</span>
+              <svg class="faq-item__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                <path d="M3 5.5L7 9.5L11 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </h3>
+          <div
+            class="faq-item__panel"
+            role="region"
+            [id]="'faq-panel-' + ci + '-' + i"
+            [attr.aria-labelledby]="'faq-trigger-' + ci + '-' + i"
+            [hidden]="!isOpen(ci + '-' + i)">
+            <p class="faq-item__answer">{{ item.a }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+}
+
+<!-- CONTACT CTA -->
+<section class="faq-contact" appReveal aria-labelledby="faq-contact-title">
+  <h2 class="faq-contact__title" id="faq-contact-title">Nie znalazłeś odpowiedzi?</h2>
+  <p class="faq-contact__desc">Napisz do nas, a odpowiemy najszybciej jak to możliwe.</p>
+  <a href="mailto:kontakt@druk3d.pl" class="btn btn--primary btn--lg">Napisz do nas</a>
+</section>

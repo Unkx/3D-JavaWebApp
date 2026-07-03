@@ -5,6 +5,7 @@ import { adminGuard, userOnlyGuard } from './guards/role.guard';
 export const routes: Routes = [
   { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
   { path: 'zlecenia', loadComponent: () => import('./features/listings/listings.component').then(m => m.ListingsComponent) },
+  { path: 'faq', loadComponent: () => import('./features/faq/faq.component').then(m => m.FaqComponent) },
   { path: 'zlecenia/:id', loadComponent: () => import('./features/listing-detail/listing-detail.component').then(m => m.ListingDetailComponent) },
   {
     path: 'dodaj-zlecenie',
