@@ -1,3 +1,4 @@
+@if (!isFullscreenRoute()) {
 <header class="navbar">
   <button class="navbar__hamburger"
           [class.navbar__hamburger--open]="menuOpen()"
@@ -149,6 +150,7 @@
 
 @if (menuOpen()) {
   <div class="sidebar__overlay" (click)="closeMenu()" aria-hidden="true"></div>
+}
 }
 
 @if (offline()) {
