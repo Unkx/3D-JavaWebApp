@@ -80,7 +80,7 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
     }
 
     if (this.motionReduced()) {
-      this.updateModel(SHIFT_END + (CYCLE_SECONDS - SHIFT_END) * 0.4);
+      this.updateModel(SHIFT_END + (CYCLE_SECONDS - SHIFT_END) * 0.2);
       this.renderer.render(this.scene!, this.camera);
     } else {
       this.animate();
@@ -90,6 +90,7 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
   /** Pure THREE.js object-graph construction — no GL context needed, always succeeds. */
   buildModel(): void {
     this.scene = this.scene ?? new THREE.Scene();
+    this.layers = [];
 
     this.layerMaterial = new THREE.MeshStandardMaterial({ color: ACCENT_COLOR, roughness: 0.45, metalness: 0.1 });
 
@@ -193,6 +194,10 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+
+    if (this.motionReduced()) {
+      this.renderer.render(this.scene!, this.camera);
+    }
   }
 
   ngOnDestroy(): void {
