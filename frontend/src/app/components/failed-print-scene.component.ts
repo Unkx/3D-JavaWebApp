@@ -131,6 +131,9 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
     for (let i = 0; i < LAYER_COUNT; i++) {
       const layerStart = i * buildDurationPerLayer;
       this.layers[i].scale.y = clamp01((cycleTime - layerStart) / buildDurationPerLayer);
+      // A mesh scaled to exactly 0 on one axis has a singular (non-invertible) normal
+      // matrix, which renders as solid black under lit materials — hide it instead.
+      this.layers[i].visible = this.layers[i].scale.y > 0;
     }
 
     const shiftProgress = clamp01((cycleTime - BUILD_END) / (SHIFT_END - BUILD_END));
@@ -144,6 +147,7 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
     if (cycleTime >= SHIFT_END) {
       TOP_LAYER_INDICES.forEach(layerIndex => {
         this.layers[layerIndex].scale.y = Math.max(0, 1 - unravelProgress);
+        this.layers[layerIndex].visible = this.layers[layerIndex].scale.y > 0;
       });
     }
 
@@ -163,8 +167,8 @@ export class FailedPrintSceneComponent implements AfterViewInit, OnDestroy {
     const height = canvas.clientHeight || window.innerHeight;
 
     this.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
-    this.camera.position.set(0, 1.4, 5.5);
-    this.camera.lookAt(0, 1, 0);
+    this.camera.position.set(0, 6.5, 13);
+    this.camera.lookAt(0, -1.6, 0);
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setSize(width, height, false);

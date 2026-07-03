@@ -45,6 +45,8 @@ import { FailedPrintSceneComponent } from '../../components/failed-print-scene.c
       gap: 0.75rem;
       max-width: 32rem;
       padding: 2rem;
+      /* Halo against --bg so copy stays legible wherever the animated scene overlaps it. */
+      text-shadow: 0 0 18px var(--bg), 0 0 8px var(--bg), 0 0 8px var(--bg);
     }
 
     .not-found__eyebrow {
@@ -52,7 +54,7 @@ import { FailedPrintSceneComponent } from '../../components/failed-print-scene.c
       font-size: 0.8125rem;
       font-weight: 800;
       letter-spacing: 0.12em;
-      color: var(--accent);
+      color: var(--text-primary);
     }
 
     .not-found__headline {
