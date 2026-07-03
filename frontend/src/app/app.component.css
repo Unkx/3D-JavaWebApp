@@ -242,13 +242,49 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: var(--error-bg);
-  color: var(--error-text);
+  background: var(--error-bg-deep);
+  color: var(--error-text-bright);
   border-bottom: 1px solid var(--error-border);
+  box-shadow: 0 1px 8px rgba(239, 68, 68, 0.15);
   font-size: 0.8125rem;
   font-weight: 600;
   text-align: center;
   animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.offline-banner__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--error-text-bright);
+  flex-shrink: 0;
+  animation: offlinePulse 1.6s ease-in-out infinite;
+}
+
+.offline-banner__retry {
+  margin-left: 0.375rem;
+  padding: 0.2rem 0.625rem;
+  border: 1px solid var(--error-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--error-text-bright);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.offline-banner__retry:hover {
+  background: var(--error-bg);
+}
+
+.offline-banner__retry:active {
+  transform: scale(0.96);
+}
+
+@keyframes offlinePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.75); }
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -389,5 +425,6 @@
   .navbar__hamburger-line { transition: none !important; }
   .sidebar__overlay,
   .offline-banner,
+  .offline-banner__dot,
   .unread-badge { animation: none !important; }
 }

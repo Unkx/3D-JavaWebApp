@@ -71,6 +71,14 @@ export class AppComponent implements OnDestroy {
     this.menuOpen.set(false);
   }
 
+  retryConnection() {
+    if (navigator.onLine) {
+      this.doc.defaultView?.location.reload();
+    } else {
+      this.offline.set(true);
+    }
+  }
+
   ngOnDestroy(): void {
     window.removeEventListener('online', this.onOnline);
     window.removeEventListener('offline', this.onOffline);
