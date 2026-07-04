@@ -1,4 +1,3 @@
-@'
 #!/bin/bash
 # wait-for-it.sh - Wait for database to be ready
 
@@ -15,4 +14,3 @@ done
 
 >&2 echo "Postgres is up - executing command"
 exec $cmd
-'@ | Out-File -FilePath wait-for-it.sh -Encoding utf8

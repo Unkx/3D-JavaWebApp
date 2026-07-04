@@ -8,6 +8,12 @@ const EMAIL   = process.env['TEST_USER_EMAIL']     ?? 'admin@druk3d.pl';
 const PASSWORD = process.env['TEST_USER_PASSWORD'] ?? 'admin123';
 const AUTH_DIR = join(__dirname, '.auth');
 
+// Dedicated non-admin account — userOnlyGuard redirects admins away from
+// /profil, /moje-zlecenia and /wiadomosci, so the admin account above can't
+// be used for the logged-in-user browser session.
+const REGULAR_EMAIL = 'e2e-regular-user@druk3d.pl';
+const REGULAR_PASSWORD = 'e2eRegular123';
+
 export default async function globalSetup() {
   mkdirSync(AUTH_DIR, { recursive: true });
 
@@ -37,15 +43,26 @@ export default async function globalSetup() {
   const listing = await listingRes.json() as { id: string };
   writeFileSync(join(AUTH_DIR, 'test-listing.json'), JSON.stringify({ id: listing.id }));
 
-  // 3. Log in via browser UI to capture localStorage storageState
+  // 3. Register a dedicated regular (non-admin) user for the logged-in-user
+  // browser session — ignore 409 if it already exists from a previous run.
+  const registerRes = await fetch(`${BACKEND}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: REGULAR_EMAIL, password: REGULAR_PASSWORD }),
+  });
+  if (!registerRes.ok && registerRes.status !== 409) {
+    throw new Error(`Register regular user failed: ${registerRes.status} ${await registerRes.text()}`);
+  }
+
+  // 4. Log in via browser UI to capture localStorage storageState
   const browser = await chromium.launch();
   try {
     const ctx = await browser.newContext({ baseURL: BASE });
     const page = await ctx.newPage();
 
     await page.goto('/logowanie');
-    await page.fill('#login-email', EMAIL);
-    await page.fill('#login-pw', PASSWORD);
+    await page.fill('#login-email', REGULAR_EMAIL);
+    await page.fill('#login-pw', REGULAR_PASSWORD);
     await page.click('button[type=submit]');
     await page.waitForURL(url => !url.pathname.includes('logowanie'), { timeout: 15_000 });
 

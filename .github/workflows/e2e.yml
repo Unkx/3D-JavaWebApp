@@ -144,4 +144,4 @@ jobs:
 
       - name: Tear down Docker Compose stack
         if: always()
-        run: docker compose down -v /web-setup
+        run: docker compose down -v
