@@ -5,10 +5,11 @@ import { Subscription, filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { ThemeService } from './services/theme.service';
 import { ConversationService } from './services/conversation.service';
+import { FooterComponent } from './components/footer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, SlicePipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, SlicePipe, FooterComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,0 +1,96 @@
+/* ========== HERO ========== */
+.legal-hero {
+  max-width: 680px;
+  padding: 4rem 0 3.5rem;
+}
+
+.legal-hero__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.875rem;
+  background: var(--al);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--ab);
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.legal-hero__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw + 0.5rem, 2.75rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin: 0 0 0.875rem;
+  text-wrap: balance;
+}
+
+.legal-hero__desc {
+  font-size: 1.0625rem;
+  color: var(--ts);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ========== SECTIONS ========== */
+.section { max-width: 760px; margin-bottom: 2.75rem; }
+
+.section__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+}
+
+.section p {
+  font-size: 0.9375rem;
+  color: var(--ts);
+  line-height: 1.7;
+  margin: 0 0 0.875rem;
+}
+
+.section p:last-child { margin-bottom: 0; }
+
+.section a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.legal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0 0 0.875rem;
+  padding-left: 1.25rem;
+}
+
+.legal-list li {
+  font-size: 0.9375rem;
+  color: var(--ts);
+  line-height: 1.65;
+}
+
+.legal-list strong { color: var(--text); }
+
+/* ========== IP / TAKEDOWN HIGHLIGHT ========== */
+.section--highlight {
+  padding: 1.75rem 2rem;
+  background: var(--surface);
+  border: 1px solid var(--ab);
+  border-radius: var(--radius-2xl);
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 560px) {
+  .legal-hero { padding: 2rem 0 2.5rem; }
+  .section { margin-bottom: 2.25rem; }
+  .section--highlight { padding: 1.5rem; border-radius: var(--radius-xl); }
+}

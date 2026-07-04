@@ -169,3 +169,7 @@
 <main class="main-content">
   <router-outlet />
 </main>
+
+@if (!isFullscreenRoute()) {
+  <app-footer />
+}
