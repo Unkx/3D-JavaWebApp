@@ -12,9 +12,14 @@ jobs:
     timeout-minutes: 25
 
     env:
-      TEST_USER_EMAIL: ${{ secrets.TEST_USER_EMAIL || 'admin@druk3d.pl' }}
-      TEST_USER_PASSWORD: ${{ secrets.TEST_USER_PASSWORD || 'admin123' }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'testpassword' }}
+      # Throwaway credentials for an ephemeral CI-only database/admin account —
+      # fresh container every run, nothing persists, so no reason to source
+      # these from repo secrets (a misconfigured secret here previously broke
+      # Postgres auth: backend and db resolved the same secrets.POSTGRES_PASSWORD
+      # expression yet still ended up out of sync).
+      TEST_USER_EMAIL: admin@druk3d.pl
+      TEST_USER_PASSWORD: admin123
+      POSTGRES_PASSWORD: testpassword
 
     steps:
       - uses: actions/checkout@v4
