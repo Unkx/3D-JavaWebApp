@@ -14,11 +14,13 @@ jobs:
     env:
       # Throwaway credentials for an ephemeral CI-only database/admin account —
       # fresh container every run, nothing persists, so no reason to source
-      # these from repo secrets (a misconfigured secret here previously broke
-      # Postgres auth: backend and db resolved the same secrets.POSTGRES_PASSWORD
-      # expression yet still ended up out of sync).
+      # these from repo secrets.
+      #
+      # TEST_USER_PASSWORD must NOT be "admin123" — DataInitializer refuses to
+      # seed the admin account with that committed default password unless the
+      # insecure-secret bypass is set, which crashed the backend here.
       TEST_USER_EMAIL: admin@druk3d.pl
-      TEST_USER_PASSWORD: admin123
+      TEST_USER_PASSWORD: e2eAdminPass456
       POSTGRES_PASSWORD: testpassword
 
     steps:
@@ -41,16 +43,6 @@ jobs:
           echo "📋 Checking container status..."
           docker compose ps --all
         timeout-minutes: 10
-
-      - name: 🔬 TEMP DEBUG — compare resolved DB credentials (throwaway creds, safe to print)
-        if: always()
-        run: |
-          echo "--- backend container env ---"
-          docker exec 3d-javawebapp-backend-1 sh -c 'echo "DB_USERNAME=[$DB_USERNAME] len=${#DB_USERNAME}"; echo "DB_PASSWORD=[$DB_PASSWORD] len=${#DB_PASSWORD}"' || echo "backend exec failed"
-          echo "--- db container env ---"
-          docker exec 3d-javawebapp-db-1 sh -c 'echo "POSTGRES_USER=[$POSTGRES_USER] len=${#POSTGRES_USER}"; echo "POSTGRES_PASSWORD=[$POSTGRES_PASSWORD] len=${#POSTGRES_PASSWORD}"' || echo "db exec failed"
-          echo "--- resolved compose config ---"
-          docker compose config || true
 
       - name: 📋 Dump ALL logs (always runs)
         if: always()

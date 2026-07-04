@@ -24,7 +24,10 @@ services:
       JWT_SECRET: "${JWT_SECRET:?JWT_SECRET must be set — run: export JWT_SECRET=$(openssl rand -base64 48)}"
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:4200}
       ADMIN_EMAIL: ${TEST_USER_EMAIL:-admin@druk3d.pl}
-      ADMIN_PASSWORD: ${TEST_USER_PASSWORD:-admin123}
+      # Not "admin123" — DataInitializer refuses to seed the admin account with
+      # that committed default password (see DataInitializer.java) unless the
+      # insecure-secret bypass is set, which we deliberately avoid here.
+      ADMIN_PASSWORD: ${TEST_USER_PASSWORD:-e2eAdminPass456}
     depends_on:
       db:
         condition: service_healthy

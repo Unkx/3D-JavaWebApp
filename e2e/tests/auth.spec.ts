@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const EMAIL    = process.env['TEST_USER_EMAIL']     ?? 'admin@druk3d.pl';
-const PASSWORD = process.env['TEST_USER_PASSWORD'] ?? 'admin123';
+const PASSWORD = process.env['TEST_USER_PASSWORD'] ?? 'e2eAdminPass456';
 
 test.describe('Auth flows', () => {
   test('auth guard redirects unauthenticated user from /profil to /logowanie', async ({ page }) => {

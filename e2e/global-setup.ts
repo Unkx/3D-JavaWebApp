@@ -5,7 +5,7 @@ import { join } from 'path';
 const BACKEND = process.env['BACKEND_URL'] ?? 'http://localhost:8080';
 const BASE    = process.env['BASE_URL']    ?? 'http://localhost:4200';
 const EMAIL   = process.env['TEST_USER_EMAIL']     ?? 'admin@druk3d.pl';
-const PASSWORD = process.env['TEST_USER_PASSWORD'] ?? 'admin123';
+const PASSWORD = process.env['TEST_USER_PASSWORD'] ?? 'e2eAdminPass456';
 const AUTH_DIR = join(__dirname, '.auth');
 
 // Dedicated non-admin account — userOnlyGuard redirects admins away from
