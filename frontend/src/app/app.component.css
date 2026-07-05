@@ -92,6 +92,7 @@
   font-weight: 600;
   box-shadow: var(--shadow-accent);
   border-radius: var(--radius-md);
+  margin-left: 0.75rem;
 }
 
 .navbar__links-desktop a.btn-primary:hover {

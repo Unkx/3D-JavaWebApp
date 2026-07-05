@@ -127,10 +127,12 @@ class JwtServiceTest {
     void isTokenValidReturnsFalseForTamperedToken() {
         String token = jwtService.generateToken(user);
         String[] parts = token.split("\\.");
-        // Flip the last character of the signature segment to corrupt it.
-        char lastChar = parts[2].charAt(parts[2].length() - 1);
-        char replacement = lastChar == 'A' ? 'B' : 'A';
-        String tamperedSignature = parts[2].substring(0, parts[2].length() - 1) + replacement;
+        // Flip the first character of the signature segment to corrupt it. (The *last*
+        // base64url char of a 32-byte signature only encodes padding bits that the decoder
+        // ignores, so toggling it can decode to the same byte — not real tampering.)
+        char firstChar = parts[2].charAt(0);
+        char replacement = firstChar == 'A' ? 'B' : 'A';
+        String tamperedSignature = replacement + parts[2].substring(1);
         String tamperedToken = parts[0] + "." + parts[1] + "." + tamperedSignature;
 
         assertThat(jwtService.isTokenValid(tamperedToken, user)).isFalse();
