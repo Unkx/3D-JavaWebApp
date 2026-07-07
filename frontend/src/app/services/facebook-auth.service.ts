@@ -4,7 +4,22 @@ import { Injectable } from '@angular/core';
 // (every Facebook JS SDK integration embeds it client-side).
 const FACEBOOK_APP_ID = 'YOUR_FACEBOOK_APP_ID';
 
-declare const FB: any;
+declare global {
+  interface Window {
+    fbAsyncInit?: () => void;
+  }
+}
+
+interface FacebookLoginResponse {
+  authResponse?: { accessToken: string };
+}
+
+interface FacebookSdk {
+  init(params: { appId: string; version: string; xfbml: boolean }): void;
+  login(callback: (response: FacebookLoginResponse) => void, options: { scope: string }): void;
+}
+
+declare const FB: FacebookSdk;
 
 @Injectable({ providedIn: 'root' })
 export class FacebookAuthService {
@@ -18,14 +33,13 @@ export class FacebookAuthService {
     if (this.sdkReady) return this.sdkReady;
 
     this.sdkReady = new Promise((resolve) => {
-      (window as any).fbAsyncInit = () => {
+      window.fbAsyncInit = () => {
         FB.init({ appId: FACEBOOK_APP_ID, version: 'v21.0', xfbml: false });
         resolve();
       };
       const script = document.createElement('script');
       script.src = 'https://connect.facebook.net/pl_PL/sdk.js';
       script.async = true;
-      script.defer = true;
       document.body.appendChild(script);
     });
 
@@ -34,7 +48,7 @@ export class FacebookAuthService {
 
   private doLogin(): Promise<string | null> {
     return new Promise((resolve) => {
-      FB.login((response: any) => {
+      FB.login((response) => {
         resolve(response.authResponse ? response.authResponse.accessToken : null);
       }, { scope: 'email' });
     });
