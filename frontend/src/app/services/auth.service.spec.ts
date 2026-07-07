@@ -96,6 +96,15 @@ describe('AuthService', () => {
     expect(service.currentUser()).toEqual(user);
   });
 
+  it('loginWithGoogle() POSTs the id token and persists the returned user', () => {
+    service.loginWithGoogle('google-id-token-123').subscribe();
+    const req = httpMock.expectOne('/api/auth/google');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ idToken: 'google-id-token-123' });
+    req.flush(user);
+    expect(service.currentUser()).toEqual(user);
+  });
+
   it('forgotPassword() POSTs the email and does not persist a user', () => {
     service.forgotPassword('a@b.com').subscribe();
     const req = httpMock.expectOne('/api/auth/forgot-password');
