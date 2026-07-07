@@ -87,6 +87,15 @@ describe('AuthService', () => {
     expect(service.isAdmin()).toBe(true);
   });
 
+  it('loginWithFacebook() POSTs the access token and persists the returned user', () => {
+    service.loginWithFacebook('fb-token-123').subscribe();
+    const req = httpMock.expectOne('/api/auth/facebook');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ accessToken: 'fb-token-123' });
+    req.flush(user);
+    expect(service.currentUser()).toEqual(user);
+  });
+
   it('forgotPassword() POSTs the email and does not persist a user', () => {
     service.forgotPassword('a@b.com').subscribe();
     const req = httpMock.expectOne('/api/auth/forgot-password');

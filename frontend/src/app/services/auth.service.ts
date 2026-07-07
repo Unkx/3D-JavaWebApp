@@ -48,6 +48,12 @@ export class AuthService {
     );
   }
 
+  loginWithFacebook(accessToken: string): Observable<AuthUser> {
+    return this.http.post<AuthUser>('/api/auth/facebook', { accessToken }).pipe(
+      tap(user => this.persist(user))
+    );
+  }
+
   forgotPassword(email: string): Observable<void> {
     return this.http.post<void>('/api/auth/forgot-password', { email });
   }
