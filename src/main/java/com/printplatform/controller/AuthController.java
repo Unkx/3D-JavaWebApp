@@ -1,6 +1,7 @@
 package com.printplatform.controller;
 
 import com.printplatform.dto.AuthResponse;
+import com.printplatform.dto.FacebookLoginRequest;
 import com.printplatform.dto.ForgotPasswordRequest;
 import com.printplatform.dto.LoginRequest;
 import com.printplatform.dto.RegisterRequest;
@@ -32,6 +33,11 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/facebook")
+    public AuthResponse loginWithFacebook(@Valid @RequestBody FacebookLoginRequest request) {
+        return authService.loginWithFacebook(request);
     }
 
     @PostMapping("/forgot-password")
