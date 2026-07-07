@@ -4,6 +4,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { of, throwError } from 'rxjs';
 import { AuthComponent } from './auth.component';
 import { AuthService } from '../../services/auth.service';
+import { FacebookAuthService } from '../../services/facebook-auth.service';
 
 describe('AuthComponent', () => {
   let authStub: {
@@ -11,7 +12,9 @@ describe('AuthComponent', () => {
     login: ReturnType<typeof vi.fn>;
     register: ReturnType<typeof vi.fn>;
     forgotPassword: ReturnType<typeof vi.fn>;
+    loginWithFacebook: ReturnType<typeof vi.fn>;
   };
+  let facebookAuthStub: { login: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
   let queryParams: Record<string, string>;
 
@@ -25,13 +28,16 @@ describe('AuthComponent', () => {
       isLoggedIn: vi.fn().mockReturnValue(false),
       login: vi.fn(),
       register: vi.fn(),
-      forgotPassword: vi.fn()
+      forgotPassword: vi.fn(),
+      loginWithFacebook: vi.fn()
     };
+    facebookAuthStub = { login: vi.fn() };
     router = { navigate: vi.fn(), navigateByUrl: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authStub },
+        { provide: FacebookAuthService, useValue: facebookAuthStub },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -60,6 +66,7 @@ describe('AuthComponent', () => {
       TestBed.configureTestingModule({
         providers: [
           { provide: AuthService, useValue: authStub },
+          { provide: FacebookAuthService, useValue: facebookAuthStub },
           { provide: Router, useValue: router },
           {
             provide: ActivatedRoute,
@@ -259,6 +266,45 @@ describe('AuthComponent', () => {
       expect(component.serverError()).toBeNull();
       expect(component.forgotSent()).toBe(false);
       expect(component.fe.email.value).toBeNull();
+    });
+  });
+
+  describe('loginWithFacebook()', () => {
+    it('logs in and navigates to returnUrl when Facebook login succeeds', async () => {
+      facebookAuthStub.login.mockResolvedValue('fb-token');
+      authStub.loginWithFacebook.mockReturnValue(of({ token: 't', email: 'a@b.com', role: 'USER', userId: 'u1' }));
+      const component = createComponent();
+      component.returnUrl = '/zlecenia';
+
+      await component.loginWithFacebook();
+
+      expect(authStub.loginWithFacebook).toHaveBeenCalledWith('fb-token');
+      expect(component.loading()).toBe(false);
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/zlecenia');
+    });
+
+    it('resets loading without error when the user cancels the Facebook popup', async () => {
+      facebookAuthStub.login.mockResolvedValue(null);
+      const component = createComponent();
+
+      await component.loginWithFacebook();
+
+      expect(component.loading()).toBe(false);
+      expect(component.serverError()).toBeNull();
+      expect(authStub.loginWithFacebook).not.toHaveBeenCalled();
+    });
+
+    it('sets serverError when the backend rejects the Facebook token', async () => {
+      facebookAuthStub.login.mockResolvedValue('fb-token');
+      authStub.loginWithFacebook.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ error: { message: 'Zły token' }, status: 401 }))
+      );
+      const component = createComponent();
+
+      await component.loginWithFacebook();
+
+      expect(component.loading()).toBe(false);
+      expect(component.serverError()).toBe('Zły token');
     });
   });
 });

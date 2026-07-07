@@ -38,6 +38,18 @@
       </div>
     }
 
+    @if (activeTab() !== 'forgot') {
+      <button
+        type="button"
+        class="btn btn--facebook btn--full"
+        (click)="loginWithFacebook()"
+        [disabled]="loading()"
+      >
+        Kontynuuj przez Facebook
+      </button>
+      <p class="divider"><span>lub</span></p>
+    }
+
     <!-- Server error -->
     @if (serverError()) {
       <div class="alert alert--error" role="alert" aria-live="assertive">

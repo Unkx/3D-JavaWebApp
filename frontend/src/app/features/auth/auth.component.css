@@ -225,6 +225,30 @@
 .btn--primary:disabled { opacity: 0.55; cursor: not-allowed; }
 .btn--full { width: 100%; margin-top: 0.25rem; }
 
+.btn--facebook {
+  background: #1877F2;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+.btn--facebook:hover:not(:disabled) { background: #145dbf; }
+.btn--facebook:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--tm);
+  font-size: 0.8125rem;
+  margin: 0 0 1.25rem;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+.divider span { padding: 0 0.75rem; }
+
 .link-btn {
   background: none;
   border: none;

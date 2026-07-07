@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@ang
 import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { FacebookAuthService } from '../../services/facebook-auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 type Tab = 'login' | 'register' | 'forgot';
@@ -18,6 +19,7 @@ export class AuthComponent implements OnInit {
   private auth    = inject(AuthService);
   private router  = inject(Router);
   private route   = inject(ActivatedRoute);
+  private facebookAuth = inject(FacebookAuthService);
 
   activeTab   = signal<Tab>('login');
   loading     = signal(false);
@@ -70,6 +72,21 @@ export class AuthComponent implements OnInit {
         this.loading.set(false);
         this.serverError.set(err.error?.message ?? 'Nieprawidłowy email lub hasło.');
       }
+    });
+  }
+
+  loginWithFacebook(): Promise<void> {
+    this.loading.set(true);
+    this.serverError.set(null);
+    return this.facebookAuth.login().then(accessToken => {
+      if (!accessToken) { this.loading.set(false); return; }
+      this.auth.loginWithFacebook(accessToken).subscribe({
+        next: () => { this.loading.set(false); this.router.navigateByUrl(this.returnUrl); },
+        error: (err: HttpErrorResponse) => {
+          this.loading.set(false);
+          this.serverError.set(err.error?.message ?? 'Logowanie przez Facebook nie powiodło się.');
+        }
+      });
     });
   }
 
