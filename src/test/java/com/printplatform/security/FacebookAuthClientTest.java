@@ -38,7 +38,7 @@ class FacebookAuthClientTest {
     private void stubDebugToken(boolean isValid, String appId) {
         String json = "{\"data\":{\"is_valid\":" + isValid + ",\"app_id\":\"" + appId + "\"}}";
         when(restTemplate.getForEntity(
-                argThat((URI uri) -> uri.toString().contains("debug_token")), eq(String.class)))
+                argThat((URI uri) -> uri != null && uri.toString().contains("debug_token")), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(json, HttpStatus.OK));
     }
 
@@ -47,7 +47,7 @@ class FacebookAuthClientTest {
         String json = "{\"id\":\"" + id + "\"" + emailField
                 + ",\"first_name\":\"" + firstName + "\",\"last_name\":\"" + lastName + "\"}";
         when(restTemplate.getForEntity(
-                argThat((URI uri) -> uri.toString().contains("/me")), eq(String.class)))
+                argThat((URI uri) -> uri != null && uri.toString().contains("/me")), eq(String.class)))
                 .thenReturn(new ResponseEntity<>(json, HttpStatus.OK));
     }
 
