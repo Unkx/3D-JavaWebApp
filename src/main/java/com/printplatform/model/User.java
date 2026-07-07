@@ -29,6 +29,9 @@ public class User implements UserDetails {
     @Column(unique = true)
     private String facebookId;
 
+    @Column(unique = true)
+    private String googleId;
+
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
@@ -84,6 +87,9 @@ public class User implements UserDetails {
 
     public String getFacebookId() { return facebookId; }
     public void setFacebookId(String facebookId) { this.facebookId = facebookId; }
+
+    public String getGoogleId() { return googleId; }
+    public void setGoogleId(String googleId) { this.googleId = googleId; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
