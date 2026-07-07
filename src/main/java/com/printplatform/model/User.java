@@ -23,8 +23,11 @@ public class User implements UserDetails {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String password;
+
+    @Column(unique = true)
+    private String facebookId;
 
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
@@ -78,6 +81,9 @@ public class User implements UserDetails {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getFacebookId() { return facebookId; }
+    public void setFacebookId(String facebookId) { this.facebookId = facebookId; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
