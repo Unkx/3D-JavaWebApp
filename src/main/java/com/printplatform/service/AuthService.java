@@ -74,6 +74,9 @@ public class AuthService {
                     "Potrzebujemy dostępu do Twojego emaila, aby się zalogować.");
         }
 
+        // Auto-link trusts profile.email() as verified by Facebook (Graph API only returns
+        // a confirmed email address) — do not extend this pattern to a provider that doesn't
+        // guarantee email verification.
         User user = userRepository.findByFacebookId(profile.facebookId())
                 .orElseGet(() -> userRepository.findByEmail(profile.email())
                         .map(existing -> linkFacebookId(existing, profile.facebookId()))
