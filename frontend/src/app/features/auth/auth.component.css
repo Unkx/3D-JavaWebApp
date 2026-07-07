@@ -233,6 +233,16 @@
 .btn--facebook:hover:not(:disabled) { background: #145dbf; }
 .btn--facebook:disabled { opacity: 0.55; cursor: not-allowed; }
 
+.google-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.google-btn-container--hidden {
+  display: none;
+}
+
 .divider {
   display: flex;
   align-items: center;

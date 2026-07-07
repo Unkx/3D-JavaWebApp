@@ -38,6 +38,12 @@
       </div>
     }
 
+    <div
+      id="google-btn-container"
+      class="google-btn-container"
+      [class.google-btn-container--hidden]="activeTab() === 'forgot'"
+    ></div>
+
     @if (activeTab() !== 'forgot') {
       <button
         type="button"
@@ -47,7 +53,6 @@
       >
         Kontynuuj przez Facebook
       </button>
-      <div id="google-btn-container" style="display: flex; justify-content: center; margin-bottom: 1.25rem;"></div>
       <p class="divider"><span>lub</span></p>
     }
 
