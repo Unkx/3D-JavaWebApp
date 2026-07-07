@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { FacebookAuthService } from '../../services/facebook-auth.service';
+import { GoogleAuthService } from '../../services/google-auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 type Tab = 'login' | 'register' | 'forgot';
@@ -20,6 +21,7 @@ export class AuthComponent implements OnInit {
   private router  = inject(Router);
   private route   = inject(ActivatedRoute);
   private facebookAuth = inject(FacebookAuthService);
+  private googleAuth = inject(GoogleAuthService);
 
   activeTab   = signal<Tab>('login');
   loading     = signal(false);
@@ -52,6 +54,7 @@ export class AuthComponent implements OnInit {
     this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab === 'register') this.activeTab.set('register');
+    this.initGoogleButton();
   }
 
   switchTab(tab: Tab): void {
@@ -87,6 +90,22 @@ export class AuthComponent implements OnInit {
           this.serverError.set(err.error?.message ?? 'Logowanie przez Facebook nie powiodło się.');
         }
       });
+    });
+  }
+
+  initGoogleButton(): Promise<void> {
+    return this.googleAuth.renderButton('google-btn-container', (idToken) => this.handleGoogleToken(idToken));
+  }
+
+  handleGoogleToken(idToken: string): void {
+    this.loading.set(true);
+    this.serverError.set(null);
+    this.auth.loginWithGoogle(idToken).subscribe({
+      next: () => { this.loading.set(false); this.router.navigateByUrl(this.returnUrl); },
+      error: (err: HttpErrorResponse) => {
+        this.loading.set(false);
+        this.serverError.set(err.error?.message ?? 'Logowanie przez Google nie powiodło się.');
+      }
     });
   }
 

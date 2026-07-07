@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { AuthComponent } from './auth.component';
 import { AuthService } from '../../services/auth.service';
 import { FacebookAuthService } from '../../services/facebook-auth.service';
+import { GoogleAuthService } from '../../services/google-auth.service';
 
 describe('AuthComponent', () => {
   let authStub: {
@@ -13,8 +14,10 @@ describe('AuthComponent', () => {
     register: ReturnType<typeof vi.fn>;
     forgotPassword: ReturnType<typeof vi.fn>;
     loginWithFacebook: ReturnType<typeof vi.fn>;
+    loginWithGoogle: ReturnType<typeof vi.fn>;
   };
   let facebookAuthStub: { login: ReturnType<typeof vi.fn> };
+  let googleAuthStub: { renderButton: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn>; navigateByUrl: ReturnType<typeof vi.fn> };
   let queryParams: Record<string, string>;
 
@@ -29,15 +32,18 @@ describe('AuthComponent', () => {
       login: vi.fn(),
       register: vi.fn(),
       forgotPassword: vi.fn(),
-      loginWithFacebook: vi.fn()
+      loginWithFacebook: vi.fn(),
+      loginWithGoogle: vi.fn()
     };
     facebookAuthStub = { login: vi.fn() };
+    googleAuthStub = { renderButton: vi.fn().mockResolvedValue(undefined) };
     router = { navigate: vi.fn(), navigateByUrl: vi.fn() };
 
     TestBed.configureTestingModule({
       providers: [
         { provide: AuthService, useValue: authStub },
         { provide: FacebookAuthService, useValue: facebookAuthStub },
+        { provide: GoogleAuthService, useValue: googleAuthStub },
         { provide: Router, useValue: router },
         {
           provide: ActivatedRoute,
@@ -67,6 +73,7 @@ describe('AuthComponent', () => {
         providers: [
           { provide: AuthService, useValue: authStub },
           { provide: FacebookAuthService, useValue: facebookAuthStub },
+          { provide: GoogleAuthService, useValue: googleAuthStub },
           { provide: Router, useValue: router },
           {
             provide: ActivatedRoute,
@@ -305,6 +312,51 @@ describe('AuthComponent', () => {
 
       expect(component.loading()).toBe(false);
       expect(component.serverError()).toBe('Zły token');
+    });
+  });
+
+  describe('initGoogleButton()', () => {
+    it('renders the Google button into the expected container', async () => {
+      const component = createComponent();
+
+      await component.initGoogleButton();
+
+      expect(googleAuthStub.renderButton).toHaveBeenCalledWith('google-btn-container', expect.any(Function));
+    });
+  });
+
+  describe('handleGoogleToken()', () => {
+    it('logs in and navigates to returnUrl on success', () => {
+      authStub.loginWithGoogle.mockReturnValue(of({ token: 't', email: 'a@b.com', role: 'USER', userId: 'u1' }));
+      const component = createComponent();
+      component.returnUrl = '/zlecenia';
+
+      component.handleGoogleToken('google-token-123');
+
+      expect(authStub.loginWithGoogle).toHaveBeenCalledWith('google-token-123');
+      expect(component.loading()).toBe(false);
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/zlecenia');
+    });
+
+    it('sets serverError when the backend rejects the Google token', () => {
+      authStub.loginWithGoogle.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ error: { message: 'Konto z tym adresem email już istnieje.' }, status: 409 }))
+      );
+      const component = createComponent();
+
+      component.handleGoogleToken('google-token-123');
+
+      expect(component.loading()).toBe(false);
+      expect(component.serverError()).toBe('Konto z tym adresem email już istnieje.');
+    });
+
+    it('falls back to a default error message when the API omits one', () => {
+      authStub.loginWithGoogle.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      const component = createComponent();
+
+      component.handleGoogleToken('google-token-123');
+
+      expect(component.serverError()).toBe('Logowanie przez Google nie powiodło się.');
     });
   });
 });
