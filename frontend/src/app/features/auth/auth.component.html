@@ -38,24 +38,6 @@
       </div>
     }
 
-    <div
-      id="google-btn-container"
-      class="google-btn-container"
-      [class.google-btn-container--hidden]="activeTab() === 'forgot'"
-    ></div>
-
-    @if (activeTab() !== 'forgot') {
-      <button
-        type="button"
-        class="btn btn--facebook btn--full"
-        (click)="loginWithFacebook()"
-        [disabled]="loading()"
-      >
-        Kontynuuj przez Facebook
-      </button>
-      <p class="divider"><span>lub</span></p>
-    }
-
     <!-- Server error -->
     @if (serverError()) {
       <div class="alert alert--error" role="alert" aria-live="assertive">
@@ -135,6 +117,30 @@
           <button type="button" class="link-btn" (click)="switchTab('register')">Zarejestruj się</button>
         </p>
       </form>
+    }
+
+    <p></p>
+
+    @if (activeTab() === 'login') {
+      <p class="divider"><span>lub</span></p>
+    }
+
+    <div
+      id="google-btn-container"
+      class="google-btn-container"
+      [class.google-btn-container--hidden]="activeTab() !== 'login'"
+    ></div>
+
+    @if (activeTab() === 'login') {
+      <button
+        type="button"
+        class="btn btn--facebook btn--full"
+        (click)="loginWithFacebook()"
+        [disabled]="loading()"
+      >
+        Kontynuuj przez Facebook
+      </button>
+
     }
 
     <!-- REGISTER PANEL -->

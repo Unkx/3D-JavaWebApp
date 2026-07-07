@@ -10,7 +10,7 @@ interface GoogleCredentialResponse {
 
 interface GoogleAccountsId {
   initialize(config: { client_id: string; callback: (response: GoogleCredentialResponse) => void }): void;
-  renderButton(container: HTMLElement, options: { theme: string; size: string; type: string }): void;
+  renderButton(container: HTMLElement, options: { theme: string; size: string; type: string; width: number }): void;
 }
 
 declare const google: { accounts: { id: GoogleAccountsId } };
@@ -25,7 +25,9 @@ export class GoogleAuthService {
     return this.loadSdk().then(() => {
       const container = document.getElementById(containerId);
       if (!container) return;
-      google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard' });
+      // Google's button takes a fixed pixel width (no percentage support), so measure the
+      // container to match the full-width Facebook button rendered right below it.
+      google.accounts.id.renderButton(container, { theme: 'outline', size: 'large', type: 'standard', width: container.clientWidth });
     });
   }
 
