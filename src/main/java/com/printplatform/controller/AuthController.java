@@ -3,6 +3,7 @@ package com.printplatform.controller;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.FacebookLoginRequest;
 import com.printplatform.dto.ForgotPasswordRequest;
+import com.printplatform.dto.GoogleLoginRequest;
 import com.printplatform.dto.LoginRequest;
 import com.printplatform.dto.RegisterRequest;
 import com.printplatform.dto.ResetPasswordRequest;
@@ -38,6 +39,11 @@ public class AuthController {
     @PostMapping("/facebook")
     public AuthResponse loginWithFacebook(@Valid @RequestBody FacebookLoginRequest request) {
         return authService.loginWithFacebook(request);
+    }
+
+    @PostMapping("/google")
+    public AuthResponse loginWithGoogle(@Valid @RequestBody GoogleLoginRequest request) {
+        return authService.loginWithGoogle(request);
     }
 
     @PostMapping("/forgot-password")
