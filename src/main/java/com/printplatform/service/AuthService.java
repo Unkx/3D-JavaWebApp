@@ -2,12 +2,14 @@ package com.printplatform.service;
 
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.FacebookLoginRequest;
+import com.printplatform.dto.GoogleLoginRequest;
 import com.printplatform.dto.LoginRequest;
 import com.printplatform.dto.RegisterRequest;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.FacebookAuthClient;
+import com.printplatform.security.GoogleAuthClient;
 import com.printplatform.security.JwtService;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,17 +24,20 @@ public class AuthService {
     private final JwtService jwtService;
     private final AdminService adminService;
     private final FacebookAuthClient facebookAuthClient;
+    private final GoogleAuthClient googleAuthClient;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        AdminService adminService,
-                       FacebookAuthClient facebookAuthClient) {
+                       FacebookAuthClient facebookAuthClient,
+                       GoogleAuthClient googleAuthClient) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.adminService = adminService;
         this.facebookAuthClient = facebookAuthClient;
+        this.googleAuthClient = googleAuthClient;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -85,6 +90,23 @@ public class AuthService {
         return toResponse(user);
     }
 
+    public AuthResponse loginWithGoogle(GoogleLoginRequest request) {
+        GoogleAuthClient.GoogleProfile profile = googleAuthClient.verify(request.getIdToken());
+
+        // Unlike Facebook, Google logins do NOT auto-link onto an existing account —
+        // reject instead, so the user goes back to whichever method that account already uses.
+        User user = userRepository.findByGoogleId(profile.googleId())
+                .orElseGet(() -> {
+                    if (userRepository.findByEmail(profile.email()).isPresent()) {
+                        throw new ResponseStatusException(HttpStatus.CONFLICT,
+                                "Konto z tym adresem email już istnieje. Zaloguj się przez email lub Facebook.");
+                    }
+                    return createGoogleUser(profile);
+                });
+
+        return toResponse(user);
+    }
+
     private User linkFacebookId(User user, String facebookId) {
         user.setFacebookId(facebookId);
         return userRepository.save(user);
@@ -94,6 +116,16 @@ public class AuthService {
         User user = new User();
         user.setEmail(profile.email());
         user.setFacebookId(profile.facebookId());
+        user.setFirstName(profile.firstName());
+        user.setLastName(profile.lastName());
+        user.setRole(Role.USER);
+        return userRepository.save(user);
+    }
+
+    private User createGoogleUser(GoogleAuthClient.GoogleProfile profile) {
+        User user = new User();
+        user.setEmail(profile.email());
+        user.setGoogleId(profile.googleId());
         user.setFirstName(profile.firstName());
         user.setLastName(profile.lastName());
         user.setRole(Role.USER);

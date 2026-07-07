@@ -2,12 +2,14 @@ package com.printplatform.service;
 
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.FacebookLoginRequest;
+import com.printplatform.dto.GoogleLoginRequest;
 import com.printplatform.dto.LoginRequest;
 import com.printplatform.dto.RegisterRequest;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.FacebookAuthClient;
+import com.printplatform.security.GoogleAuthClient;
 import com.printplatform.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,12 +43,14 @@ class AuthServiceTest {
     private AdminService adminService;
     @Mock
     private FacebookAuthClient facebookAuthClient;
+    @Mock
+    private GoogleAuthClient googleAuthClient;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder, jwtService, adminService, facebookAuthClient);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService, adminService, facebookAuthClient, googleAuthClient);
     }
 
     private User buildUser(String email, String encodedPassword, Role role) {
@@ -315,6 +319,95 @@ class AuthServiceTest {
                 .isInstanceOf(ResponseStatusException.class)
                 .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                         .isEqualTo(HttpStatus.BAD_REQUEST));
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void loginWithGoogle_newUser_createsAccountAndReturnsAuthResponse() {
+        GoogleLoginRequest request = new GoogleLoginRequest();
+        request.setIdToken("google-id-token");
+
+        GoogleAuthClient.GoogleProfile profile =
+                new GoogleAuthClient.GoogleProfile("google123", "newgoogle@example.com", "Anna", "Nowak");
+        when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
+        when(userRepository.findByGoogleId("google123")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("newgoogle@example.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            saved.setId(UUID.randomUUID());
+            return saved;
+        });
+        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
+
+        AuthResponse response = authService.loginWithGoogle(request);
+
+        assertThat(response.getToken()).isEqualTo("jwt-token");
+        assertThat(response.getEmail()).isEqualTo("newgoogle@example.com");
+        verify(userRepository).save(argThat((User u) ->
+                u.getEmail().equals("newgoogle@example.com")
+                        && "google123".equals(u.getGoogleId())
+                        && u.getPassword() == null
+                        && u.getFirstName().equals("Anna")
+                        && u.getRole() == Role.USER));
+    }
+
+    @Test
+    void loginWithGoogle_existingGoogleId_logsInWithoutSaving() {
+        GoogleLoginRequest request = new GoogleLoginRequest();
+        request.setIdToken("google-id-token");
+
+        GoogleAuthClient.GoogleProfile profile =
+                new GoogleAuthClient.GoogleProfile("google456", "repeat@example.com", "Piotr", "Zielinski");
+        User existing = buildUser("repeat@example.com", null, Role.USER);
+        existing.setGoogleId("google456");
+        when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
+        when(userRepository.findByGoogleId("google456")).thenReturn(Optional.of(existing));
+        when(jwtService.generateToken(existing)).thenReturn("jwt-token");
+
+        AuthResponse response = authService.loginWithGoogle(request);
+
+        assertThat(response.getToken()).isEqualTo("jwt-token");
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void loginWithGoogle_emailAlreadyExistsAsPasswordAccount_throwsConflict() {
+        GoogleLoginRequest request = new GoogleLoginRequest();
+        request.setIdToken("google-id-token");
+
+        GoogleAuthClient.GoogleProfile profile =
+                new GoogleAuthClient.GoogleProfile("google789", "existing@example.com", "Ola", "Kowal");
+        User existingPasswordUser = buildUser("existing@example.com", "encoded-secret", Role.USER);
+        when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
+        when(userRepository.findByGoogleId("google789")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("existing@example.com")).thenReturn(Optional.of(existingPasswordUser));
+
+        assertThatThrownBy(() -> authService.loginWithGoogle(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
+                        .isEqualTo(HttpStatus.CONFLICT));
+
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void loginWithGoogle_emailAlreadyExistsAsFacebookAccount_throwsConflict() {
+        GoogleLoginRequest request = new GoogleLoginRequest();
+        request.setIdToken("google-id-token");
+
+        GoogleAuthClient.GoogleProfile profile =
+                new GoogleAuthClient.GoogleProfile("google999", "fbuser@example.com", "Tom", "Nowicki");
+        User existingFacebookUser = buildUser("fbuser@example.com", null, Role.USER);
+        existingFacebookUser.setFacebookId("fb-existing-1");
+        when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
+        when(userRepository.findByGoogleId("google999")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("fbuser@example.com")).thenReturn(Optional.of(existingFacebookUser));
+
+        assertThatThrownBy(() -> authService.loginWithGoogle(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
+                        .isEqualTo(HttpStatus.CONFLICT));
 
         verify(userRepository, never()).save(any());
     }
