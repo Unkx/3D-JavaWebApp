@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 // Replace with the real OAuth Client ID from console.cloud.google.com — it is public by design
 // (every Google Identity Services integration embeds it client-side).
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID';
+const GOOGLE_CLIENT_ID = '93361708845-vsatnhot5fn9h171uuaqeriborbh0lph.apps.googleusercontent.com';
 
 interface GoogleCredentialResponse {
   credential: string;

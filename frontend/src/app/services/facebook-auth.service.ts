@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 
 // Replace with the real App ID from developers.facebook.com — it is public by design
 // (every Facebook JS SDK integration embeds it client-side).
-const FACEBOOK_APP_ID = 'YOUR_FACEBOOK_APP_ID';
+const FACEBOOK_APP_ID = '1018372287267595';
 
 declare global {
   interface Window {
