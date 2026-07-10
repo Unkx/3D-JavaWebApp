@@ -1,6 +1,14 @@
 {
   "buildCommand": "ng build",
   "outputDirectory": "dist/frontend/browser",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }
+      ]
+    }
+  ],
   "rewrites": [
     { "source": "/api/:path*", "destination": "https://druk3d-backend.onrender.com/api/:path*" },
     { "source": "/inpost-api/:path*", "destination": "https://api-shipx-pl.easypack24.net/v1/:path*" },
