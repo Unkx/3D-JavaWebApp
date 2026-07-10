@@ -1,0 +1,9 @@
+{
+  "buildCommand": "ng build",
+  "outputDirectory": "dist/frontend/browser",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://druk3d-backend.onrender.com/api/:path*" },
+    { "source": "/inpost-api/:path*", "destination": "https://api-shipx-pl.easypack24.net/v1/:path*" },
+    { "source": "/((?!api|inpost-api).*)", "destination": "/index.html" }
+  ]
+}
