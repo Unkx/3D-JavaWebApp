@@ -25,22 +25,25 @@ public class AuthService {
     private final AdminService adminService;
     private final FacebookAuthClient facebookAuthClient;
     private final GoogleAuthClient googleAuthClient;
+    private final EmailVerificationService emailVerificationService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        AdminService adminService,
                        FacebookAuthClient facebookAuthClient,
-                       GoogleAuthClient googleAuthClient) {
+                       GoogleAuthClient googleAuthClient,
+                       EmailVerificationService emailVerificationService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.adminService = adminService;
         this.facebookAuthClient = facebookAuthClient;
         this.googleAuthClient = googleAuthClient;
+        this.emailVerificationService = emailVerificationService;
     }
 
-    public AuthResponse register(RegisterRequest request) {
+    public void register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Konto z tym emailem już istnieje");
         }
@@ -55,7 +58,7 @@ public class AuthService {
         }
 
         userRepository.save(user);
-        return toResponse(user);
+        emailVerificationService.issueAndSendToken(user);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -67,6 +70,10 @@ public class AuthService {
         }
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Nieprawidłowy email lub hasło");
+        }
+        if (!user.isEmailVerified()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Potwierdź adres email, aby się zalogować. Sprawdź swoją skrzynkę pocztową.");
         }
         return toResponse(user);
     }
@@ -119,6 +126,8 @@ public class AuthService {
         user.setFirstName(profile.firstName());
         user.setLastName(profile.lastName());
         user.setRole(Role.USER);
+        // Graph API only returns a confirmed email address — no separate verification needed.
+        user.setEmailVerified(true);
         return userRepository.save(user);
     }
 
@@ -129,6 +138,8 @@ public class AuthService {
         user.setFirstName(profile.firstName());
         user.setLastName(profile.lastName());
         user.setRole(Role.USER);
+        // GoogleAuthClient.verify() already rejects tokens where email_verified != true.
+        user.setEmailVerified(true);
         return userRepository.save(user);
     }
 

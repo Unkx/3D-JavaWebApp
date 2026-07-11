@@ -2,6 +2,7 @@ package com.printplatform.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,6 +32,13 @@ public class User implements UserDetails {
 
     @Column(unique = true)
     private String googleId;
+
+    // Column-level default of false is required: Hibernate's ddl-auto=update issues a plain
+    // ALTER TABLE ADD COLUMN with no default unless @ColumnDefault is present, and this field
+    // is a primitive boolean — reading a NULL column into it throws, not just defaults to false.
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean emailVerified = false;
 
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
@@ -90,6 +98,9 @@ public class User implements UserDetails {
 
     public String getGoogleId() { return googleId; }
     public void setGoogleId(String googleId) { this.googleId = googleId; }
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

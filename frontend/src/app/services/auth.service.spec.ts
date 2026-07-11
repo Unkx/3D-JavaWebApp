@@ -74,17 +74,15 @@ describe('AuthService', () => {
     expect(JSON.parse(localStorage.getItem('auth_token')!)).toEqual(user);
   });
 
-  it('register() POSTs payload and persists the returned user', () => {
-    const admin: AuthUser = { ...user, role: 'ADMIN' };
+  it('register() POSTs payload and does not persist a session (registration no longer auto-logs-in)', () => {
     service.register({ email: user.email, password: 'pw', adminCode: 'CODE' }).subscribe();
 
     const req = httpMock.expectOne('/api/auth/register');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ email: user.email, password: 'pw', adminCode: 'CODE' });
-    req.flush(admin);
+    req.flush(null);
 
-    expect(service.currentUser()).toEqual(admin);
-    expect(service.isAdmin()).toBe(true);
+    expect(service.currentUser()).toBeNull();
   });
 
   it('loginWithFacebook() POSTs the access token and persists the returned user', () => {
@@ -119,6 +117,21 @@ describe('AuthService', () => {
     const req = httpMock.expectOne('/api/auth/reset-password');
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ token: 'tok', newPassword: 'newpw' });
+    req.flush(null);
+  });
+
+  it('verifyEmail() GETs with the token as a query param', () => {
+    service.verifyEmail('tok123').subscribe();
+    const req = httpMock.expectOne(r => r.url === '/api/auth/verify-email' && r.params.get('token') === 'tok123');
+    expect(req.request.method).toBe('GET');
+    req.flush(null);
+  });
+
+  it('resendVerification() POSTs the email', () => {
+    service.resendVerification('a@b.com').subscribe();
+    const req = httpMock.expectOne('/api/auth/resend-verification');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ email: 'a@b.com' });
     req.flush(null);
   });
 

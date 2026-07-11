@@ -2,6 +2,7 @@ package com.printplatform.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
@@ -11,7 +12,11 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Hasło jest wymagane")
-    @Size(min = 6, message = "Hasło musi mieć co najmniej 6 znaków")
+    @Size(min = 8, message = "Hasło musi mieć co najmniej 8 znaków")
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+        message = "Hasło musi zawierać wielką literę, małą literę i cyfrę"
+    )
     private String password;
 
     /** Optional: if a valid admin code is supplied, the new account becomes an administrator. */

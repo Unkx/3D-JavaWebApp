@@ -39,4 +39,22 @@ public class EmailService {
         );
         mailSender.send(message);
     }
+
+    public void sendVerificationEmail(String to, UUID token) {
+        String link = baseUrl + "/verify-email?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(to);
+        message.setSubject("Potwierdź swój adres email — Druk3D");
+        message.setText(
+            "Cześć,\n\n" +
+            "Dziękujemy za rejestrację w serwisie Druk3D.\n\n" +
+            "Kliknij poniższy link, aby potwierdzić swój adres email (ważny przez 24 godziny):\n\n" +
+            link + "\n\n" +
+            "Jeśli to nie Ty zakładałeś/-aś to konto, zignoruj tę wiadomość.\n\n" +
+            "— Zespół Druk3D"
+        );
+        mailSender.send(message);
+    }
 }

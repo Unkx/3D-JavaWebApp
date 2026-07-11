@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -18,11 +19,15 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class AuthRateLimitFilter extends OncePerRequestFilter {
 
-    private static final int MAX_REQUESTS_PER_WINDOW = 10;
     private static final long WINDOW_MILLIS = 60_000;
     // Every this many requests, opportunistically evict windows that have been idle
     // for a full cycle, so the map doesn't grow unbounded under sustained unique-IP traffic.
     private static final long SWEEP_EVERY_N_REQUESTS = 500;
+
+    // Java default doubles as the fallback for tests that construct this filter directly
+    // (new AuthRateLimitFilter()), bypassing Spring's @Value injection entirely.
+    @Value("${app.rate-limit.auth.max-requests-per-window:10}")
+    private int maxRequestsPerWindow = 10;
 
     private final ConcurrentHashMap<String, Window> windows = new ConcurrentHashMap<>();
     private final AtomicLong requestCount = new AtomicLong();
@@ -38,7 +43,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
                                     FilterChain chain) throws ServletException, IOException {
         Window window = windows.computeIfAbsent(clientIp(request), k -> new Window());
 
-        if (window.tooManyRequests()) {
+        if (window.tooManyRequests(maxRequestsPerWindow)) {
             response.setStatus(429); // 429 Too Many Requests
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"message\":\"Zbyt wiele prób logowania. Spróbuj ponownie za chwilę.\"}");
@@ -82,13 +87,13 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
             return now - windowStart > WINDOW_MILLIS;
         }
 
-        synchronized boolean tooManyRequests() {
+        synchronized boolean tooManyRequests(int maxRequestsPerWindow) {
             long now = System.currentTimeMillis();
             if (now - windowStart > WINDOW_MILLIS) {
                 windowStart = now;
                 count = 0;
             }
-            return ++count > MAX_REQUESTS_PER_WINDOW;
+            return ++count > maxRequestsPerWindow;
         }
     }
 }
