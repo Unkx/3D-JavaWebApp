@@ -36,10 +36,8 @@ export class AuthService {
   readonly isLoggedIn  = computed(() => this._user() !== null);
   readonly isAdmin     = computed(() => this._user()?.role === 'ADMIN');
 
-  register(payload: RegisterPayload): Observable<AuthUser> {
-    return this.http.post<AuthUser>('/api/auth/register', payload).pipe(
-      tap(user => this.persist(user))
-    );
+  register(payload: RegisterPayload): Observable<void> {
+    return this.http.post<void>('/api/auth/register', payload);
   }
 
   login(payload: LoginPayload): Observable<AuthUser> {
@@ -66,6 +64,14 @@ export class AuthService {
 
   resetPassword(token: string, newPassword: string): Observable<void> {
     return this.http.post<void>('/api/auth/reset-password', { token, newPassword });
+  }
+
+  verifyEmail(token: string): Observable<void> {
+    return this.http.get<void>('/api/auth/verify-email', { params: { token } });
+  }
+
+  resendVerification(email: string): Observable<void> {
+    return this.http.post<void>('/api/auth/resend-verification', { email });
   }
 
   /** Redeem an admin code to become administrator; persists the fresh token/role. */
