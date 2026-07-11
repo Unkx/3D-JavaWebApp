@@ -1,6 +1,7 @@
 package com.printplatform.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class ResetPasswordRequest {
@@ -9,7 +10,11 @@ public class ResetPasswordRequest {
     private String token;
 
     @NotBlank
-    @Size(min = 6, message = "Hasło musi mieć co najmniej 6 znaków")
+    @Size(min = 8, message = "Hasło musi mieć co najmniej 8 znaków")
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).+$",
+        message = "Hasło musi zawierać wielką literę, małą literę i cyfrę"
+    )
     private String newPassword;
 
     public String getToken() { return token; }
