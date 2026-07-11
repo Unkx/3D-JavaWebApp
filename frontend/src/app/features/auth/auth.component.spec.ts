@@ -15,6 +15,7 @@ describe('AuthComponent', () => {
     forgotPassword: ReturnType<typeof vi.fn>;
     loginWithFacebook: ReturnType<typeof vi.fn>;
     loginWithGoogle: ReturnType<typeof vi.fn>;
+    resendVerification: ReturnType<typeof vi.fn>;
   };
   let facebookAuthStub: { login: ReturnType<typeof vi.fn> };
   let googleAuthStub: { renderButton: ReturnType<typeof vi.fn> };
@@ -33,7 +34,8 @@ describe('AuthComponent', () => {
       register: vi.fn(),
       forgotPassword: vi.fn(),
       loginWithFacebook: vi.fn(),
-      loginWithGoogle: vi.fn()
+      loginWithGoogle: vi.fn(),
+      resendVerification: vi.fn()
     };
     facebookAuthStub = { login: vi.fn() };
     googleAuthStub = { renderButton: vi.fn().mockResolvedValue(undefined) };
@@ -156,28 +158,80 @@ describe('AuthComponent', () => {
     });
   });
 
+  describe('login() when the account is unverified', () => {
+    it('sets unverifiedEmail so the resend button can appear', () => {
+      authStub.login.mockReturnValue(
+        throwError(() => new HttpErrorResponse({ error: { message: 'Potwierdź adres email.' }, status: 403 }))
+      );
+      const component = createComponent();
+      component.le.email.setValue('a@b.com');
+      component.le.password.setValue('secret');
+
+      component.login();
+
+      expect(component.serverError()).toBe('Potwierdź adres email.');
+      expect(component.unverifiedEmail()).toBe('a@b.com');
+    });
+
+    it('does not set unverifiedEmail for other error statuses', () => {
+      authStub.login.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 401 })));
+      const component = createComponent();
+      component.le.email.setValue('a@b.com');
+      component.le.password.setValue('wrong');
+
+      component.login();
+
+      expect(component.unverifiedEmail()).toBeNull();
+    });
+  });
+
+  describe('resendVerification()', () => {
+    it('calls the API with unverifiedEmail and sets resendVerificationSent', () => {
+      authStub.resendVerification.mockReturnValue(of(undefined));
+      const component = createComponent();
+      component.unverifiedEmail.set('a@b.com');
+
+      component.resendVerification();
+
+      expect(authStub.resendVerification).toHaveBeenCalledWith('a@b.com');
+      expect(component.resendVerificationSent()).toBe(true);
+    });
+  });
+
   describe('register form validation', () => {
     it('flags a mismatch between password and passwordConfirm', () => {
       const component = createComponent();
       component.re.email.setValue('a@b.com');
-      component.re.password.setValue('secret1');
-      component.re.passwordConfirm.setValue('secret2');
+      component.re.password.setValue('Secret12');
+      component.re.passwordConfirm.setValue('Secret13');
       expect(component.registerForm.hasError('mismatch')).toBe(true);
       expect(component.registerForm.invalid).toBe(true);
     });
 
-    it('is valid when passwords match and meet minLength', () => {
+    it('is valid when passwords match and meet strength rules', () => {
       const component = createComponent();
       component.re.email.setValue('a@b.com');
-      component.re.password.setValue('secret1');
-      component.re.passwordConfirm.setValue('secret1');
+      component.re.password.setValue('Secret12');
+      component.re.passwordConfirm.setValue('Secret12');
       expect(component.registerForm.valid).toBe(true);
     });
 
-    it('rejects passwords shorter than 6 characters', () => {
+    it('rejects passwords shorter than 8 characters', () => {
       const component = createComponent();
-      component.re.password.setValue('abc');
+      component.re.password.setValue('Abc123');
       expect(component.re.password.hasError('minlength')).toBe(true);
+    });
+
+    it('rejects passwords missing an uppercase letter', () => {
+      const component = createComponent();
+      component.re.password.setValue('secret123');
+      expect(component.re.password.hasError('complexity')).toBe(true);
+    });
+
+    it('rejects passwords missing a digit', () => {
+      const component = createComponent();
+      component.re.password.setValue('SecretPass');
+      expect(component.re.password.hasError('complexity')).toBe(true);
     });
   });
 
@@ -189,43 +243,45 @@ describe('AuthComponent', () => {
       expect(component.re.email.touched).toBe(true);
     });
 
-    it('registers and navigates to /profil on success, trimming an empty adminCode away', () => {
-      authStub.register.mockReturnValue(of({ token: 't', email: 'a@b.com', role: 'USER', userId: 'u1' }));
+    it('registers and shows the registerSent state on success, trimming an empty adminCode away', () => {
+      authStub.register.mockReturnValue(of(undefined));
       const component = createComponent();
       component.re.email.setValue('a@b.com');
-      component.re.password.setValue('secret1');
-      component.re.passwordConfirm.setValue('secret1');
+      component.re.password.setValue('Secret12');
+      component.re.passwordConfirm.setValue('Secret12');
       component.re.adminCode.setValue('   ');
 
       component.register();
 
-      expect(authStub.register).toHaveBeenCalledWith({ email: 'a@b.com', password: 'secret1', adminCode: undefined });
-      expect(router.navigate).toHaveBeenCalledWith(['/profil']);
+      expect(authStub.register).toHaveBeenCalledWith({ email: 'a@b.com', password: 'Secret12', adminCode: undefined });
+      expect(component.registerSent()).toBe(true);
+      expect(router.navigate).not.toHaveBeenCalled();
     });
 
     it('passes a trimmed adminCode through when provided', () => {
-      authStub.register.mockReturnValue(of({ token: 't', email: 'a@b.com', role: 'ADMIN', userId: 'u1' }));
+      authStub.register.mockReturnValue(of(undefined));
       const component = createComponent();
       component.re.email.setValue('a@b.com');
-      component.re.password.setValue('secret1');
-      component.re.passwordConfirm.setValue('secret1');
+      component.re.password.setValue('Secret12');
+      component.re.passwordConfirm.setValue('Secret12');
       component.re.adminCode.setValue('  CODE1  ');
 
       component.register();
 
-      expect(authStub.register).toHaveBeenCalledWith({ email: 'a@b.com', password: 'secret1', adminCode: 'CODE1' });
+      expect(authStub.register).toHaveBeenCalledWith({ email: 'a@b.com', password: 'Secret12', adminCode: 'CODE1' });
     });
 
     it('sets serverError on failure', () => {
       authStub.register.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 400 })));
       const component = createComponent();
       component.re.email.setValue('a@b.com');
-      component.re.password.setValue('secret1');
-      component.re.passwordConfirm.setValue('secret1');
+      component.re.password.setValue('Secret12');
+      component.re.passwordConfirm.setValue('Secret12');
 
       component.register();
 
       expect(component.serverError()).toBe('Rejestracja nie powiodła się.');
+      expect(component.registerSent()).toBe(false);
     });
   });
 

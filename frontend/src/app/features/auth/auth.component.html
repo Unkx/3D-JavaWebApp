@@ -45,6 +45,18 @@
       </div>
     }
 
+    @if (unverifiedEmail() && !resendVerificationSent()) {
+      <p class="form__switch">
+        <button type="button" class="link-btn" (click)="resendVerification()" [disabled]="loading()">
+          Wyślij ponownie link weryfikacyjny
+        </button>
+      </p>
+    } @else if (resendVerificationSent()) {
+      <div class="alert alert--success" role="status" aria-live="polite">
+        Wysłano ponownie. Sprawdź swoją skrzynkę pocztową.
+      </div>
+    }
+
     <!-- LOGIN PANEL -->
     @if (activeTab() === 'login') {
       <form
@@ -145,6 +157,14 @@
 
     <!-- REGISTER PANEL -->
     @if (activeTab() === 'register') {
+      @if (registerSent()) {
+        <div class="alert alert--success" role="status" aria-live="polite">
+          Sprawdź swoją skrzynkę email, aby potwierdzić konto.
+        </div>
+        <p class="form__switch">
+          <button type="button" class="link-btn" (click)="switchTab('login')">Wróć do logowania</button>
+        </p>
+      } @else {
       <form
         id="panel-register"
         role="tabpanel"
@@ -183,7 +203,7 @@
             class="field__input"
             [class.field__input--error]="re['password'].invalid && re['password'].touched"
             formControlName="password"
-            placeholder="min. 6 znaków"
+            placeholder="min. 8 znaków"
             autocomplete="new-password"
             [attr.aria-invalid]="re['password'].invalid && re['password'].touched ? 'true' : null"
             aria-describedby="re-pw-err"
@@ -191,7 +211,8 @@
           @if (re['password'].invalid && re['password'].touched) {
             <p id="re-pw-err" class="field__error" role="alert">
               @if (re['password'].errors?.['required']) { Hasło jest wymagane. }
-              @else { Hasło musi mieć co najmniej 6 znaków. }
+              @else if (re['password'].errors?.['minlength']) { Hasło musi mieć co najmniej 8 znaków. }
+              @else { Hasło musi zawierać wielką literę, małą literę i cyfrę. }
             </p>
           }
         </div>
@@ -252,6 +273,7 @@
           <button type="button" class="link-btn" (click)="switchTab('login')">Zaloguj się</button>
         </p>
       </form>
+      }
     }
 
     <!-- FORGOT PASSWORD PANEL -->

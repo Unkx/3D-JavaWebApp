@@ -8,6 +8,15 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 type Tab = 'login' | 'register' | 'forgot';
 
+function passwordComplexity(control: AbstractControl) {
+  const value: string = control.value ?? '';
+  if (!value) return null; // required validator handles emptiness
+  const hasLower = /[a-z]/.test(value);
+  const hasUpper = /[A-Z]/.test(value);
+  const hasDigit = /\d/.test(value);
+  return hasLower && hasUpper && hasDigit ? null : { complexity: true };
+}
+
 @Component({
   selector: 'app-auth',
   imports: [ReactiveFormsModule, RouterLink],
@@ -27,6 +36,9 @@ export class AuthComponent implements OnInit {
   loading     = signal(false);
   serverError = signal<string | null>(null);
   forgotSent  = signal(false);
+  registerSent = signal(false);
+  unverifiedEmail = signal<string | null>(null);
+  resendVerificationSent = signal(false);
   returnUrl   = '/';
 
   loginForm = this.fb.group({
@@ -36,7 +48,7 @@ export class AuthComponent implements OnInit {
 
   registerForm = this.fb.group({
     email:           ['', [Validators.required, Validators.email]],
-    password:        ['', [Validators.required, Validators.minLength(6)]],
+    password:        ['', [Validators.required, Validators.minLength(8), passwordComplexity]],
     passwordConfirm: ['', [Validators.required]],
     adminCode:       ['']
   }, { validators: this.passwordsMatch });
@@ -62,19 +74,37 @@ export class AuthComponent implements OnInit {
     this.serverError.set(null);
     this.forgotSent.set(false);
     this.forgotForm.reset();
+    this.registerSent.set(false);
+    this.unverifiedEmail.set(null);
+    this.resendVerificationSent.set(false);
   }
 
   login(): void {
     if (this.loginForm.invalid) { this.loginForm.markAllAsTouched(); return; }
     this.loading.set(true);
     this.serverError.set(null);
+    this.unverifiedEmail.set(null);
+    this.resendVerificationSent.set(false);
     const { email, password } = this.loginForm.getRawValue();
     this.auth.login({ email: email!, password: password! }).subscribe({
       next: () => { this.loading.set(false); this.router.navigateByUrl(this.returnUrl); },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         this.serverError.set(err.error?.message ?? 'Nieprawidłowy email lub hasło.');
+        if (err.status === 403) {
+          this.unverifiedEmail.set(email!);
+        }
       }
+    });
+  }
+
+  resendVerification(): void {
+    const email = this.unverifiedEmail();
+    if (!email) return;
+    this.loading.set(true);
+    this.auth.resendVerification(email).subscribe({
+      next: () => { this.loading.set(false); this.resendVerificationSent.set(true); },
+      error: () => { this.loading.set(false); this.resendVerificationSent.set(true); } // anti-enumeration: same as forgot-password
     });
   }
 
@@ -115,7 +145,7 @@ export class AuthComponent implements OnInit {
     this.serverError.set(null);
     const { email, password, adminCode } = this.registerForm.getRawValue();
     this.auth.register({ email: email!, password: password!, adminCode: adminCode?.trim() || undefined }).subscribe({
-      next: () => { this.loading.set(false); this.router.navigate(['/profil']); },
+      next: () => { this.loading.set(false); this.registerSent.set(true); },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
         this.serverError.set(err.error?.message ?? 'Rejestracja nie powiodła się.');
