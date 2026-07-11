@@ -8,7 +8,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 type Tab = 'login' | 'register' | 'forgot';
 
-function passwordComplexity(control: AbstractControl) {
+export function passwordComplexity(control: AbstractControl) {
   const value: string = control.value ?? '';
   if (!value) return null; // required validator handles emptiness
   const hasLower = /[a-z]/.test(value);
@@ -40,6 +40,10 @@ export class AuthComponent implements OnInit {
   unverifiedEmail = signal<string | null>(null);
   resendVerificationSent = signal(false);
   returnUrl   = '/';
+
+  loginPasswordVisible          = signal(false);
+  registerPasswordVisible       = signal(false);
+  registerPasswordConfirmVisible = signal(false);
 
   loginForm = this.fb.group({
     email:    ['', [Validators.required, Validators.email]],

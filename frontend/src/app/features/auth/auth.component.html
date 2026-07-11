@@ -91,17 +91,40 @@
 
         <div class="field">
           <label class="field__label" for="login-pw">Hasło</label>
-          <input
-            id="login-pw"
-            type="password"
-            class="field__input"
-            [class.field__input--error]="le['password'].invalid && le['password'].touched"
-            formControlName="password"
-            placeholder="••••••••"
-            autocomplete="current-password"
-            [attr.aria-invalid]="le['password'].invalid && le['password'].touched ? 'true' : null"
-            aria-describedby="le-pw-err"
-          />
+          <div class="field__input-wrap">
+            <input
+              id="login-pw"
+              [type]="loginPasswordVisible() ? 'text' : 'password'"
+              class="field__input"
+              [class.field__input--error]="le['password'].invalid && le['password'].touched"
+              formControlName="password"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              [attr.aria-invalid]="le['password'].invalid && le['password'].touched ? 'true' : null"
+              aria-describedby="le-pw-err"
+            />
+            <button
+              type="button"
+              class="field__eye-toggle"
+              (click)="loginPasswordVisible.set(!loginPasswordVisible())"
+              [attr.aria-label]="loginPasswordVisible() ? 'Ukryj hasło' : 'Pokaż hasło'"
+              tabindex="-1"
+            >
+              @if (loginPasswordVisible()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a13.16 13.16 0 0 1-1.67 2.68"/>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5.39-1.61"/>
+                  <line x1="2" x2="22" y1="2" y2="22"/>
+                </svg>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              }
+            </button>
+          </div>
           @if (le['password'].invalid && le['password'].touched) {
             <p id="le-pw-err" class="field__error" role="alert">Hasło jest wymagane.</p>
           }
@@ -197,17 +220,40 @@
 
         <div class="field">
           <label class="field__label" for="reg-pw">Hasło</label>
-          <input
-            id="reg-pw"
-            type="password"
-            class="field__input"
-            [class.field__input--error]="re['password'].invalid && re['password'].touched"
-            formControlName="password"
-            placeholder="min. 8 znaków"
-            autocomplete="new-password"
-            [attr.aria-invalid]="re['password'].invalid && re['password'].touched ? 'true' : null"
-            aria-describedby="re-pw-err"
-          />
+          <div class="field__input-wrap">
+            <input
+              id="reg-pw"
+              [type]="registerPasswordVisible() ? 'text' : 'password'"
+              class="field__input"
+              [class.field__input--error]="re['password'].invalid && re['password'].touched"
+              formControlName="password"
+              placeholder="min. 8 znaków"
+              autocomplete="new-password"
+              [attr.aria-invalid]="re['password'].invalid && re['password'].touched ? 'true' : null"
+              aria-describedby="re-pw-err"
+            />
+            <button
+              type="button"
+              class="field__eye-toggle"
+              (click)="registerPasswordVisible.set(!registerPasswordVisible())"
+              [attr.aria-label]="registerPasswordVisible() ? 'Ukryj hasło' : 'Pokaż hasło'"
+              tabindex="-1"
+            >
+              @if (registerPasswordVisible()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a13.16 13.16 0 0 1-1.67 2.68"/>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5.39-1.61"/>
+                  <line x1="2" x2="22" y1="2" y2="22"/>
+                </svg>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              }
+            </button>
+          </div>
           @if (re['password'].invalid && re['password'].touched) {
             <p id="re-pw-err" class="field__error" role="alert">
               @if (re['password'].errors?.['required']) { Hasło jest wymagane. }
@@ -219,17 +265,40 @@
 
         <div class="field">
           <label class="field__label" for="reg-pw2">Powtórz hasło</label>
-          <input
-            id="reg-pw2"
-            type="password"
-            class="field__input"
-            [class.field__input--error]="(re['passwordConfirm'].invalid || registerForm.errors?.['mismatch']) && re['passwordConfirm'].touched"
-            formControlName="passwordConfirm"
-            placeholder="••••••••"
-            autocomplete="new-password"
-            [attr.aria-invalid]="(re['passwordConfirm'].invalid || registerForm.errors?.['mismatch']) && re['passwordConfirm'].touched ? 'true' : null"
-            aria-describedby="re-pw2-err"
-          />
+          <div class="field__input-wrap">
+            <input
+              id="reg-pw2"
+              [type]="registerPasswordConfirmVisible() ? 'text' : 'password'"
+              class="field__input"
+              [class.field__input--error]="(re['passwordConfirm'].invalid || registerForm.errors?.['mismatch']) && re['passwordConfirm'].touched"
+              formControlName="passwordConfirm"
+              placeholder="••••••••"
+              autocomplete="new-password"
+              [attr.aria-invalid]="(re['passwordConfirm'].invalid || registerForm.errors?.['mismatch']) && re['passwordConfirm'].touched ? 'true' : null"
+              aria-describedby="re-pw2-err"
+            />
+            <button
+              type="button"
+              class="field__eye-toggle"
+              (click)="registerPasswordConfirmVisible.set(!registerPasswordConfirmVisible())"
+              [attr.aria-label]="registerPasswordConfirmVisible() ? 'Ukryj hasło' : 'Pokaż hasło'"
+              tabindex="-1"
+            >
+              @if (registerPasswordConfirmVisible()) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                  <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a13.16 13.16 0 0 1-1.67 2.68"/>
+                  <path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5.39-1.61"/>
+                  <line x1="2" x2="22" y1="2" y2="22"/>
+                </svg>
+              } @else {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+              }
+            </button>
+          </div>
           @if (re['passwordConfirm'].touched) {
             @if (re['passwordConfirm'].errors?.['required']) {
               <p id="re-pw2-err" class="field__error" role="alert">Powtórz hasło.</p>

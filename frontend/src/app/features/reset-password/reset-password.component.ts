@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, Validators, AbstractControl } from '@
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { passwordComplexity } from '../auth/auth.component';
 
 @Component({
   selector: 'app-reset-password',
@@ -50,38 +51,85 @@ import { HttpErrorResponse } from '@angular/common/http';
           <form class="form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
             <div class="field">
               <label class="field__label" for="rp-pw">Nowe hasło</label>
-              <input
-                id="rp-pw"
-                type="password"
-                class="field__input"
-                [class.field__input--error]="f['password'].invalid && f['password'].touched"
-                formControlName="password"
-                placeholder="min. 6 znaków"
-                autocomplete="new-password"
-                [attr.aria-invalid]="f['password'].invalid && f['password'].touched ? 'true' : null"
-                aria-describedby="rp-pw-err"
-              />
+              <div class="field__input-wrap">
+                <input
+                  id="rp-pw"
+                  [type]="passwordVisible() ? 'text' : 'password'"
+                  class="field__input"
+                  [class.field__input--error]="f['password'].invalid && f['password'].touched"
+                  formControlName="password"
+                  placeholder="min. 8 znaków"
+                  autocomplete="new-password"
+                  [attr.aria-invalid]="f['password'].invalid && f['password'].touched ? 'true' : null"
+                  aria-describedby="rp-pw-err"
+                />
+                <button
+                  type="button"
+                  class="field__eye-toggle"
+                  (click)="passwordVisible.set(!passwordVisible())"
+                  [attr.aria-label]="passwordVisible() ? 'Ukryj hasło' : 'Pokaż hasło'"
+                  tabindex="-1"
+                >
+                  @if (passwordVisible()) {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a13.16 13.16 0 0 1-1.67 2.68"/>
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5.39-1.61"/>
+                      <line x1="2" x2="22" y1="2" y2="22"/>
+                    </svg>
+                  } @else {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  }
+                </button>
+              </div>
               @if (f['password'].invalid && f['password'].touched) {
                 <p id="rp-pw-err" class="field__error" role="alert">
                   @if (f['password'].errors?.['required']) { Hasło jest wymagane. }
-                  @else { Hasło musi mieć co najmniej 6 znaków. }
+                  @else if (f['password'].errors?.['minlength']) { Hasło musi mieć co najmniej 8 znaków. }
+                  @else { Hasło musi zawierać wielką literę, małą literę i cyfrę. }
                 </p>
               }
             </div>
 
             <div class="field">
               <label class="field__label" for="rp-pw2">Powtórz hasło</label>
-              <input
-                id="rp-pw2"
-                type="password"
-                class="field__input"
-                [class.field__input--error]="(f['confirm'].invalid || form.errors?.['mismatch']) && f['confirm'].touched"
-                formControlName="confirm"
-                placeholder="••••••••"
-                autocomplete="new-password"
-                [attr.aria-invalid]="(f['confirm'].invalid || form.errors?.['mismatch']) && f['confirm'].touched ? 'true' : null"
-                aria-describedby="rp-pw2-err"
-              />
+              <div class="field__input-wrap">
+                <input
+                  id="rp-pw2"
+                  [type]="passwordConfirmVisible() ? 'text' : 'password'"
+                  class="field__input"
+                  [class.field__input--error]="(f['confirm'].invalid || form.errors?.['mismatch']) && f['confirm'].touched"
+                  formControlName="confirm"
+                  placeholder="••••••••"
+                  autocomplete="new-password"
+                  [attr.aria-invalid]="(f['confirm'].invalid || form.errors?.['mismatch']) && f['confirm'].touched ? 'true' : null"
+                  aria-describedby="rp-pw2-err"
+                />
+                <button
+                  type="button"
+                  class="field__eye-toggle"
+                  (click)="passwordConfirmVisible.set(!passwordConfirmVisible())"
+                  [attr.aria-label]="passwordConfirmVisible() ? 'Ukryj hasło' : 'Pokaż hasło'"
+                  tabindex="-1"
+                >
+                  @if (passwordConfirmVisible()) {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
+                      <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 11 8 11 8a13.16 13.16 0 0 1-1.67 2.68"/>
+                      <path d="M6.61 6.61A13.526 13.526 0 0 0 1 12s4 8 11 8a9.74 9.74 0 0 0 5.39-1.61"/>
+                      <line x1="2" x2="22" y1="2" y2="22"/>
+                    </svg>
+                  } @else {
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  }
+                </button>
+              </div>
               @if (f['confirm'].touched) {
                 @if (f['confirm'].errors?.['required']) {
                   <p id="rp-pw2-err" class="field__error" role="alert">Powtórz hasło.</p>
@@ -133,9 +181,11 @@ export class ResetPasswordComponent implements OnInit {
   loading     = signal(false);
   success     = signal(false);
   serverError = signal<string | null>(null);
+  passwordVisible        = signal(false);
+  passwordConfirmVisible = signal(false);
 
   form = this.fb.group({
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8), passwordComplexity]],
     confirm:  ['', [Validators.required]]
   }, { validators: this.passwordsMatch });
 

@@ -180,6 +180,38 @@
   margin: 0;
 }
 
+.field__input-wrap {
+  position: relative;
+  display: flex;
+}
+
+.field__input-wrap .field__input {
+  padding-right: 2.5rem;
+}
+
+.field__eye-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border: none;
+  background: none;
+  color: var(--tm);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color var(--t-fast);
+}
+
+.field__eye-toggle:hover { color: var(--ts); }
+.field__eye-toggle:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--al);
+}
+
 .field__optional {
   font-weight: 400;
   color: var(--tm);
