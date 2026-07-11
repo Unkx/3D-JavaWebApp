@@ -7,7 +7,9 @@
 -- user who registered before today is locked out of login until they click a verification
 -- link they never received.
 --
--- Safe to run more than once (idempotent — only touches rows still at the default).
+-- Must run EXACTLY ONCE, immediately after this deploy, before any meaningful new-registration
+-- traffic arrives. If run at any later date, it would silently mark all pending (not-yet-verified)
+-- registrations as verified, defeating the email verification feature for those users.
 -- Does NOT affect accounts created after this point in time; new registrations correctly
 -- start unverified via application logic (AuthService.register()).
 
