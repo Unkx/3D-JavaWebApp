@@ -45,12 +45,15 @@ class AuthServiceTest {
     private FacebookAuthClient facebookAuthClient;
     @Mock
     private GoogleAuthClient googleAuthClient;
+    @Mock
+    private EmailVerificationService emailVerificationService;
 
     private AuthService authService;
 
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder, jwtService, adminService, facebookAuthClient, googleAuthClient);
+        authService = new AuthService(userRepository, passwordEncoder, jwtService, adminService,
+                facebookAuthClient, googleAuthClient, emailVerificationService);
     }
 
     private User buildUser(String email, String encodedPassword, Role role) {
@@ -59,35 +62,34 @@ class AuthServiceTest {
         user.setEmail(email);
         user.setPassword(encodedPassword);
         user.setRole(role);
+        user.setEmailVerified(true);
         return user;
     }
 
     @Test
-    void register_newEmail_savesUserAndReturnsAuthResponse() {
+    void register_newEmail_savesUnverifiedUserAndSendsVerificationEmail() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("new@example.com");
-        request.setPassword("secret123");
+        request.setPassword("Secret123");
 
         when(userRepository.findByEmail("new@example.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
+        when(passwordEncoder.encode("Secret123")).thenReturn("encoded-secret");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
             return saved;
         });
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
-        AuthResponse response = authService.register(request);
-
-        assertThat(response.getToken()).isEqualTo("jwt-token");
-        assertThat(response.getEmail()).isEqualTo("new@example.com");
-        assertThat(response.getRole()).isEqualTo(Role.USER.name());
+        authService.register(request);
 
         verify(userRepository).save(argThat((User u) ->
                 u.getEmail().equals("new@example.com")
                         && u.getPassword().equals("encoded-secret")
-                        && u.getRole() == Role.USER));
+                        && u.getRole() == Role.USER
+                        && !u.isEmailVerified()));
+        verify(emailVerificationService).issueAndSendToken(argThat(u -> u.getEmail().equals("new@example.com")));
         verifyNoInteractions(adminService);
+        verifyNoInteractions(jwtService);
     }
 
     @Test
@@ -105,23 +107,23 @@ class AuthServiceTest {
                         .isEqualTo(HttpStatus.CONFLICT));
 
         verify(userRepository, never()).save(any());
+        verifyNoInteractions(emailVerificationService);
     }
 
     @Test
     void register_withNonBlankAdminCode_appliesCodeToNewUser() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("admin-to-be@example.com");
-        request.setPassword("secret123");
+        request.setPassword("Secret123");
         request.setAdminCode("ABCD-1234-EFGH");
 
         when(userRepository.findByEmail("admin-to-be@example.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
+        when(passwordEncoder.encode("Secret123")).thenReturn("encoded-secret");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
             return saved;
         });
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
         authService.register(request);
 
@@ -132,17 +134,16 @@ class AuthServiceTest {
     void register_withBlankAdminCode_doesNotApplyCode() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("plain@example.com");
-        request.setPassword("secret123");
+        request.setPassword("Secret123");
         request.setAdminCode("   ");
 
         when(userRepository.findByEmail("plain@example.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
+        when(passwordEncoder.encode("Secret123")).thenReturn("encoded-secret");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
             return saved;
         });
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
         authService.register(request);
 
@@ -153,17 +154,16 @@ class AuthServiceTest {
     void register_withNullAdminCode_doesNotApplyCode() {
         RegisterRequest request = new RegisterRequest();
         request.setEmail("plain2@example.com");
-        request.setPassword("secret123");
+        request.setPassword("Secret123");
         request.setAdminCode(null);
 
         when(userRepository.findByEmail("plain2@example.com")).thenReturn(Optional.empty());
-        when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
+        when(passwordEncoder.encode("Secret123")).thenReturn("encoded-secret");
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
             User saved = invocation.getArgument(0);
             saved.setId(UUID.randomUUID());
             return saved;
         });
-        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
 
         authService.register(request);
 
@@ -221,6 +221,25 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_unverifiedEmail_throwsForbidden() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("unverified@example.com");
+        request.setPassword("secret123");
+
+        User user = buildUser("unverified@example.com", "encoded-secret", Role.USER);
+        user.setEmailVerified(false);
+        when(userRepository.findByEmail("unverified@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("secret123", "encoded-secret")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
+                        .isEqualTo(HttpStatus.FORBIDDEN));
+
+        verify(jwtService, never()).generateToken(any());
+    }
+
+    @Test
     void login_facebookOnlyAccount_throwsUnauthorizedWithoutCheckingPassword() {
         LoginRequest request = new LoginRequest();
         request.setEmail("fbonly@example.com");
@@ -263,7 +282,8 @@ class AuthServiceTest {
                         && "fb123".equals(u.getFacebookId())
                         && u.getPassword() == null
                         && u.getFirstName().equals("Jan")
-                        && u.getRole() == Role.USER));
+                        && u.getRole() == Role.USER
+                        && u.isEmailVerified()));
     }
 
     @Test
@@ -349,7 +369,8 @@ class AuthServiceTest {
                         && "google123".equals(u.getGoogleId())
                         && u.getPassword() == null
                         && u.getFirstName().equals("Anna")
-                        && u.getRole() == Role.USER));
+                        && u.getRole() == Role.USER
+                        && u.isEmailVerified()));
     }
 
     @Test
