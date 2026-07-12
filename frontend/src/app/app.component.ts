@@ -5,6 +5,7 @@ import { Subscription, filter } from 'rxjs';
 import { AuthService } from './services/auth.service';
 import { ThemeService } from './services/theme.service';
 import { ConversationService } from './services/conversation.service';
+import { IdleTimeoutService } from './services/idle-timeout.service';
 import { FooterComponent } from './components/footer.component';
 
 @Component({
@@ -17,6 +18,7 @@ import { FooterComponent } from './components/footer.component';
 export class AppComponent implements OnDestroy {
   auth = inject(AuthService);
   theme = inject(ThemeService);
+  idle = inject(IdleTimeoutService);
   menuOpen = signal(false);
   offline = signal(!navigator.onLine);
   isFullscreenRoute = signal(false);
@@ -55,6 +57,13 @@ export class AppComponent implements OnDestroy {
         if (this.unreadInterval) { clearInterval(this.unreadInterval); this.unreadInterval = null; }
       }
     });
+    effect(() => {
+      if (this.auth.isLoggedIn()) {
+        this.idle.start();
+      } else {
+        this.idle.stop();
+      }
+    });
   }
 
   private pollUnread(): void {
@@ -83,6 +92,7 @@ export class AppComponent implements OnDestroy {
   ngOnDestroy(): void {
     window.removeEventListener('online', this.onOnline);
     window.removeEventListener('offline', this.onOffline);
+    this.idle.stop();
     this.routerSub.unsubscribe();
   }
 }

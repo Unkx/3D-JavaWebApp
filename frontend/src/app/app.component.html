@@ -166,6 +166,16 @@
   </div>
 }
 
+@if (idle.warningVisible()) {
+  <div class="idle-banner" role="alert">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm.75 7.5V4.5a.75.75 0 0 0-1.5 0V8.5c0 .199.079.39.22.53l2.5 2.5a.75.75 0 1 0 1.06-1.06L8.75 8.5Z" fill="currentColor"/>
+    </svg>
+    <span>Zostaniesz wylogowany za {{ idle.secondsRemaining() }} s z powodu braku aktywności</span>
+    <button type="button" class="idle-banner__extend" (click)="idle.extend()">Pozostań zalogowany</button>
+  </div>
+}
+
 <main class="main-content">
   <router-outlet />
 </main>

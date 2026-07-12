@@ -36,6 +36,18 @@ export class AuthService {
   readonly isLoggedIn  = computed(() => this._user() !== null);
   readonly isAdmin     = computed(() => this._user()?.role === 'ADMIN');
 
+  constructor() {
+    // Another tab logged out (manually or via idle timeout) — mirror it here too,
+    // otherwise this tab would keep showing a logged-in UI until it made an API
+    // call that 401s or the page was reloaded.
+    window.addEventListener('storage', (e: StorageEvent) => {
+      if (e.key === TOKEN_KEY && e.newValue === null) {
+        this._user.set(null);
+        this.router.navigate(['/']);
+      }
+    });
+  }
+
   register(payload: RegisterPayload): Observable<void> {
     return this.http.post<void>('/api/auth/register', payload);
   }
