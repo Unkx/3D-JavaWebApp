@@ -7,6 +7,7 @@ import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.UserRepository;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +38,7 @@ public class UserController {
 
     @PutMapping("/me")
     public UserProfileDto updateProfile(@AuthenticationPrincipal User user,
-                                        @RequestBody UpdateProfileRequest req) {
+                                        @Valid @RequestBody UpdateProfileRequest req) {
         user.setFirstName(trimOrNull(req.getFirstName()));
         user.setLastName(trimOrNull(req.getLastName()));
         user.setPhone(trimOrNull(req.getPhone()));
@@ -50,7 +51,7 @@ public class UserController {
 
     @PutMapping("/me/shipping")
     public UserProfileDto updateShipping(@AuthenticationPrincipal User user,
-                                         @RequestBody UpdateShippingRequest req) {
+                                         @Valid @RequestBody UpdateShippingRequest req) {
         user.setStreet(trimOrNull(req.getStreet()));
         user.setHouseNumber(trimOrNull(req.getHouseNumber()));
         user.setCity(trimOrNull(req.getCity()));

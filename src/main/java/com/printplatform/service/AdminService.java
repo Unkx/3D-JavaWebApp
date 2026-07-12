@@ -11,6 +11,8 @@ import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.List;
 @Service
 public class AdminService {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminService.class);
     private static final SecureRandom RANDOM = new SecureRandom();
     // No ambiguous chars (0/O, 1/I) to make codes easy to read and type
     private static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -82,7 +85,15 @@ public class AdminService {
         if (user.getRole() == Role.ADMIN) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Jesteś już administratorem");
         }
-        AdminCode code = validate(rawCode);
+        AdminCode code;
+        try {
+            code = validate(rawCode);
+        } catch (ResponseStatusException e) {
+            // Not rate-limited by attempt count, only by IP+window (AuthRateLimitFilter),
+            // so a log line here is the only record of a guessing attempt against this endpoint.
+            log.warn("Failed admin-code redeem attempt by {}: {}", user.getEmail(), e.getReason());
+            throw e;
+        }
         claimCode(code, user.getEmail());
         user.setRole(Role.ADMIN);
         userRepository.save(user);

@@ -24,8 +24,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -48,6 +52,14 @@ import java.util.zip.ZipOutputStream;
 public class ListingController {
 
     private static final Logger log = LoggerFactory.getLogger(ListingController.class);
+
+    // Redirects disabled: a redirect target is unvalidated user-influenced input and
+    // must not be followed blindly (would otherwise let an SSRF check on the original
+    // URL be bypassed by a 3xx to an internal address).
+    private static final OkHttpClient SSRF_SAFE_HTTP_CLIENT = new OkHttpClient.Builder()
+            .followRedirects(false)
+            .followSslRedirects(false)
+            .build();
 
     private final ListingRepository listingRepository;
     private final OfferRepository offerRepository;
@@ -204,12 +216,28 @@ public class ListingController {
 
         // SSRF guard: this endpoint is public and the URL is data-driven, so refuse
         // to let the server fetch internal/loopback/link-local/private addresses.
-        assertPublicHttpUrl(url);
+        // The resolved addresses are reused below to pin the actual connection, so a
+        // DNS answer that changes between the check and the fetch (DNS rebinding)
+        // can't smuggle a different, unvalidated address into the real request.
+        String host = URI.create(url).getHost();
+        List<InetAddress> validatedAddresses = assertPublicHttpUrl(url);
 
         byte[] fileContent;
-        try {
-            RestTemplate restTemplate = new RestTemplate();
-            fileContent = restTemplate.getForObject(url, byte[].class);
+        OkHttpClient pinnedClient = SSRF_SAFE_HTTP_CLIENT.newBuilder()
+                .dns(lookupHost -> {
+                    if (!lookupHost.equalsIgnoreCase(host)) {
+                        throw new UnknownHostException("Unexpected DNS lookup for " + lookupHost);
+                    }
+                    return validatedAddresses;
+                })
+                .build();
+        Request stlRequest = new Request.Builder().url(url).get().build();
+        try (Response httpResponse = pinnedClient.newCall(stlRequest).execute()) {
+            if (!httpResponse.isSuccessful()) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nie udało się pobrać pliku STL.");
+            }
+            ResponseBody body = httpResponse.body();
+            fileContent = body != null ? body.bytes() : null;
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
@@ -295,8 +323,10 @@ public class ListingController {
      * Rejects any URL that is not a plain http(s) URL pointing at a public host.
      * Blocks loopback, link-local, site-local (private) and wildcard addresses to
      * prevent server-side request forgery against internal infrastructure/metadata.
+     * Returns the resolved addresses so the caller can pin the actual outbound
+     * connection to them (see downloadStl) instead of re-resolving DNS later.
      */
-    private void assertPublicHttpUrl(String rawUrl) {
+    private List<InetAddress> assertPublicHttpUrl(String rawUrl) {
         URI uri;
         try {
             uri = URI.create(rawUrl);
@@ -312,7 +342,8 @@ public class ListingController {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Nieprawidłowy adres URL pliku STL.");
         }
         try {
-            for (InetAddress addr : InetAddress.getAllByName(host)) {
+            InetAddress[] resolved = InetAddress.getAllByName(host);
+            for (InetAddress addr : resolved) {
                 if (addr.isLoopbackAddress() || addr.isLinkLocalAddress()
                         || addr.isSiteLocalAddress() || addr.isAnyLocalAddress()
                         || addr.isMulticastAddress()) {
@@ -320,6 +351,7 @@ public class ListingController {
                             "Adres URL wskazuje na zasób wewnętrzny i został odrzucony.");
                 }
             }
+            return List.of(resolved);
         } catch (UnknownHostException e) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Nie można rozpoznać hosta adresu URL.");
         }

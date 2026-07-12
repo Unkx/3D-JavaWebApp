@@ -82,6 +82,14 @@
             <artifactId>google-api-client</artifactId>
             <version>2.7.0</version>
         </dependency>
+        <!-- Used only for the SSRF-safe outbound STL fetch: OkHttp's Dns hook lets us
+             pin the connection to the exact IP we already validated, closing the
+             DNS-rebinding TOCTOU that RestTemplate/HttpURLConnection can't avoid. -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

@@ -1,11 +1,24 @@
 package com.printplatform.dto;
 
+import jakarta.validation.constraints.Size;
+
 public class UpdateProfileRequest {
+    @Size(max = 255, message = "Imię może mieć maksymalnie 255 znaków")
     private String firstName;
+
+    @Size(max = 255, message = "Nazwisko może mieć maksymalnie 255 znaków")
     private String lastName;
+
+    @Size(max = 255, message = "Numer telefonu może mieć maksymalnie 255 znaków")
     private String phone;
+
+    @Size(max = 255, message = "Pole 'płeć' może mieć maksymalnie 255 znaków")
     private String gender;
+
+    @Size(max = 500, message = "Bio może mieć maksymalnie 500 znaków")
     private String bio;
+
+    @Size(max = 10, message = "Nieprawidłowy format daty urodzenia")
     private String dateOfBirth; // "yyyy-MM-dd"
 
     public String getFirstName()   { return firstName; }

@@ -13,8 +13,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Throttles requests to /api/auth/** per client IP (fixed window) to blunt
- * credential-stuffing and brute-force attempts against login/register.
+ * Throttles requests to /api/auth/** and /api/admin/redeem per client IP (fixed
+ * window) to blunt credential-stuffing/brute-force attempts against login/register
+ * and admin-code guessing against the redeem endpoint.
  */
 @Component
 public class AuthRateLimitFilter extends OncePerRequestFilter {
@@ -34,7 +35,8 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getRequestURI().startsWith("/api/auth/");
+        String uri = request.getRequestURI();
+        return !uri.startsWith("/api/auth/") && !uri.equals("/api/admin/redeem");
     }
 
     @Override
@@ -59,15 +61,20 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
 
     /**
      * Best-effort per-client key. When the app sits behind the frontend/reverse proxy,
-     * getRemoteAddr() is the proxy's IP (one shared bucket for everyone), so prefer the
-     * first hop of X-Forwarded-For. Falls back to the socket address when absent.
+     * getRemoteAddr() is the proxy's IP (one shared bucket for everyone), so prefer
+     * X-Forwarded-For instead. The *first* hop of that header is attacker-controlled
+     * (any client can set it directly), so it must not be trusted for rate-limiting.
+     * Render's edge load balancer APPENDS the real connecting IP as the LAST entry
+     * rather than replacing the header, so the last hop is the one value in this
+     * header the caller cannot forge. Falls back to the socket address when absent.
      */
     private String clientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            String first = forwarded.split(",")[0].strip();
-            if (!first.isEmpty()) {
-                return first;
+            String[] hops = forwarded.split(",");
+            String last = hops[hops.length - 1].strip();
+            if (!last.isEmpty()) {
+                return last;
             }
         }
         return request.getRemoteAddr();
