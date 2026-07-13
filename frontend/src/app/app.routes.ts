@@ -6,6 +6,7 @@ export const routes: Routes = [
   { path: '', loadComponent: () => import('./features/home/home.component').then(m => m.HomeComponent) },
   { path: 'zlecenia', loadComponent: () => import('./features/listings/listings.component').then(m => m.ListingsComponent) },
   { path: 'faq', loadComponent: () => import('./features/faq/faq.component').then(m => m.FaqComponent) },
+  { path: 'kalkulator', loadComponent: () => import('./features/kalkulator/kalkulator.component').then(m => m.KalkulatorComponent) },
   { path: 'polityka-prywatnosci', loadComponent: () => import('./features/privacy-policy/privacy-policy.component').then(m => m.PrivacyPolicyComponent) },
   { path: 'regulamin', loadComponent: () => import('./features/terms-of-use/terms-of-use.component').then(m => m.TermsOfUseComponent) },
   { path: 'zlecenia/:id', loadComponent: () => import('./features/listing-detail/listing-detail.component').then(m => m.ListingDetailComponent) },

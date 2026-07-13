@@ -1,0 +1,214 @@
+<!-- HERO -->
+<section class="calc-hero" aria-labelledby="calc-hero-title">
+  <span class="calc-hero__badge">Narzędzie dla drukarzy</span>
+  <h1 class="calc-hero__title" id="calc-hero-title">Kalkulator kosztów i marży druku 3D</h1>
+  <p class="calc-hero__desc">
+    Wpisz koszty wydruku i wybierz, jak liczyć cenę: przez narzut, wpisaną cenę albo docelowy zysk na rękę.
+    Kalkulator przeliczy resztę na bieżąco — nic nie zapisuje ani nie wysyła.
+  </p>
+</section>
+
+<div class="calc-grid" appReveal>
+  <!-- LEWA: DANE WEJŚCIOWE -->
+  <div class="calc-col">
+    <section class="calc-card" aria-labelledby="calc-filament-title">
+      <h2 class="calc-card__title" id="calc-filament-title">Filament</h2>
+
+      <div class="calc-row">
+        <label for="filPrice">Cena filamentu <span class="calc-hint">za 1 kg</span></label>
+        <div class="calc-field">
+          <input type="number" id="filPrice" min="0" step="1"
+                 [value]="filamentPricePerKg()"
+                 (input)="filamentPricePerKg.set(parseNumFromEvent($event))">
+          <span class="calc-unit">zł</span>
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label for="filGrams">Zużycie filamentu</label>
+        <div class="calc-field">
+          <input type="number" id="filGrams" min="0" step="1"
+                 [value]="filamentGrams()"
+                 (input)="filamentGrams.set(parseNumFromEvent($event))">
+          <span class="calc-unit">g</span>
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label for="waste">Straty / odpad</label>
+        <div class="calc-field">
+          <input type="number" id="waste" min="0" step="1"
+                 [value]="wastePercent()"
+                 (input)="wastePercent.set(parseNumFromEvent($event))">
+          <span class="calc-unit">%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="calc-card" aria-labelledby="calc-print-title">
+      <h2 class="calc-card__title" id="calc-print-title">Druk — czas, prąd, maszyna</h2>
+
+      <div class="calc-row">
+        <label for="hours">Czas druku</label>
+        <div class="calc-field">
+          <input type="number" id="hours" min="0" step="0.5"
+                 [value]="printHours()"
+                 (input)="printHours.set(parseNumFromEvent($event))">
+          <span class="calc-unit">h</span>
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label for="watt">Moc drukarki</label>
+        <div class="calc-field">
+          <input type="number" id="watt" min="0" step="10"
+                 [value]="printerWatts()"
+                 (input)="printerWatts.set(parseNumFromEvent($event))">
+          <span class="calc-unit">W</span>
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label for="kwh">Cena prądu</label>
+        <div class="calc-field">
+          <input type="number" id="kwh" min="0" step="0.01"
+                 [value]="electricityPrice()"
+                 (input)="electricityPrice.set(parseNumFromEvent($event))">
+          <span class="calc-unit">zł/kWh</span>
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label for="amort">Amortyzacja maszyny <span class="calc-hint">stawka na godzinę druku</span></label>
+        <div class="calc-field">
+          <input type="number" id="amort" min="0" step="0.1"
+                 [value]="machineAmortPerHour()"
+                 (input)="machineAmortPerHour.set(parseNumFromEvent($event))">
+          <span class="calc-unit">zł/h</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="calc-card" aria-labelledby="calc-other-title">
+      <h2 class="calc-card__title" id="calc-other-title">Twój czas i pozostałe koszty</h2>
+
+      <div class="calc-row">
+        <label for="laborH">Twój czas pracy <span class="calc-hint">modelowanie, obróbka, pakowanie</span></label>
+        <div class="calc-field">
+          <input type="number" id="laborH" min="0" step="0.25"
+                 [value]="laborHours()"
+                 (input)="laborHours.set(parseNumFromEvent($event))">
+          <span class="calc-unit">h</span>
+        </div>
+      </div>
+
+      <div class="calc-row">
+        <label for="extra">Materiały dodatkowe <span class="calc-hint">opakowanie, klej, wsporniki</span></label>
+        <div class="calc-field">
+          <input type="number" id="extra" min="0" step="1"
+                 [value]="extraMaterials()"
+                 (input)="extraMaterials.set(parseNumFromEvent($event))">
+          <span class="calc-unit">zł</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="calc-card" aria-labelledby="calc-price-title">
+      <h2 class="calc-card__title" id="calc-price-title">Jak ustalić cenę? <span class="calc-tag">— edytuj jedno z trzech pól</span></h2>
+
+      <div class="calc-row" [class.calc-row--active]="lastEdited() === 'markup'">
+        <label for="markup">1) Narzut na koszt</label>
+        <div class="calc-field">
+          <input type="number" id="markup" step="5"
+                 [value]="markupDisplay() | number:'1.0-1'"
+                 (input)="onMarkupInput($event)">
+          <span class="calc-unit">%</span>
+        </div>
+      </div>
+
+      <div class="calc-row" [class.calc-row--active]="lastEdited() === 'price'">
+        <label for="priceNet">2) albo cena dla klienta</label>
+        <div class="calc-field">
+          <input type="number" id="priceNet" step="1"
+                 [value]="netPriceDisplay() | number:'1.2-2'"
+                 (input)="onNetPriceInput($event)">
+          <span class="calc-unit">zł</span>
+        </div>
+      </div>
+
+      <div class="calc-row" [class.calc-row--active]="lastEdited() === 'hand'">
+        <label for="targetHand">3) albo chcę zarobić na rękę</label>
+        <div class="calc-field">
+          <input type="number" id="targetHand" step="1"
+                 [value]="targetHandDisplay() | number:'1.2-2'"
+                 (input)="onTargetHandInput($event)">
+          <span class="calc-unit">zł</span>
+        </div>
+      </div>
+
+      <p class="calc-foot">Wpisz w jedno pole — kalkulator przeliczy dwa pozostałe i pokaże wynik.</p>
+    </section>
+  </div>
+
+  <!-- PRAWA: WYNIKI -->
+  <div class="calc-col">
+    <section class="calc-card calc-card--out" aria-labelledby="calc-cost-title">
+      <h2 class="calc-card__title" id="calc-cost-title">Koszty produkcji <span class="calc-hint">bez Twojej pracy</span></h2>
+      <div class="calc-line">
+        <span>Filament <span class="calc-tag">({{ formatNumber(effectiveGrams(), 0, 0) }} g)</span></span>
+        <span class="calc-v">{{ formatPln(filamentCost()) }}</span>
+      </div>
+      <div class="calc-line">
+        <span>Prąd <span class="calc-tag">({{ formatNumber(energyKwh(), 2, 2) }} kWh)</span></span>
+        <span class="calc-v">{{ formatPln(energyCost()) }}</span>
+      </div>
+      <div class="calc-line">
+        <span>Amortyzacja maszyny</span>
+        <span class="calc-v">{{ formatPln(machineCost()) }}</span>
+      </div>
+      <div class="calc-line">
+        <span>Materiały dodatkowe</span>
+        <span class="calc-v">{{ formatPln(extraMaterials()) }}</span>
+      </div>
+      <div class="calc-line calc-line--total">
+        <span>Koszt całkowity</span>
+        <span class="calc-v calc-v--accent">{{ formatPln(totalCost()) }}</span>
+      </div>
+    </section>
+
+    <section class="calc-card calc-card--out" aria-labelledby="calc-customer-price-title">
+      <h2 class="calc-card__title" id="calc-customer-price-title">Cena dla klienta</h2>
+      <div class="calc-kpi-split">
+        <div class="calc-kpi">
+          <div class="calc-kpi__lbl">Cena</div>
+          <div class="calc-kpi__num calc-kpi__num--accent">{{ formatPln(priceNet()) }}</div>
+        </div>
+        <div class="calc-kpi">
+          <div class="calc-kpi__lbl">Marża na koszcie</div>
+          <div class="calc-kpi__num">{{ formatNumber(markupPctDisplay(), 1, 1) }} %</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="calc-card calc-card--result" aria-labelledby="calc-result-title">
+      <h2 class="calc-card__title" id="calc-result-title">Ile Ci zostaje</h2>
+      <div class="calc-line calc-line--big">
+        <span class="calc-total">Na rękę</span>
+        <span class="calc-hand" [class.calc-hand--pos]="takeHome() >= 0" [class.calc-hand--neg]="takeHome() < 0">
+          {{ formatPln(takeHome()) }}
+        </span>
+      </div>
+      <div class="calc-line calc-line--big">
+        <span class="calc-total">Twoja stawka za godzinę pracy</span>
+        <span class="calc-rate">{{ formatRate(hourlyRate()) }}</span>
+      </div>
+      <p class="calc-foot">
+        @if (laborHours() > 0) {
+          To Twój faktyczny zarobek za godzinę: {{ formatPln(takeHome()) }} na rękę ÷ {{ laborHours() }} h pracy.
+        } @else {
+          Wpisz „Twój czas pracy", żeby policzyć stawkę zł/h.
+        }
+      </p>
+    </section>
+  </div>
+</div>
