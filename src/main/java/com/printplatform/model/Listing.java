@@ -3,6 +3,7 @@ package com.printplatform.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.ColumnDefault;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -38,8 +39,12 @@ public class Listing {
     @Enumerated(EnumType.STRING)
     private ListingStatus status = ListingStatus.OPEN;
 
+    // Column-level default is required: Hibernate's ddl-auto=update issues a plain
+    // ALTER TABLE ADD COLUMN with no default unless @ColumnDefault is present, which fails
+    // against a Postgres table that already has rows (NOT NULL with no default).
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @ColumnDefault("'VISIBLE'")
     private ListingModerationStatus moderationStatus = ListingModerationStatus.VISIBLE;
 
     private String stlFileUrl; // URL do pliku (po wybraniu oferty)
