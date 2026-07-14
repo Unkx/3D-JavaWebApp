@@ -6,6 +6,7 @@ import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.RedeemCodeRequest;
+import com.printplatform.dto.RevenueSummaryDto;
 import com.printplatform.dto.TrafficSummaryDto;
 import com.printplatform.dto.UserSummaryDto;
 import com.printplatform.model.User;
@@ -98,5 +99,11 @@ public class AdminController {
     @GetMapping("/traffic")
     public TrafficSummaryDto getTraffic(@RequestParam(defaultValue = "7") int days) {
         return analyticsService.getTrafficSummary(days);
+    }
+
+    /** Revenue summary from realized payments (admin only). */
+    @GetMapping("/revenue")
+    public RevenueSummaryDto getRevenue(@RequestParam(defaultValue = "7") int days) {
+        return adminService.getRevenueSummary(days);
     }
 }

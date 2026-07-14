@@ -12,11 +12,15 @@ import com.printplatform.model.AdminCode;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
+import com.printplatform.model.Payment;
+import com.printplatform.model.PaymentStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
+import com.printplatform.dto.RevenueSummaryDto;
 import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
+import com.printplatform.repository.PaymentRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +35,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -57,12 +63,15 @@ class AdminServiceTest {
     private AdminAuditService adminAuditService;
     @Mock
     private AdminActionRepository adminActionRepository;
+    @Mock
+    private PaymentRepository paymentRepository;
 
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService, adminAuditService, adminActionRepository);
+        adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService,
+                adminAuditService, adminActionRepository, paymentRepository);
     }
 
     private User buildUser(Role role) {
@@ -350,5 +359,35 @@ class AdminServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getActionType()).isEqualTo("HIDE_LISTING");
         assertThat(result.getContent().get(0).getAdminEmail()).isEqualTo("admin@example.com");
+    }
+
+    private Payment payment(PaymentStatus status, BigDecimal fee, BigDecimal total, LocalDateTime createdAt) {
+        Payment p = new Payment();
+        p.setContractorPrice(BigDecimal.TEN);
+        p.setPlatformFeePercent(BigDecimal.TEN);
+        p.setPlatformFee(fee);
+        p.setShippingPrice(BigDecimal.ZERO);
+        p.setTotalPrice(total);
+        p.setStatus(status);
+        p.setCreatedAt(createdAt);
+        return p;
+    }
+
+    @Test
+    void getRevenueSummary_sumsOnlyRealizedPayments() {
+        LocalDateTime now = LocalDateTime.now();
+        when(paymentRepository.findByCreatedAtAfter(any())).thenReturn(List.of(
+                payment(PaymentStatus.RELEASED, new BigDecimal("10.00"), new BigDecimal("100.00"), now),
+                payment(PaymentStatus.HELD, new BigDecimal("5.00"), new BigDecimal("50.00"), now),
+                payment(PaymentStatus.PENDING, new BigDecimal("999.00"), new BigDecimal("999.00"), now)
+        ));
+
+        RevenueSummaryDto result = adminService.getRevenueSummary(7);
+
+        assertThat(result.getTotalPlatformFee()).isEqualByComparingTo("15.00");
+        assertThat(result.getTotalVolume()).isEqualByComparingTo("150.00");
+        assertThat(result.getPaidCount()).isEqualTo(2);
+        assertThat(result.getPendingCount()).isEqualTo(1);
+        assertThat(result.getByDay()).hasSize(1);
     }
 }

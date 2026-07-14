@@ -6,16 +6,21 @@ import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.UserSummaryDto;
+import com.printplatform.dto.DailyRevenueDto;
+import com.printplatform.dto.RevenueSummaryDto;
 import com.printplatform.model.AdminAction;
 import com.printplatform.model.AdminActionType;
 import com.printplatform.model.AdminCode;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingModerationStatus;
+import com.printplatform.model.Payment;
+import com.printplatform.model.PaymentStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
+import com.printplatform.repository.PaymentRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
 import org.slf4j.Logger;
@@ -29,10 +34,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class AdminService {
@@ -48,19 +59,22 @@ public class AdminService {
     private final JwtService jwtService;
     private final AdminAuditService adminAuditService;
     private final AdminActionRepository adminActionRepository;
+    private final PaymentRepository paymentRepository;
 
     public AdminService(AdminCodeRepository codeRepository,
                         UserRepository userRepository,
                         ListingRepository listingRepository,
                         JwtService jwtService,
                         AdminAuditService adminAuditService,
-                        AdminActionRepository adminActionRepository) {
+                        AdminActionRepository adminActionRepository,
+                        PaymentRepository paymentRepository) {
         this.codeRepository = codeRepository;
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
         this.adminAuditService = adminAuditService;
         this.adminActionRepository = adminActionRepository;
+        this.paymentRepository = paymentRepository;
     }
 
     /** Admin generates a new single-use admin code. */
@@ -198,6 +212,43 @@ public class AdminService {
         Pageable pageable = PageRequest.of(safePage, safeSize);
         Page<AdminAction> result = adminActionRepository.findAllByOrderByCreatedAtDesc(pageable);
         return new PageResponse<>(result.map(AdminActionDto::new));
+    }
+
+    private static final DateTimeFormatter DAY_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
+
+    /** Revenue summary aggregated in Java (not SQL date-grouping) over "realized" payments — HELD or RELEASED,
+     *  i.e. money actually captured; PENDING and REFUNDED are excluded from the sums but PENDING is still counted. */
+    public RevenueSummaryDto getRevenueSummary(int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        List<Payment> payments = paymentRepository.findByCreatedAtAfter(since);
+
+        Map<String, List<Payment>> byDayRaw = payments.stream()
+                .collect(Collectors.groupingBy(p -> p.getCreatedAt().format(DAY_FORMAT), TreeMap::new, Collectors.toList()));
+
+        List<DailyRevenueDto> byDay = byDayRaw.entrySet().stream()
+                .map(e -> new DailyRevenueDto(
+                        e.getKey(),
+                        sumRealized(e.getValue(), Payment::getPlatformFee),
+                        sumRealized(e.getValue(), Payment::getTotalPrice)))
+                .toList();
+
+        BigDecimal totalFee = sumRealized(payments, Payment::getPlatformFee);
+        BigDecimal totalVolume = sumRealized(payments, Payment::getTotalPrice);
+        long paidCount = payments.stream().filter(this::isRealized).count();
+        long pendingCount = payments.stream().filter(p -> p.getStatus() == PaymentStatus.PENDING).count();
+
+        return new RevenueSummaryDto(byDay, totalFee, totalVolume, paidCount, pendingCount);
+    }
+
+    private boolean isRealized(Payment p) {
+        return p.getStatus() == PaymentStatus.HELD || p.getStatus() == PaymentStatus.RELEASED;
+    }
+
+    private BigDecimal sumRealized(List<Payment> payments, Function<Payment, BigDecimal> field) {
+        return payments.stream()
+                .filter(this::isRealized)
+                .map(field)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private String randomCode() {

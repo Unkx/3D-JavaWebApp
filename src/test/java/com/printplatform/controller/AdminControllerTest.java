@@ -259,4 +259,15 @@ class AdminControllerTest extends AbstractControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(user)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void getRevenue_admin_returns200() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+
+        mockMvc.perform(get("/api/admin/revenue")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.byDay").isArray())
+                .andExpect(jsonPath("$.totalPlatformFee").exists());
+    }
 }
