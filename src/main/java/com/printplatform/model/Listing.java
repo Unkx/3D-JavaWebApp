@@ -38,6 +38,10 @@ public class Listing {
     @Enumerated(EnumType.STRING)
     private ListingStatus status = ListingStatus.OPEN;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ListingModerationStatus moderationStatus = ListingModerationStatus.VISIBLE;
+
     private String stlFileUrl; // URL do pliku (po wybraniu oferty)
 
     @JsonIgnore

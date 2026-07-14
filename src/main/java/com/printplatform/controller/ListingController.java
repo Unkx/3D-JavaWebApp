@@ -4,6 +4,7 @@ import com.printplatform.dto.CreateListingRequest;
 import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.UpdateListingRequest;
 import com.printplatform.model.Listing;
+import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.StlFile;
@@ -82,8 +83,8 @@ public class ListingController {
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         var resultPage = search.isBlank()
-                ? listingRepository.findByStatus(ListingStatus.OPEN, pageable)
-                : listingRepository.searchByStatus(ListingStatus.OPEN, search.strip(), pageable);
+                ? listingRepository.findByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
+                : listingRepository.searchByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, search.strip(), pageable);
 
         List<Listing> content = resultPage.getContent();
         if (!content.isEmpty()) {

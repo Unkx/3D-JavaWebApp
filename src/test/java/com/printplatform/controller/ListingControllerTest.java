@@ -4,6 +4,7 @@ import com.printplatform.controller.support.AbstractControllerTest;
 import com.printplatform.dto.CreateListingRequest;
 import com.printplatform.dto.UpdateListingRequest;
 import com.printplatform.model.Listing;
+import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -235,5 +238,27 @@ class ListingControllerTest extends AbstractControllerTest {
         mockMvc.perform(get("/api/listings/{id}", listing.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.user.password").doesNotExist());
+    }
+
+    @Test
+    void getOpenListings_excludesHiddenListings() throws Exception {
+        User owner = persistUser();
+        Listing visible = new Listing();
+        visible.setUser(owner);
+        visible.setTitle("Visible listing");
+        visible.setStatus(ListingStatus.OPEN);
+        listingRepository.save(visible);
+
+        Listing hidden = new Listing();
+        hidden.setUser(owner);
+        hidden.setTitle("Hidden listing");
+        hidden.setStatus(ListingStatus.OPEN);
+        hidden.setModerationStatus(ListingModerationStatus.HIDDEN);
+        listingRepository.save(hidden);
+
+        mockMvc.perform(get("/api/listings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[*].title", not(hasItem("Hidden listing"))))
+                .andExpect(jsonPath("$.content[*].title", hasItem("Visible listing")));
     }
 }
