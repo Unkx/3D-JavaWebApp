@@ -1,9 +1,12 @@
 package com.printplatform.service;
 
+import com.printplatform.dto.AdminActionDto;
 import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
+import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.UserSummaryDto;
+import com.printplatform.model.AdminAction;
 import com.printplatform.model.AdminActionType;
 import com.printplatform.model.AdminCode;
 import com.printplatform.model.Listing;
@@ -11,6 +14,7 @@ import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
+import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.UserRepository;
@@ -20,6 +24,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -48,12 +55,14 @@ class AdminServiceTest {
     private JwtService jwtService;
     @Mock
     private AdminAuditService adminAuditService;
+    @Mock
+    private AdminActionRepository adminActionRepository;
 
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService, adminAuditService);
+        adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService, adminAuditService, adminActionRepository);
     }
 
     private User buildUser(Role role) {
@@ -321,5 +330,25 @@ class AdminServiceTest {
 
         assertThat(listing.getModerationStatus()).isEqualTo(ListingModerationStatus.VISIBLE);
         verify(adminAuditService).log(admin, AdminActionType.UNHIDE_LISTING, "Listing", listing.getId(), null);
+    }
+
+    @Test
+    void getAuditLog_returnsPagedDtos() {
+        AdminAction action = new AdminAction();
+        action.setId(UUID.randomUUID());
+        action.setAdminId(UUID.randomUUID());
+        action.setAdminEmail("admin@example.com");
+        action.setActionType(AdminActionType.HIDE_LISTING);
+        action.setTargetType("Listing");
+        action.setTargetId(UUID.randomUUID());
+
+        Page<AdminAction> page = new PageImpl<>(List.of(action));
+        when(adminActionRepository.findAllByOrderByCreatedAtDesc(any(Pageable.class))).thenReturn(page);
+
+        PageResponse<AdminActionDto> result = adminService.getAuditLog(0, 20);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getActionType()).isEqualTo("HIDE_LISTING");
+        assertThat(result.getContent().get(0).getAdminEmail()).isEqualTo("admin@example.com");
     }
 }

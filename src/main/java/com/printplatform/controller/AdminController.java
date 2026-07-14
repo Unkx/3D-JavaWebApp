@@ -1,8 +1,10 @@
 package com.printplatform.controller;
 
+import com.printplatform.dto.AdminActionDto;
 import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
+import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.RedeemCodeRequest;
 import com.printplatform.dto.UserSummaryDto;
 import com.printplatform.model.User;
@@ -79,5 +81,12 @@ public class AdminController {
     @PutMapping("/listings/{id}/unhide")
     public AdminListingDto unhideListing(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
         return adminService.unhideListing(admin, id);
+    }
+
+    /** Paged admin action history, newest first (admin only). */
+    @GetMapping("/audit-log")
+    public PageResponse<AdminActionDto> getAuditLog(@RequestParam(defaultValue = "0") int page,
+                                                    @RequestParam(defaultValue = "20") int size) {
+        return adminService.getAuditLog(page, size);
     }
 }

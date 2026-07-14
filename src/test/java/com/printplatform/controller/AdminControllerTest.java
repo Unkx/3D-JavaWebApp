@@ -219,4 +219,23 @@ class AdminControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.moderationStatus").value("HIDDEN"));
     }
+
+    @Test
+    void getAuditLog_admin_returns200() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+
+        mockMvc.perform(get("/api/admin/audit-log")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    void getAuditLog_nonAdmin_returns403() throws Exception {
+        User user = persistUser();
+
+        mockMvc.perform(get("/api/admin/audit-log")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(user)))
+                .andExpect(status().isForbidden());
+    }
 }

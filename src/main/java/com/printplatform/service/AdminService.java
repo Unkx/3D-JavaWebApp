@@ -1,21 +1,28 @@
 package com.printplatform.service;
 
+import com.printplatform.dto.AdminActionDto;
 import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
+import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.UserSummaryDto;
+import com.printplatform.model.AdminAction;
 import com.printplatform.model.AdminActionType;
 import com.printplatform.model.AdminCode;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
+import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,17 +47,20 @@ public class AdminService {
     private final ListingRepository listingRepository;
     private final JwtService jwtService;
     private final AdminAuditService adminAuditService;
+    private final AdminActionRepository adminActionRepository;
 
     public AdminService(AdminCodeRepository codeRepository,
                         UserRepository userRepository,
                         ListingRepository listingRepository,
                         JwtService jwtService,
-                        AdminAuditService adminAuditService) {
+                        AdminAuditService adminAuditService,
+                        AdminActionRepository adminActionRepository) {
         this.codeRepository = codeRepository;
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
         this.adminAuditService = adminAuditService;
+        this.adminActionRepository = adminActionRepository;
     }
 
     /** Admin generates a new single-use admin code. */
@@ -179,6 +189,15 @@ public class AdminService {
         listingRepository.save(listing);
         adminAuditService.log(admin, AdminActionType.UNHIDE_LISTING, "Listing", listing.getId(), null);
         return new AdminListingDto(listing);
+    }
+
+    /** Paged, newest-first admin action history (admin only). */
+    public PageResponse<AdminActionDto> getAuditLog(int page, int size) {
+        int safeSize = Math.clamp(size, 1, 100);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Page<AdminAction> result = adminActionRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return new PageResponse<>(result.map(AdminActionDto::new));
     }
 
     private String randomCode() {
