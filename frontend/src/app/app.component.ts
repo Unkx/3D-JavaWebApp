@@ -6,6 +6,7 @@ import { AuthService } from './services/auth.service';
 import { ThemeService } from './services/theme.service';
 import { ConversationService } from './services/conversation.service';
 import { IdleTimeoutService } from './services/idle-timeout.service';
+import { AnalyticsService } from './services/analytics.service';
 import { FooterComponent } from './components/footer.component';
 
 @Component({
@@ -24,6 +25,7 @@ export class AppComponent implements OnDestroy {
   isFullscreenRoute = signal(false);
   private doc = inject(DOCUMENT);
   private conversationService = inject(ConversationService);
+  private analytics = inject(AnalyticsService);
   private router = inject(Router);
   unreadCount = signal(0);
   private unreadInterval: ReturnType<typeof setInterval> | null = null;
@@ -43,6 +45,7 @@ export class AppComponent implements OnDestroy {
           route = route.firstChild;
         }
         this.isFullscreenRoute.set(!!route.data['fullscreen']);
+        this.analytics.trackPageView(this.router.url);
       });
 
     effect(() => {
