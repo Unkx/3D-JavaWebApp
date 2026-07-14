@@ -117,12 +117,14 @@ export class AdminPanelComponent implements OnInit {
   listings         = signal<AdminListing[]>([]);
   listingsLoading  = signal(false);
   confirmDeleteId  = signal<string | null>(null);
+  confirmHideId    = signal<string | null>(null);
   deleting         = signal(false);
   moderatingListingId = signal<string | null>(null);
 
   // --- Users ---
   users        = signal<UserSummary[]>([]);
   usersLoading = signal(false);
+  confirmSuspendId = signal<string | null>(null);
   suspendingUserId = signal<string | null>(null);
 
   // --- Admin codes ---
@@ -184,15 +186,19 @@ export class AdminPanelComponent implements OnInit {
   cancelDelete(): void { this.confirmDeleteId.set(null); }
 
   hideListing(id: string): void {
+    if (this.confirmHideId() !== id) { this.confirmHideId.set(id); return; }
     this.moderatingListingId.set(id);
     this.http.put<AdminListing>(`/api/admin/listings/${id}/hide`, {}).subscribe({
       next: updated => {
         this.listings.update(list => list.map(l => l.id === id ? updated : l));
+        this.confirmHideId.set(null);
         this.moderatingListingId.set(null);
       },
       error: () => this.moderatingListingId.set(null)
     });
   }
+
+  cancelHide(): void { this.confirmHideId.set(null); }
 
   unhideListing(id: string): void {
     this.moderatingListingId.set(id);
@@ -214,15 +220,19 @@ export class AdminPanelComponent implements OnInit {
   }
 
   suspendUser(id: string): void {
+    if (this.confirmSuspendId() !== id) { this.confirmSuspendId.set(id); return; }
     this.suspendingUserId.set(id);
     this.http.put<UserSummary>(`/api/admin/users/${id}/suspend`, {}).subscribe({
       next: updated => {
         this.users.update(list => list.map(u => u.id === id ? updated : u));
+        this.confirmSuspendId.set(null);
         this.suspendingUserId.set(null);
       },
       error: () => this.suspendingUserId.set(null)
     });
   }
+
+  cancelSuspend(): void { this.confirmSuspendId.set(null); }
 
   unsuspendUser(id: string): void {
     this.suspendingUserId.set(id);

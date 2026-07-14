@@ -32,7 +32,29 @@ describe('AdminPanelComponent', () => {
 
   afterEach(() => httpMock.verify());
 
-  it('suspendUser() calls the suspend endpoint and updates the row', () => {
+  it('suspendUser() requires a confirm click before calling the suspend endpoint', () => {
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    const component = fixture.componentInstance;
+    component.users.set([
+      { id: 'u1', email: 'a@test.local', role: 'USER', firstName: null, lastName: null, createdAt: '2026-01-01', suspended: false }
+    ]);
+
+    // First click only arms the confirm state; no HTTP call yet.
+    component.suspendUser('u1');
+    expect(component.confirmSuspendId()).toBe('u1');
+    httpMock.expectNone('/api/admin/users/u1/suspend');
+
+    // Second click (confirm) actually performs the action.
+    component.suspendUser('u1');
+    const req = httpMock.expectOne('/api/admin/users/u1/suspend');
+    expect(req.request.method).toBe('PUT');
+    req.flush({ id: 'u1', email: 'a@test.local', role: 'USER', firstName: null, lastName: null, createdAt: '2026-01-01', suspended: true });
+
+    expect(component.users()[0].suspended).toBe(true);
+    expect(component.confirmSuspendId()).toBeNull();
+  });
+
+  it('cancelSuspend() clears the pending confirmation without calling the endpoint', () => {
     const fixture = TestBed.createComponent(AdminPanelComponent);
     const component = fixture.componentInstance;
     component.users.set([
@@ -40,11 +62,11 @@ describe('AdminPanelComponent', () => {
     ]);
 
     component.suspendUser('u1');
-    const req = httpMock.expectOne('/api/admin/users/u1/suspend');
-    expect(req.request.method).toBe('PUT');
-    req.flush({ id: 'u1', email: 'a@test.local', role: 'USER', firstName: null, lastName: null, createdAt: '2026-01-01', suspended: true });
+    expect(component.confirmSuspendId()).toBe('u1');
 
-    expect(component.users()[0].suspended).toBe(true);
+    component.cancelSuspend();
+    expect(component.confirmSuspendId()).toBeNull();
+    httpMock.expectNone('/api/admin/users/u1/suspend');
   });
 
   it('unsuspendUser() calls the unsuspend endpoint and updates the row', () => {
@@ -62,7 +84,29 @@ describe('AdminPanelComponent', () => {
     expect(component.users()[0].suspended).toBe(false);
   });
 
-  it('hideListing() calls the hide endpoint and updates the row', () => {
+  it('hideListing() requires a confirm click before calling the hide endpoint', () => {
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    const component = fixture.componentInstance;
+    component.listings.set([
+      { id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'VISIBLE' }
+    ]);
+
+    // First click only arms the confirm state; no HTTP call yet.
+    component.hideListing('l1');
+    expect(component.confirmHideId()).toBe('l1');
+    httpMock.expectNone('/api/admin/listings/l1/hide');
+
+    // Second click (confirm) actually performs the action.
+    component.hideListing('l1');
+    const req = httpMock.expectOne('/api/admin/listings/l1/hide');
+    expect(req.request.method).toBe('PUT');
+    req.flush({ id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'HIDDEN' });
+
+    expect(component.listings()[0].moderationStatus).toBe('HIDDEN');
+    expect(component.confirmHideId()).toBeNull();
+  });
+
+  it('cancelHide() clears the pending confirmation without calling the endpoint', () => {
     const fixture = TestBed.createComponent(AdminPanelComponent);
     const component = fixture.componentInstance;
     component.listings.set([
@@ -70,11 +114,11 @@ describe('AdminPanelComponent', () => {
     ]);
 
     component.hideListing('l1');
-    const req = httpMock.expectOne('/api/admin/listings/l1/hide');
-    expect(req.request.method).toBe('PUT');
-    req.flush({ id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'HIDDEN' });
+    expect(component.confirmHideId()).toBe('l1');
 
-    expect(component.listings()[0].moderationStatus).toBe('HIDDEN');
+    component.cancelHide();
+    expect(component.confirmHideId()).toBeNull();
+    httpMock.expectNone('/api/admin/listings/l1/hide');
   });
 
   it('unhideListing() calls the unhide endpoint and updates the row', () => {

@@ -75,6 +75,12 @@
                       } @else {
                         @if (l.moderationStatus === 'HIDDEN') {
                           <button class="btn btn--ghost btn--sm" (click)="unhideListing(l.id)" [disabled]="moderatingListingId() === l.id">Pokaż</button>
+                        } @else if (confirmHideId() === l.id) {
+                          <span class="confirm-text">Ukryć?</span>
+                          <button class="btn btn--danger btn--sm" (click)="hideListing(l.id)" [disabled]="moderatingListingId() === l.id">
+                            @if (moderatingListingId() === l.id) { … } @else { Tak }
+                          </button>
+                          <button class="btn btn--ghost btn--sm" (click)="cancelHide()" [disabled]="moderatingListingId() === l.id">Nie</button>
                         } @else {
                           <button class="btn btn--ghost btn--sm" (click)="hideListing(l.id)" [disabled]="moderatingListingId() === l.id">Ukryj</button>
                         }
@@ -170,6 +176,12 @@
                         <button class="btn btn--ghost btn--sm" (click)="unsuspendUser(u.id)" [disabled]="suspendingUserId() === u.id">
                           Przywróć
                         </button>
+                      } @else if (confirmSuspendId() === u.id) {
+                        <span class="confirm-text">Zawiesić?</span>
+                        <button class="btn btn--danger btn--sm" (click)="suspendUser(u.id)" [disabled]="suspendingUserId() === u.id">
+                          @if (suspendingUserId() === u.id) { … } @else { Tak }
+                        </button>
+                        <button class="btn btn--ghost btn--sm" (click)="cancelSuspend()" [disabled]="suspendingUserId() === u.id">Nie</button>
                       } @else {
                         <button class="btn btn--danger btn--sm" (click)="suspendUser(u.id)" [disabled]="suspendingUserId() === u.id">
                           Zawieś
