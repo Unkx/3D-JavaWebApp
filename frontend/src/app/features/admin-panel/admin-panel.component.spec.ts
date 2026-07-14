@@ -60,4 +60,34 @@ describe('AdminPanelComponent', () => {
 
     expect(component.users()[0].suspended).toBe(false);
   });
+
+  it('hideListing() calls the hide endpoint and updates the row', () => {
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    const component = fixture.componentInstance;
+    component.listings.set([
+      { id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'VISIBLE' }
+    ]);
+
+    component.hideListing('l1');
+    const req = httpMock.expectOne('/api/admin/listings/l1/hide');
+    expect(req.request.method).toBe('PUT');
+    req.flush({ id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'HIDDEN' });
+
+    expect(component.listings()[0].moderationStatus).toBe('HIDDEN');
+  });
+
+  it('unhideListing() calls the unhide endpoint and updates the row', () => {
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    const component = fixture.componentInstance;
+    component.listings.set([
+      { id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'HIDDEN' }
+    ]);
+
+    component.unhideListing('l1');
+    const req = httpMock.expectOne('/api/admin/listings/l1/unhide');
+    expect(req.request.method).toBe('PUT');
+    req.flush({ id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'VISIBLE' });
+
+    expect(component.listings()[0].moderationStatus).toBe('VISIBLE');
+  });
 });

@@ -41,6 +41,7 @@ interface AdminListing {
   ownerFirstName: string | null;
   ownerLastName: string | null;
   maxBudget: number | null;
+  moderationStatus: string;
 }
 
 @Component({
@@ -88,6 +89,7 @@ export class AdminPanelComponent implements OnInit {
   listingsLoading  = signal(false);
   confirmDeleteId  = signal<string | null>(null);
   deleting         = signal(false);
+  moderatingListingId = signal<string | null>(null);
 
   // --- Users ---
   users        = signal<UserSummary[]>([]);
@@ -136,6 +138,28 @@ export class AdminPanelComponent implements OnInit {
   }
 
   cancelDelete(): void { this.confirmDeleteId.set(null); }
+
+  hideListing(id: string): void {
+    this.moderatingListingId.set(id);
+    this.http.put<AdminListing>(`/api/admin/listings/${id}/hide`, {}).subscribe({
+      next: updated => {
+        this.listings.update(list => list.map(l => l.id === id ? updated : l));
+        this.moderatingListingId.set(null);
+      },
+      error: () => this.moderatingListingId.set(null)
+    });
+  }
+
+  unhideListing(id: string): void {
+    this.moderatingListingId.set(id);
+    this.http.put<AdminListing>(`/api/admin/listings/${id}/unhide`, {}).subscribe({
+      next: updated => {
+        this.listings.update(list => list.map(l => l.id === id ? updated : l));
+        this.moderatingListingId.set(null);
+      },
+      error: () => this.moderatingListingId.set(null)
+    });
+  }
 
   private loadUsers(): void {
     this.usersLoading.set(true);

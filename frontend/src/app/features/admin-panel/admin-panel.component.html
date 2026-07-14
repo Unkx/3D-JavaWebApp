@@ -42,6 +42,7 @@
                   <th scope="col">Tytuł</th>
                   <th scope="col">Właściciel</th>
                   <th scope="col">Status</th>
+                  <th scope="col">Widoczność</th>
                   <th scope="col">Data</th>
                   <th scope="col"><span class="sr-only">Akcje</span></th>
                 </tr>
@@ -56,6 +57,13 @@
                         {{ statusLabel(l.status) }}
                       </span>
                     </td>
+                    <td>
+                      @if (l.moderationStatus === 'HIDDEN') {
+                        <span class="status-pill status-pill--closed">Ukryte</span>
+                      } @else {
+                        <span class="status-pill">Widoczne</span>
+                      }
+                    </td>
                     <td class="date-cell">{{ formatDate(l.createdAt) }}</td>
                     <td class="action-cell">
                       @if (confirmDeleteId() === l.id) {
@@ -65,6 +73,11 @@
                         </button>
                         <button class="btn btn--ghost btn--sm" (click)="cancelDelete()" [disabled]="deleting()">Nie</button>
                       } @else {
+                        @if (l.moderationStatus === 'HIDDEN') {
+                          <button class="btn btn--ghost btn--sm" (click)="unhideListing(l.id)" [disabled]="moderatingListingId() === l.id">Pokaż</button>
+                        } @else {
+                          <button class="btn btn--ghost btn--sm" (click)="hideListing(l.id)" [disabled]="moderatingListingId() === l.id">Ukryj</button>
+                        }
                         <button class="btn btn--danger btn--sm" (click)="deleteListing(l.id)">Usuń</button>
                       }
                     </td>
