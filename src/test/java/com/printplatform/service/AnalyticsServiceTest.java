@@ -8,14 +8,17 @@ import com.printplatform.repository.PageViewRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -72,5 +75,35 @@ class AnalyticsServiceTest {
         assertThat(summary.getApiStats().getTotalRequests()).isEqualTo(2);
         assertThat(summary.getApiStats().getErrorCount()).isEqualTo(1);
         assertThat(summary.getApiStats().getAvgDurationMs()).isEqualTo(200.0);
+    }
+
+    @Test
+    void getTrafficSummary_clampsExcessivelyLargeDaysTo90() {
+        when(pageViewRepository.findByCreatedAtAfter(any())).thenReturn(List.of());
+        when(apiRequestLogRepository.findByCreatedAtAfter(any())).thenReturn(List.of());
+
+        analyticsService.getTrafficSummary(100_000);
+
+        ArgumentCaptor<LocalDateTime> sinceCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(pageViewRepository).findByCreatedAtAfter(sinceCaptor.capture());
+        LocalDateTime since = sinceCaptor.getValue();
+
+        // Clamped to 90 days back, not ~274 years (100_000 days) back.
+        LocalDateTime ninetyDaysAgo = LocalDateTime.now().minusDays(90);
+        assertThat(ChronoUnit.SECONDS.between(ninetyDaysAgo, since)).isLessThan(5);
+    }
+
+    @Test
+    void getTrafficSummary_negativeDaysDoesNotThrowAndClampsToOne() {
+        when(pageViewRepository.findByCreatedAtAfter(any())).thenReturn(List.of());
+        when(apiRequestLogRepository.findByCreatedAtAfter(any())).thenReturn(List.of());
+
+        TrafficSummaryDto summary = analyticsService.getTrafficSummary(-5);
+
+        assertThat(summary).isNotNull();
+        ArgumentCaptor<LocalDateTime> sinceCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(pageViewRepository).findByCreatedAtAfter(sinceCaptor.capture());
+        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+        assertThat(ChronoUnit.SECONDS.between(oneDayAgo, sinceCaptor.getValue())).isLessThan(5);
     }
 }

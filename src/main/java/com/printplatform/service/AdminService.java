@@ -219,7 +219,8 @@ public class AdminService {
     /** Revenue summary aggregated in Java (not SQL date-grouping) over "realized" payments — HELD or RELEASED,
      *  i.e. money actually captured; PENDING and REFUNDED are excluded from the sums but PENDING is still counted. */
     public RevenueSummaryDto getRevenueSummary(int days) {
-        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        int safeDays = Math.clamp(days, 1, 90);
+        LocalDateTime since = LocalDateTime.now().minusDays(safeDays);
         List<Payment> payments = paymentRepository.findByCreatedAtAfter(since);
 
         Map<String, List<Payment>> byDayRaw = payments.stream()

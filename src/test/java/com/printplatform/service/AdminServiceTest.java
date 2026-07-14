@@ -37,9 +37,12 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.mockito.ArgumentCaptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -389,5 +392,32 @@ class AdminServiceTest {
         assertThat(result.getPaidCount()).isEqualTo(2);
         assertThat(result.getPendingCount()).isEqualTo(1);
         assertThat(result.getByDay()).hasSize(1);
+    }
+
+    @Test
+    void getRevenueSummary_clampsExcessivelyLargeDaysTo90() {
+        when(paymentRepository.findByCreatedAtAfter(any())).thenReturn(List.of());
+
+        adminService.getRevenueSummary(100_000);
+
+        ArgumentCaptor<LocalDateTime> sinceCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(paymentRepository).findByCreatedAtAfter(sinceCaptor.capture());
+
+        // Clamped to 90 days back, not ~274 years (100_000 days) back.
+        LocalDateTime ninetyDaysAgo = LocalDateTime.now().minusDays(90);
+        assertThat(ChronoUnit.SECONDS.between(ninetyDaysAgo, sinceCaptor.getValue())).isLessThan(5);
+    }
+
+    @Test
+    void getRevenueSummary_negativeDaysDoesNotThrowAndClampsToOne() {
+        when(paymentRepository.findByCreatedAtAfter(any())).thenReturn(List.of());
+
+        RevenueSummaryDto result = adminService.getRevenueSummary(-5);
+
+        assertThat(result).isNotNull();
+        ArgumentCaptor<LocalDateTime> sinceCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(paymentRepository).findByCreatedAtAfter(sinceCaptor.capture());
+        LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
+        assertThat(ChronoUnit.SECONDS.between(oneDayAgo, sinceCaptor.getValue())).isLessThan(5);
     }
 }

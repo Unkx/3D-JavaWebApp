@@ -43,7 +43,8 @@ public class AnalyticsService {
 
     /** Aggregates in Java rather than SQL date-grouping, so behavior is identical between H2 (tests) and Postgres (prod). */
     public TrafficSummaryDto getTrafficSummary(int days) {
-        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        int safeDays = Math.clamp(days, 1, 90);
+        LocalDateTime since = LocalDateTime.now().minusDays(safeDays);
 
         List<PageView> views = pageViewRepository.findByCreatedAtAfter(since);
         Map<String, Long> byDay = new TreeMap<>();
