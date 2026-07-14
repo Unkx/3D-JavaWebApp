@@ -238,4 +238,25 @@ class AdminControllerTest extends AbstractControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(user)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void getTraffic_admin_returns200() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+
+        mockMvc.perform(get("/api/admin/traffic")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.pageViewsByDay").isArray())
+                .andExpect(jsonPath("$.topPaths").isArray())
+                .andExpect(jsonPath("$.apiStats").exists());
+    }
+
+    @Test
+    void getTraffic_nonAdmin_returns403() throws Exception {
+        User user = persistUser();
+
+        mockMvc.perform(get("/api/admin/traffic")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(user)))
+                .andExpect(status().isForbidden());
+    }
 }

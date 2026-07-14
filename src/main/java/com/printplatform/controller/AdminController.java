@@ -6,9 +6,11 @@ import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.RedeemCodeRequest;
+import com.printplatform.dto.TrafficSummaryDto;
 import com.printplatform.dto.UserSummaryDto;
 import com.printplatform.model.User;
 import com.printplatform.service.AdminService;
+import com.printplatform.service.AnalyticsService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,9 +24,11 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AnalyticsService analyticsService;
 
-    public AdminController(AdminService adminService) {
+    public AdminController(AdminService adminService, AnalyticsService analyticsService) {
         this.adminService = adminService;
+        this.analyticsService = analyticsService;
     }
 
     /** List all listings (admin only). */
@@ -88,5 +92,11 @@ public class AdminController {
     public PageResponse<AdminActionDto> getAuditLog(@RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "20") int size) {
         return adminService.getAuditLog(page, size);
+    }
+
+    /** Traffic summary: page views by day, top paths, API error/latency stats (admin only). */
+    @GetMapping("/traffic")
+    public TrafficSummaryDto getTraffic(@RequestParam(defaultValue = "7") int days) {
+        return analyticsService.getTrafficSummary(days);
     }
 }
