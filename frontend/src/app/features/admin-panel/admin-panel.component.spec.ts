@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { of } from 'rxjs';
 import { AdminPanelComponent } from './admin-panel.component';
 import { AuthService } from '../../services/auth.service';
 
@@ -89,5 +90,30 @@ describe('AdminPanelComponent', () => {
     req.flush({ id: 'l1', title: 'Test', status: 'OPEN', createdAt: '2026-01-01', ownerEmail: 'a@test.local', ownerFirstName: null, ownerLastName: null, maxBudget: null, moderationStatus: 'VISIBLE' });
 
     expect(component.listings()[0].moderationStatus).toBe('VISIBLE');
+  });
+
+  it('loads traffic summary on init and exposes it as a signal', () => {
+    authStub.listAdminCodes.mockReturnValue(of([]));
+
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/users/me').flush({
+      id: 'u1', email: 'admin@test.local', role: 'ADMIN', createdAt: '2026-01-01',
+      listingsCount: 0, offersCount: 0, firstName: null, lastName: null,
+      phone: null, gender: null, bio: null, dateOfBirth: null,
+      street: null, houseNumber: null, city: null, postalCode: null
+    });
+    httpMock.expectOne('/api/admin/listings').flush([]);
+    httpMock.expectOne('/api/admin/users').flush([]);
+
+    const trafficReq = httpMock.expectOne('/api/admin/traffic');
+    trafficReq.flush({
+      pageViewsByDay: [{ date: '2026-07-14', count: 5 }],
+      topPaths: [{ path: '/', count: 3 }],
+      apiStats: { totalRequests: 10, errorCount: 1, avgDurationMs: 42.5 }
+    });
+
+    expect(fixture.componentInstance.traffic()?.apiStats.totalRequests).toBe(10);
   });
 });

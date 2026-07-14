@@ -31,6 +31,7 @@
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
 
 .card__title { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin: 0 0 1.25rem; }
+.card__subtitle { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.75rem; }
 
 /* Full-width */
 .profile-card, .listings-card, .users-card, .codes-card { grid-column: 1 / -1; }

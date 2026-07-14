@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthService, AdminCode } from '../../services/auth.service';
 
@@ -44,9 +45,18 @@ interface AdminListing {
   moderationStatus: string;
 }
 
+interface DailyCount { date: string; count: number; }
+interface PathCount { path: string; count: number; }
+interface ApiStats { totalRequests: number; errorCount: number; avgDurationMs: number; }
+interface TrafficSummary {
+  pageViewsByDay: DailyCount[];
+  topPaths: PathCount[];
+  apiStats: ApiStats;
+}
+
 @Component({
   selector: 'app-admin-panel',
-  imports: [FormsModule],
+  imports: [FormsModule, DecimalPipe],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -102,11 +112,16 @@ export class AdminPanelComponent implements OnInit {
   generating   = signal(false);
   copiedCode   = signal<string | null>(null);
 
+  // --- Traffic ---
+  traffic        = signal<TrafficSummary | null>(null);
+  trafficLoading = signal(false);
+
   ngOnInit(): void {
     this.loadProfile();
     this.loadListings();
     this.loadUsers();
     this.loadCodes();
+    this.loadTraffic();
   }
 
   private loadProfile(): void {
@@ -196,6 +211,14 @@ export class AdminPanelComponent implements OnInit {
     this.auth.listAdminCodes().subscribe({
       next: list => { this.codes.set(list); this.codesLoading.set(false); },
       error: () => this.codesLoading.set(false)
+    });
+  }
+
+  private loadTraffic(): void {
+    this.trafficLoading.set(true);
+    this.http.get<TrafficSummary>('/api/admin/traffic').subscribe({
+      next: t => { this.traffic.set(t); this.trafficLoading.set(false); },
+      error: () => this.trafficLoading.set(false)
     });
   }
 
@@ -313,5 +336,8 @@ export class AdminPanelComponent implements OnInit {
     if (!dob) return '—';
     const [y, m, d] = dob.split('-');
     return `${d}.${m}.${y}`;
+  }
+  totalPageViews(): number {
+    return this.traffic()?.pageViewsByDay.reduce((sum, d) => sum + d.count, 0) ?? 0;
   }
 }

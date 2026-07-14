@@ -89,6 +89,32 @@
         }
       </section>
 
+      <!-- ── Ruch na stronie ── -->
+      <section class="card" aria-label="Ruch na stronie">
+        <h2 class="card__title">📈 Ruch na stronie (7 dni)</h2>
+        @if (trafficLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (!traffic()) {
+          <p class="muted">Brak danych.</p>
+        } @else {
+          <dl class="info-list">
+            <div class="info-row"><dt>Odsłony łącznie</dt><dd>{{ totalPageViews() }}</dd></div>
+            <div class="info-row"><dt>Zapytania API</dt><dd>{{ traffic()!.apiStats.totalRequests }}</dd></div>
+            <div class="info-row"><dt>Błędy API</dt><dd>{{ traffic()!.apiStats.errorCount }}</dd></div>
+            <div class="info-row"><dt>Śr. czas odpowiedzi</dt><dd>{{ traffic()!.apiStats.avgDurationMs | number:'1.0-0' }} ms</dd></div>
+          </dl>
+          <h3 class="card__subtitle">Najczęściej odwiedzane strony</h3>
+          <ul class="code-list">
+            @for (p of traffic()!.topPaths; track p.path) {
+              <li class="code-row">
+                <code class="code-row__code">{{ p.path }}</code>
+                <span class="code-row__status">{{ p.count }} odsłon</span>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
       <!-- ── Users table ── -->
       <section class="card users-card" aria-label="Lista użytkowników">
         <h2 class="card__title">Użytkownicy ({{ users().length }})</h2>
