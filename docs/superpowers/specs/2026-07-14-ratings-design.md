@@ -60,8 +60,9 @@ Add `HIDE_RATING`, `UNHIDE_RATING` alongside the existing five, following the ex
 
 - **My Orders** (`my-orders.component.ts`/`.html`): a "Oceń" (Rate) button appears on offers in `DELIVERED` status, in both the listings tab (customer rating the seller) and the offers tab (seller rating the customer). Clicking opens an inline star-picker (1–5) + optional comment textarea, submits via the new endpoint. Once submitted for that offer/rater pair, the button is replaced with a "read-only" confirmation state; if the other party hasn't rated yet, a subtle "czeka na ocenę drugiej strony" note shows (informational only, not blocking).
 - **User panel** (`user-panel.component.ts`/`.html`): a new "Oceny" card showing average stars + count + the paged list of received reviews, matching the existing card-grid pattern.
-- **Listing cards / listing detail / offer cards**: a small inline rating badge (e.g. "★ 4.8 · 12") next to the relevant person's name, fetched via the same `GET /api/users/{userId}/ratings` summary — no new public profile page required, since the badge attaches to user info already embedded in the existing listing/offer DTOs.
 - **Admin panel** (`admin-panel.component.ts`/`.html`): a new "Oceny" card listing all ratings (stars, comment, rater→rated pair, date, visibility) with hide/unhide buttons — same list-plus-action pattern as the existing Listings card, including the confirm-step convention established for suspend/hide in the admin-tools work.
+
+**Scope note (revised during planning):** the counterpart's name/rating badge is added to My Orders rows only, not to the browse-grid listing cards or the listing-detail offer list. Investigation during planning found that *no* page in the current frontend displays the other party's name anywhere (listing cards and listing-detail only use `user.id` internally for permission checks, never render it) — adding badges there would mean designing and shipping new owner/offerer-name UI first, which is scope growth beyond a ratings feature. My Orders already renders per-offer/per-listing rows for both roles, making it the natural, lowest-scope home for the badge; the browse grid and offer list can get owner-name display (and then a badge) as a future, separately-scoped UI pass.
 
 ---
 
@@ -86,6 +87,7 @@ Consistent with the codebase's existing conventions: JUnit service/controller te
 
 - Listing search improvements — separate spec, separate build order.
 - Replies to ratings, flagging/reporting by other users (only admin-initiated hide), or edit/delete by the rating's author — ratings are one-time and locked in once submitted, per the approved design decision.
-- A dedicated public "view another user's full profile" page — the rating badge attaches to existing listing/offer card contexts instead.
+- A dedicated public "view another user's full profile" page — the rating badge attaches to My Orders rows instead.
+- Rating badges on the browse-grid listing cards or the listing-detail offer list — neither currently displays the counterpart's name at all, so adding a badge there is a separate future UI pass, not part of this feature.
 - Denormalized/cached average-rating storage or a scheduled recomputation job.
 - Rating anything other than a `DELIVERED` offer (e.g. no rating on `REJECTED` or abandoned offers).
