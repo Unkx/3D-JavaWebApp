@@ -219,6 +219,39 @@
         }
       </section>
 
+      <!-- ── Dziennik działań administratora ── -->
+      <section class="card audit-log-card" aria-label="Dziennik działań administratora">
+        <h2 class="card__title">🗒️ Dziennik działań ({{ auditLog().length }})</h2>
+        @if (auditLogLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (auditLog().length === 0) {
+          <p class="muted">Brak zarejestrowanych działań.</p>
+        } @else {
+          <div class="table-wrap" role="region" aria-label="Tabela dziennika działań" tabindex="0">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th scope="col">Administrator</th>
+                  <th scope="col">Działanie</th>
+                  <th scope="col">Cel</th>
+                  <th scope="col">Data</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (a of auditLog(); track a.id) {
+                  <tr>
+                    <td>{{ a.adminEmail }}</td>
+                    <td>{{ actionLabel(a.actionType) }}</td>
+                    <td class="monospace">{{ a.targetType }} · {{ a.targetId }}</td>
+                    <td class="date-cell">{{ formatDate(a.createdAt) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
       <!-- ── Szczegóły profilu ── -->
       <section class="card" aria-label="Szczegóły profilu">
         <div class="section-header">

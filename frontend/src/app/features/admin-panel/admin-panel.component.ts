@@ -63,6 +63,16 @@ interface RevenueSummary {
   pendingCount: number;
 }
 
+interface AuditLogEntry {
+  id: string;
+  adminEmail: string;
+  actionType: string;
+  targetType: string;
+  targetId: string;
+  details: string | null;
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-admin-panel',
   imports: [FormsModule, DecimalPipe],
@@ -129,6 +139,10 @@ export class AdminPanelComponent implements OnInit {
   revenue        = signal<RevenueSummary | null>(null);
   revenueLoading = signal(false);
 
+  // --- Audit log ---
+  auditLog        = signal<AuditLogEntry[]>([]);
+  auditLogLoading  = signal(false);
+
   ngOnInit(): void {
     this.loadProfile();
     this.loadListings();
@@ -136,6 +150,7 @@ export class AdminPanelComponent implements OnInit {
     this.loadCodes();
     this.loadTraffic();
     this.loadRevenue();
+    this.loadAuditLog();
   }
 
   private loadProfile(): void {
@@ -244,6 +259,14 @@ export class AdminPanelComponent implements OnInit {
     });
   }
 
+  private loadAuditLog(): void {
+    this.auditLogLoading.set(true);
+    this.http.get<{ content: AuditLogEntry[] }>('/api/admin/audit-log').subscribe({
+      next: page => { this.auditLog.set(page.content); this.auditLogLoading.set(false); },
+      error: () => this.auditLogLoading.set(false)
+    });
+  }
+
   // --- Profile details ---
   startEditDetails(): void {
     const p = this.profile()!;
@@ -349,6 +372,16 @@ export class AdminPanelComponent implements OnInit {
   statusLabel(status: string): string {
     const map: Record<string, string> = { OPEN: 'Otwarte', CLOSED: 'Zamknięte', IN_PROGRESS: 'W toku' };
     return map[status] ?? status;
+  }
+  actionLabel(type: string): string {
+    const map: Record<string, string> = {
+      DELETE_LISTING: 'Usunięto ogłoszenie',
+      BAN_USER: 'Zawieszono użytkownika',
+      UNBAN_USER: 'Przywrócono użytkownika',
+      HIDE_LISTING: 'Ukryto ogłoszenie',
+      UNHIDE_LISTING: 'Przywrócono ogłoszenie',
+    };
+    return map[type] ?? type;
   }
 
   formatDate(iso: string): string {

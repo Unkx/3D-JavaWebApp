@@ -120,6 +120,9 @@ describe('AdminPanelComponent', () => {
       paidCount: 0,
       pendingCount: 0
     });
+    httpMock.expectOne('/api/admin/audit-log').flush({
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
+    });
 
     expect(fixture.componentInstance.traffic()?.apiStats.totalRequests).toBe(10);
   });
@@ -152,7 +155,46 @@ describe('AdminPanelComponent', () => {
       paidCount: 2,
       pendingCount: 1
     });
+    httpMock.expectOne('/api/admin/audit-log').flush({
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
+    });
 
     expect(fixture.componentInstance.revenue()?.totalPlatformFee).toBe(15);
+  });
+
+  it('loads the audit log on init', () => {
+    authStub.listAdminCodes.mockReturnValue(of([]));
+
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/users/me').flush({
+      id: 'u1', email: 'admin@test.local', role: 'ADMIN', createdAt: '2026-01-01',
+      listingsCount: 0, offersCount: 0, firstName: null, lastName: null,
+      phone: null, gender: null, bio: null, dateOfBirth: null,
+      street: null, houseNumber: null, city: null, postalCode: null
+    });
+    httpMock.expectOne('/api/admin/listings').flush([]);
+    httpMock.expectOne('/api/admin/users').flush([]);
+    httpMock.expectOne('/api/admin/traffic').flush({
+      pageViewsByDay: [],
+      topPaths: [],
+      apiStats: { totalRequests: 0, errorCount: 0, avgDurationMs: 0 }
+    });
+    httpMock.expectOne('/api/admin/revenue').flush({
+      byDay: [],
+      totalPlatformFee: 0,
+      totalVolume: 0,
+      paidCount: 0,
+      pendingCount: 0
+    });
+
+    const auditReq = httpMock.expectOne(req => req.url === '/api/admin/audit-log');
+    auditReq.flush({
+      content: [{ id: 'a1', adminEmail: 'admin@test.local', actionType: 'HIDE_LISTING', targetType: 'Listing', targetId: 'l1', details: null, createdAt: '2026-07-14T10:00:00' }],
+      page: 0, size: 20, totalElements: 1, totalPages: 1, last: true
+    });
+
+    expect(fixture.componentInstance.auditLog().length).toBe(1);
   });
 });
