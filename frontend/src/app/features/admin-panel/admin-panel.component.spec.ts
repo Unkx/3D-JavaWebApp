@@ -113,7 +113,46 @@ describe('AdminPanelComponent', () => {
       topPaths: [{ path: '/', count: 3 }],
       apiStats: { totalRequests: 10, errorCount: 1, avgDurationMs: 42.5 }
     });
+    httpMock.expectOne('/api/admin/revenue').flush({
+      byDay: [],
+      totalPlatformFee: 0,
+      totalVolume: 0,
+      paidCount: 0,
+      pendingCount: 0
+    });
 
     expect(fixture.componentInstance.traffic()?.apiStats.totalRequests).toBe(10);
+  });
+
+  it('loads revenue summary on init', () => {
+    authStub.listAdminCodes.mockReturnValue(of([]));
+
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/users/me').flush({
+      id: 'u1', email: 'admin@test.local', role: 'ADMIN', createdAt: '2026-01-01',
+      listingsCount: 0, offersCount: 0, firstName: null, lastName: null,
+      phone: null, gender: null, bio: null, dateOfBirth: null,
+      street: null, houseNumber: null, city: null, postalCode: null
+    });
+    httpMock.expectOne('/api/admin/listings').flush([]);
+    httpMock.expectOne('/api/admin/users').flush([]);
+    httpMock.expectOne('/api/admin/traffic').flush({
+      pageViewsByDay: [],
+      topPaths: [],
+      apiStats: { totalRequests: 0, errorCount: 0, avgDurationMs: 0 }
+    });
+
+    const revenueReq = httpMock.expectOne(req => req.url === '/api/admin/revenue');
+    revenueReq.flush({
+      byDay: [{ date: '2026-07-14', platformFee: 15, totalVolume: 150 }],
+      totalPlatformFee: 15,
+      totalVolume: 150,
+      paidCount: 2,
+      pendingCount: 1
+    });
+
+    expect(fixture.componentInstance.revenue()?.totalPlatformFee).toBe(15);
   });
 });

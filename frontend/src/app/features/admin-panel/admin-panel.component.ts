@@ -54,6 +54,15 @@ interface TrafficSummary {
   apiStats: ApiStats;
 }
 
+interface DailyRevenue { date: string; platformFee: number; totalVolume: number; }
+interface RevenueSummary {
+  byDay: DailyRevenue[];
+  totalPlatformFee: number;
+  totalVolume: number;
+  paidCount: number;
+  pendingCount: number;
+}
+
 @Component({
   selector: 'app-admin-panel',
   imports: [FormsModule, DecimalPipe],
@@ -116,12 +125,17 @@ export class AdminPanelComponent implements OnInit {
   traffic        = signal<TrafficSummary | null>(null);
   trafficLoading = signal(false);
 
+  // --- Revenue ---
+  revenue        = signal<RevenueSummary | null>(null);
+  revenueLoading = signal(false);
+
   ngOnInit(): void {
     this.loadProfile();
     this.loadListings();
     this.loadUsers();
     this.loadCodes();
     this.loadTraffic();
+    this.loadRevenue();
   }
 
   private loadProfile(): void {
@@ -219,6 +233,14 @@ export class AdminPanelComponent implements OnInit {
     this.http.get<TrafficSummary>('/api/admin/traffic').subscribe({
       next: t => { this.traffic.set(t); this.trafficLoading.set(false); },
       error: () => this.trafficLoading.set(false)
+    });
+  }
+
+  private loadRevenue(): void {
+    this.revenueLoading.set(true);
+    this.http.get<RevenueSummary>('/api/admin/revenue').subscribe({
+      next: r => { this.revenue.set(r); this.revenueLoading.set(false); },
+      error: () => this.revenueLoading.set(false)
     });
   }
 

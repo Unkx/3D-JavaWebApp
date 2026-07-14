@@ -34,7 +34,7 @@
 .card__subtitle { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.75rem; }
 
 /* Full-width */
-.profile-card, .listings-card, .users-card, .codes-card, .traffic-card { grid-column: 1 / -1; }
+.profile-card, .listings-card, .users-card, .codes-card, .traffic-card, .revenue-card { grid-column: 1 / -1; }
 
 /* Profile card */
 .profile-card { display: flex; align-items: flex-start; gap: 1.5rem; }

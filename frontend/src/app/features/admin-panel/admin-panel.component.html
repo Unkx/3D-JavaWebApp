@@ -115,6 +115,23 @@
         }
       </section>
 
+      <!-- ── Przychód ── -->
+      <section class="card revenue-card" aria-label="Przychód">
+        <h2 class="card__title">💰 Przychód (7 dni)</h2>
+        @if (revenueLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (!revenue()) {
+          <p class="muted">Brak danych.</p>
+        } @else {
+          <dl class="info-list">
+            <div class="info-row"><dt>Prowizja platformy</dt><dd>{{ revenue()!.totalPlatformFee | number:'1.2-2' }} zł</dd></div>
+            <div class="info-row"><dt>Obrót łącznie</dt><dd>{{ revenue()!.totalVolume | number:'1.2-2' }} zł</dd></div>
+            <div class="info-row"><dt>Zrealizowane płatności</dt><dd>{{ revenue()!.paidCount }}</dd></div>
+            <div class="info-row"><dt>Oczekujące płatności</dt><dd>{{ revenue()!.pendingCount }}</dd></div>
+          </dl>
+        }
+      </section>
+
       <!-- ── Users table ── -->
       <section class="card users-card" aria-label="Lista użytkowników">
         <h2 class="card__title">Użytkownicy ({{ users().length }})</h2>
