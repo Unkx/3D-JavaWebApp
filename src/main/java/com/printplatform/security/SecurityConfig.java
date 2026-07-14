@@ -27,13 +27,16 @@ public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
     private final AuthRateLimitFilter authRateLimitFilter;
+    private final ApiRequestLoggingFilter apiRequestLoggingFilter;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOriginsRaw;
 
-    public SecurityConfig(JwtAuthFilter jwtAuthFilter, AuthRateLimitFilter authRateLimitFilter) {
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter, AuthRateLimitFilter authRateLimitFilter,
+                          ApiRequestLoggingFilter apiRequestLoggingFilter) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.authRateLimitFilter = authRateLimitFilter;
+        this.apiRequestLoggingFilter = apiRequestLoggingFilter;
     }
 
     @Bean
@@ -71,7 +74,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(authRateLimitFilter, JwtAuthFilter.class);
+            .addFilterBefore(authRateLimitFilter, JwtAuthFilter.class)
+            .addFilterAfter(apiRequestLoggingFilter, JwtAuthFilter.class);
 
         return http.build();
     }

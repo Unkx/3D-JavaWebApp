@@ -69,15 +69,7 @@ public class AuthRateLimitFilter extends OncePerRequestFilter {
      * header the caller cannot forge. Falls back to the socket address when absent.
      */
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            String[] hops = forwarded.split(",");
-            String last = hops[hops.length - 1].strip();
-            if (!last.isEmpty()) {
-                return last;
-            }
-        }
-        return request.getRemoteAddr();
+        return ClientIpResolver.resolve(request);
     }
 
     private void evictStaleWindows() {
