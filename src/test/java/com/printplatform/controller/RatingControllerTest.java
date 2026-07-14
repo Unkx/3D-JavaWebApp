@@ -98,4 +98,13 @@ class RatingControllerTest extends AbstractControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(stranger)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void getUserRatings_noAuth_returns200() throws Exception {
+        User seller = persistUser();
+
+        mockMvc.perform(get("/api/users/" + seller.getId() + "/ratings"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.ratings.content").isArray());
+    }
 }

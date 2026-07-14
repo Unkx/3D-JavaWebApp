@@ -2,6 +2,7 @@ package com.printplatform.controller;
 
 import com.printplatform.dto.CreateRatingRequest;
 import com.printplatform.dto.RatingDto;
+import com.printplatform.dto.UserRatingsDto;
 import com.printplatform.model.User;
 import com.printplatform.service.RatingService;
 import jakarta.validation.Valid;
@@ -38,5 +39,12 @@ public class RatingController {
     public List<RatingDto> getRatingsForOffer(@PathVariable UUID offerId,
                                               @AuthenticationPrincipal User currentUser) {
         return ratingService.getRatingsForOffer(currentUser, offerId);
+    }
+
+    @GetMapping("/api/users/{userId}/ratings")
+    public UserRatingsDto getUserRatings(@PathVariable UUID userId,
+                                         @RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "20") int size) {
+        return ratingService.getUserRatings(userId, page, size);
     }
 }

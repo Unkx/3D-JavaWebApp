@@ -1,11 +1,18 @@
 package com.printplatform.service;
 
+import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.RatingDto;
+import com.printplatform.dto.RatingSummaryDto;
+import com.printplatform.dto.UserRatingsDto;
 import com.printplatform.model.Offer;
 import com.printplatform.model.Rating;
+import com.printplatform.model.RatingModerationStatus;
 import com.printplatform.model.User;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.RatingRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -72,5 +79,25 @@ public class RatingService {
         }
 
         return ratingRepository.findByOfferId(offerId).stream().map(RatingDto::new).toList();
+    }
+
+    /** Visible-only average + paged list of ratings a user has received (public). */
+    public UserRatingsDto getUserRatings(UUID userId, int page, int size) {
+        int safeSize = Math.clamp(size, 1, 50);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+
+        java.util.List<Rating> allVisible =
+                ratingRepository.findByRatedUserIdAndModerationStatus(userId, RatingModerationStatus.VISIBLE);
+        Double average = allVisible.isEmpty()
+                ? null
+                : allVisible.stream().mapToInt(Rating::getStars).average().orElseThrow();
+        RatingSummaryDto summary = new RatingSummaryDto(average, allVisible.size());
+
+        Page<Rating> pageResult =
+                ratingRepository.findByRatedUserIdAndModerationStatus(userId, RatingModerationStatus.VISIBLE, pageable);
+        PageResponse<RatingDto> ratingsPage = new PageResponse<>(pageResult.map(RatingDto::new));
+
+        return new UserRatingsDto(summary, ratingsPage);
     }
 }

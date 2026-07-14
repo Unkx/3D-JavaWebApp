@@ -1,6 +1,7 @@
 package com.printplatform.service;
 
 import com.printplatform.dto.RatingDto;
+import com.printplatform.dto.UserRatingsDto;
 import com.printplatform.model.*;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.RatingRepository;
@@ -20,6 +21,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -166,5 +168,52 @@ class RatingServiceTest {
                 .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
                         .isEqualTo(HttpStatus.BAD_REQUEST));
         verifyNoInteractions(ratingRepository);
+    }
+
+    @Test
+    void getUserRatings_averagesOnlyVisibleRatings() {
+        UUID ratedUserId = UUID.randomUUID();
+        Rating visible1 = new Rating();
+        visible1.setId(UUID.randomUUID());
+        visible1.setOfferId(UUID.randomUUID());
+        visible1.setRaterId(UUID.randomUUID());
+        visible1.setRatedUserId(ratedUserId);
+        visible1.setStars(5);
+
+        Rating visible2 = new Rating();
+        visible2.setId(UUID.randomUUID());
+        visible2.setOfferId(UUID.randomUUID());
+        visible2.setRaterId(UUID.randomUUID());
+        visible2.setRatedUserId(ratedUserId);
+        visible2.setStars(3);
+
+        when(ratingRepository.findByRatedUserIdAndModerationStatus(ratedUserId, RatingModerationStatus.VISIBLE))
+                .thenReturn(java.util.List.of(visible1, visible2));
+        org.springframework.data.domain.Page<Rating> page =
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(visible1, visible2));
+        when(ratingRepository.findByRatedUserIdAndModerationStatus(
+                eq(ratedUserId), eq(RatingModerationStatus.VISIBLE), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(page);
+
+        UserRatingsDto result = ratingService.getUserRatings(ratedUserId, 0, 20);
+
+        assertThat(result.getSummary().getAverageStars()).isEqualTo(4.0);
+        assertThat(result.getSummary().getCount()).isEqualTo(2);
+        assertThat(result.getRatings().getContent()).hasSize(2);
+    }
+
+    @Test
+    void getUserRatings_noRatings_averageIsNull() {
+        UUID ratedUserId = UUID.randomUUID();
+        when(ratingRepository.findByRatedUserIdAndModerationStatus(ratedUserId, RatingModerationStatus.VISIBLE))
+                .thenReturn(java.util.List.of());
+        when(ratingRepository.findByRatedUserIdAndModerationStatus(
+                eq(ratedUserId), eq(RatingModerationStatus.VISIBLE), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+
+        UserRatingsDto result = ratingService.getUserRatings(ratedUserId, 0, 20);
+
+        assertThat(result.getSummary().getAverageStars()).isNull();
+        assertThat(result.getSummary().getCount()).isZero();
     }
 }

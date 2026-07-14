@@ -68,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/listings/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/listing/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/offers/fee-breakdown").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/*/ratings").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/listings/{id}/upload-stl").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/analytics/pageview").permitAll()
                 .requestMatchers("/api/admin/redeem").authenticated()
