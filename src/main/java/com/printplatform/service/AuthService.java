@@ -144,6 +144,9 @@ public class AuthService {
     }
 
     private AuthResponse toResponse(User user) {
+        if (user.isSuspended()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "To konto zostało zawieszone.");
+        }
         String token = jwtService.generateToken(user);
         return new AuthResponse(token, user.getEmail(), user.getRole().name(), user.getId().toString());
     }

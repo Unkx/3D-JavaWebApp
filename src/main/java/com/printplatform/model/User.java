@@ -40,6 +40,13 @@ public class User implements UserDetails {
     @ColumnDefault("false")
     private boolean emailVerified = false;
 
+    // Column-level default of false is required: Hibernate's ddl-auto=update issues a plain
+    // ALTER TABLE ADD COLUMN with no default unless @ColumnDefault is present, and this field
+    // is a primitive boolean — reading a NULL column into it throws, not just defaults to false.
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean suspended = false;
+
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
@@ -80,7 +87,7 @@ public class User implements UserDetails {
     @Override public boolean isAccountNonExpired()     { return true; }
     @Override public boolean isAccountNonLocked()      { return true; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled()               { return true; }
+    @Override public boolean isEnabled()               { return !suspended; }
 
     // --- Getters / Setters ---
 
@@ -101,6 +108,9 @@ public class User implements UserDetails {
 
     public boolean isEmailVerified() { return emailVerified; }
     public void setEmailVerified(boolean emailVerified) { this.emailVerified = emailVerified; }
+
+    public boolean isSuspended() { return suspended; }
+    public void setSuspended(boolean suspended) { this.suspended = suspended; }
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

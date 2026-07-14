@@ -240,6 +240,25 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_suspendedUser_throwsForbidden() {
+        User user = buildUser("suspended@example.com", "encoded", Role.USER);
+        user.setSuspended(true);
+        LoginRequest request = new LoginRequest();
+        request.setEmail("suspended@example.com");
+        request.setPassword("Secret123");
+
+        when(userRepository.findByEmail("suspended@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("Secret123", "encoded")).thenReturn(true);
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
+                        .isEqualTo(HttpStatus.FORBIDDEN));
+
+        verify(jwtService, never()).generateToken(any(User.class));
+    }
+
+    @Test
     void login_facebookOnlyAccount_throwsUnauthorizedWithoutCheckingPassword() {
         LoginRequest request = new LoginRequest();
         request.setEmail("fbonly@example.com");

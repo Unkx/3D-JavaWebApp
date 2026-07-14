@@ -16,6 +16,7 @@ import com.printplatform.service.EmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -156,6 +157,19 @@ class AuthControllerTest extends AbstractControllerTest {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void protectedEndpoint_suspendedUserWithLiveToken_returns403() throws Exception {
+        User user = persistUser();
+        String token = bearerToken(user);
+
+        user.setSuspended(true);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/listings/my")
+                        .header(HttpHeaders.AUTHORIZATION, token))
                 .andExpect(status().isForbidden());
     }
 
