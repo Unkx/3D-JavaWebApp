@@ -73,6 +73,17 @@ interface AuditLogEntry {
   createdAt: string;
 }
 
+interface AdminRating {
+  id: string;
+  offerId: string;
+  raterId: string;
+  ratedUserId: string;
+  stars: number;
+  comment: string | null;
+  moderationStatus: string;
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-admin-panel',
   imports: [FormsModule, DecimalPipe],
@@ -145,6 +156,12 @@ export class AdminPanelComponent implements OnInit {
   auditLog        = signal<AuditLogEntry[]>([]);
   auditLogLoading  = signal(false);
 
+  // --- Ratings ---
+  ratings         = signal<AdminRating[]>([]);
+  ratingsLoading  = signal(false);
+  confirmHideRatingId = signal<string | null>(null);
+  moderatingRatingId  = signal<string | null>(null);
+
   ngOnInit(): void {
     this.loadProfile();
     this.loadListings();
@@ -153,6 +170,7 @@ export class AdminPanelComponent implements OnInit {
     this.loadTraffic();
     this.loadRevenue();
     this.loadAuditLog();
+    this.loadRatings();
   }
 
   private loadProfile(): void {
@@ -274,6 +292,40 @@ export class AdminPanelComponent implements OnInit {
     this.http.get<{ content: AuditLogEntry[] }>('/api/admin/audit-log').subscribe({
       next: page => { this.auditLog.set(page.content); this.auditLogLoading.set(false); },
       error: () => this.auditLogLoading.set(false)
+    });
+  }
+
+  private loadRatings(): void {
+    this.ratingsLoading.set(true);
+    this.http.get<{ content: AdminRating[] }>('/api/admin/ratings').subscribe({
+      next: page => { this.ratings.set(page.content); this.ratingsLoading.set(false); },
+      error: () => this.ratingsLoading.set(false)
+    });
+  }
+
+  hideRating(id: string): void {
+    if (this.confirmHideRatingId() !== id) { this.confirmHideRatingId.set(id); return; }
+    this.moderatingRatingId.set(id);
+    this.http.put<AdminRating>(`/api/admin/ratings/${id}/hide`, {}).subscribe({
+      next: updated => {
+        this.ratings.update(list => list.map(r => r.id === id ? updated : r));
+        this.confirmHideRatingId.set(null);
+        this.moderatingRatingId.set(null);
+      },
+      error: () => this.moderatingRatingId.set(null)
+    });
+  }
+
+  cancelHideRating(): void { this.confirmHideRatingId.set(null); }
+
+  unhideRating(id: string): void {
+    this.moderatingRatingId.set(id);
+    this.http.put<AdminRating>(`/api/admin/ratings/${id}/unhide`, {}).subscribe({
+      next: updated => {
+        this.ratings.update(list => list.map(r => r.id === id ? updated : r));
+        this.moderatingRatingId.set(null);
+      },
+      error: () => this.moderatingRatingId.set(null)
     });
   }
 

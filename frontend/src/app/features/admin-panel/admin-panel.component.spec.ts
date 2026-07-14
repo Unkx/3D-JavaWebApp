@@ -167,6 +167,9 @@ describe('AdminPanelComponent', () => {
     httpMock.expectOne('/api/admin/audit-log').flush({
       content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
     });
+    httpMock.expectOne('/api/admin/ratings').flush({
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
+    });
 
     expect(fixture.componentInstance.traffic()?.apiStats.totalRequests).toBe(10);
   });
@@ -200,6 +203,9 @@ describe('AdminPanelComponent', () => {
       pendingCount: 1
     });
     httpMock.expectOne('/api/admin/audit-log').flush({
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
+    });
+    httpMock.expectOne('/api/admin/ratings').flush({
       content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
     });
 
@@ -238,7 +244,60 @@ describe('AdminPanelComponent', () => {
       content: [{ id: 'a1', adminEmail: 'admin@test.local', actionType: 'HIDE_LISTING', targetType: 'Listing', targetId: 'l1', details: null, createdAt: '2026-07-14T10:00:00' }],
       page: 0, size: 20, totalElements: 1, totalPages: 1, last: true
     });
+    httpMock.expectOne('/api/admin/ratings').flush({
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
+    });
 
     expect(fixture.componentInstance.auditLog().length).toBe(1);
+  });
+
+  it('loads ratings on init and hides one with confirm-step', () => {
+    authStub.listAdminCodes.mockReturnValue(of([]));
+
+    const fixture = TestBed.createComponent(AdminPanelComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/users/me').flush({
+      id: 'u1', email: 'admin@test.local', role: 'ADMIN', createdAt: '2026-01-01',
+      listingsCount: 0, offersCount: 0, firstName: null, lastName: null,
+      phone: null, gender: null, bio: null, dateOfBirth: null,
+      street: null, houseNumber: null, city: null, postalCode: null
+    });
+    httpMock.expectOne('/api/admin/listings').flush([]);
+    httpMock.expectOne('/api/admin/users').flush([]);
+    httpMock.expectOne('/api/admin/traffic').flush({
+      pageViewsByDay: [],
+      topPaths: [],
+      apiStats: { totalRequests: 0, errorCount: 0, avgDurationMs: 0 }
+    });
+    httpMock.expectOne('/api/admin/revenue').flush({
+      byDay: [],
+      totalPlatformFee: 0,
+      totalVolume: 0,
+      paidCount: 0,
+      pendingCount: 0
+    });
+    httpMock.expectOne('/api/admin/audit-log').flush({
+      content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true
+    });
+
+    const ratingsReq = httpMock.expectOne(req => req.url === '/api/admin/ratings');
+    ratingsReq.flush({
+      content: [{ id: 'r1', offerId: 'o1', raterId: 'u1', ratedUserId: 'u2', stars: 1, comment: 'spam', moderationStatus: 'VISIBLE', createdAt: '2026-07-14T00:00:00' }],
+      page: 0, size: 20, totalElements: 1, totalPages: 1, last: true
+    });
+
+    expect(fixture.componentInstance.ratings().length).toBe(1);
+
+    const component = fixture.componentInstance;
+    component.hideRating('r1');
+    httpMock.expectNone('/api/admin/ratings/r1/hide');
+
+    component.hideRating('r1');
+    const req = httpMock.expectOne('/api/admin/ratings/r1/hide');
+    expect(req.request.method).toBe('PUT');
+    req.flush({ id: 'r1', offerId: 'o1', raterId: 'u1', ratedUserId: 'u2', stars: 1, comment: 'spam', moderationStatus: 'HIDDEN', createdAt: '2026-07-14T00:00:00' });
+
+    expect(component.ratings()[0].moderationStatus).toBe('HIDDEN');
   });
 });

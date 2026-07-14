@@ -264,6 +264,57 @@
         }
       </section>
 
+      <!-- ── Oceny ── -->
+      <section class="card ratings-card" aria-label="Oceny">
+        <h2 class="card__title">⭐ Oceny ({{ ratings().length }})</h2>
+        @if (ratingsLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (ratings().length === 0) {
+          <p class="muted">Brak ocen.</p>
+        } @else {
+          <div class="table-wrap" role="region" aria-label="Tabela ocen" tabindex="0">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th scope="col">Gwiazdki</th>
+                  <th scope="col">Komentarz</th>
+                  <th scope="col">Widoczność</th>
+                  <th scope="col">Data</th>
+                  <th scope="col"><span class="sr-only">Akcje</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (r of ratings(); track r.id) {
+                  <tr>
+                    <td>{{ r.stars }} / 5</td>
+                    <td>{{ r.comment || '—' }}</td>
+                    <td>
+                      @if (r.moderationStatus === 'HIDDEN') {
+                        <span class="status-pill status-pill--closed">Ukryte</span>
+                      } @else {
+                        <span class="status-pill">Widoczne</span>
+                      }
+                    </td>
+                    <td class="date-cell">{{ formatDate(r.createdAt) }}</td>
+                    <td class="action-cell">
+                      @if (r.moderationStatus === 'HIDDEN') {
+                        <button class="btn btn--ghost btn--sm" (click)="unhideRating(r.id)" [disabled]="moderatingRatingId() === r.id">Pokaż</button>
+                      } @else if (confirmHideRatingId() === r.id) {
+                        <span class="confirm-text">Ukryć?</span>
+                        <button class="btn btn--danger btn--sm" (click)="hideRating(r.id)" [disabled]="moderatingRatingId() === r.id">Tak</button>
+                        <button class="btn btn--ghost btn--sm" (click)="cancelHideRating()" [disabled]="moderatingRatingId() === r.id">Nie</button>
+                      } @else {
+                        <button class="btn btn--ghost btn--sm" (click)="hideRating(r.id)">Ukryj</button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+
       <!-- ── Szczegóły profilu ── -->
       <section class="card" aria-label="Szczegóły profilu">
         <div class="section-header">
