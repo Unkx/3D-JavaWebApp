@@ -5,6 +5,7 @@ import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.PageResponse;
+import com.printplatform.dto.RatingDto;
 import com.printplatform.dto.UserSummaryDto;
 import com.printplatform.model.AdminAction;
 import com.printplatform.model.AdminActionType;
@@ -463,5 +464,26 @@ class AdminServiceTest {
         verify(paymentRepository).findByCreatedAtAfter(sinceCaptor.capture());
         LocalDateTime oneDayAgo = LocalDateTime.now().minusDays(1);
         assertThat(ChronoUnit.SECONDS.between(oneDayAgo, sinceCaptor.getValue())).isLessThan(5);
+    }
+
+    @Test
+    void getAllRatings_returnsPagedDtosRegardlessOfModerationStatus() {
+        Rating hidden = new Rating();
+        hidden.setId(UUID.randomUUID());
+        hidden.setOfferId(UUID.randomUUID());
+        hidden.setRaterId(UUID.randomUUID());
+        hidden.setRatedUserId(UUID.randomUUID());
+        hidden.setStars(1);
+        hidden.setModerationStatus(RatingModerationStatus.HIDDEN);
+
+        org.springframework.data.domain.Page<Rating> page =
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(hidden));
+        when(ratingRepository.findAllByOrderByCreatedAtDesc(any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(page);
+
+        com.printplatform.dto.PageResponse<com.printplatform.dto.RatingDto> result = adminService.getAllRatings(0, 20);
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getModerationStatus()).isEqualTo("HIDDEN");
     }
 }

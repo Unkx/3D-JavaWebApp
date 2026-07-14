@@ -232,6 +232,15 @@ public class AdminService {
         return new RatingDto(rating);
     }
 
+    /** All ratings (visible and hidden), newest first, for the moderation list (admin only). */
+    public PageResponse<RatingDto> getAllRatings(int page, int size) {
+        int safeSize = Math.clamp(size, 1, 100);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Page<Rating> result = ratingRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return new PageResponse<>(result.map(RatingDto::new));
+    }
+
     /** Paged, newest-first admin action history (admin only). */
     public PageResponse<AdminActionDto> getAuditLog(int page, int size) {
         int safeSize = Math.clamp(size, 1, 100);

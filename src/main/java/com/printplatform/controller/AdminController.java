@@ -101,6 +101,13 @@ public class AdminController {
         return adminService.unhideRating(admin, id);
     }
 
+    /** All ratings for moderation, newest first (admin only). */
+    @GetMapping("/ratings")
+    public PageResponse<RatingDto> getAllRatings(@RequestParam(defaultValue = "0") int page,
+                                                 @RequestParam(defaultValue = "20") int size) {
+        return adminService.getAllRatings(page, size);
+    }
+
     /** Paged admin action history, newest first (admin only). */
     @GetMapping("/audit-log")
     public PageResponse<AdminActionDto> getAuditLog(@RequestParam(defaultValue = "0") int page,

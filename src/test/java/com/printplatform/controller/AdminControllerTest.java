@@ -312,4 +312,14 @@ class AdminControllerTest extends AbstractControllerTest {
                 .andExpect(jsonPath("$.byDay").isArray())
                 .andExpect(jsonPath("$.totalPlatformFee").exists());
     }
+
+    @Test
+    void getAllRatings_admin_returns200() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+
+        mockMvc.perform(get("/api/admin/ratings")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
 }
