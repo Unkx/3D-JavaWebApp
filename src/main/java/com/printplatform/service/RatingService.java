@@ -59,4 +59,18 @@ public class RatingService {
         rating.setComment(comment);
         return new RatingDto(ratingRepository.save(rating));
     }
+
+    /** Both ratings for an offer, if they exist — visible only to a party to that offer. */
+    public java.util.List<RatingDto> getRatingsForOffer(User currentUser, UUID offerId) {
+        Offer offer = offerRepository.findById(offerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Oferta nie istnieje"));
+
+        boolean isSeller = offer.getUser().getId().equals(currentUser.getId());
+        boolean isBuyer = offer.getListing().getUser().getId().equals(currentUser.getId());
+        if (!isSeller && !isBuyer) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu");
+        }
+
+        return ratingRepository.findByOfferId(offerId).stream().map(RatingDto::new).toList();
+    }
 }
