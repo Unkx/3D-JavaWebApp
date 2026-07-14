@@ -3,11 +3,14 @@ package com.printplatform.controller;
 import com.printplatform.controller.support.AbstractControllerTest;
 import com.printplatform.dto.CreateListingRequest;
 import com.printplatform.dto.UpdateListingRequest;
+import com.printplatform.model.AdminAction;
+import com.printplatform.model.AdminActionType;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
+import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.ListingRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 import static org.hamcrest.Matchers.hasItem;
@@ -33,6 +37,9 @@ class ListingControllerTest extends AbstractControllerTest {
 
     @Autowired
     private ListingRepository listingRepository;
+
+    @Autowired
+    private AdminActionRepository adminActionRepository;
 
     private Listing persistListing(User owner, ListingStatus status) {
         Listing listing = new Listing();
@@ -260,5 +267,40 @@ class ListingControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[*].title", not(hasItem("Hidden listing"))))
                 .andExpect(jsonPath("$.content[*].title", hasItem("Visible listing")));
+    }
+
+    @Test
+    void deleteListing_byAdminNotOwner_writesAuditRow() throws Exception {
+        User owner = persistUser();
+        User admin = persistUser(Role.ADMIN);
+        Listing listing = new Listing();
+        listing.setUser(owner);
+        listing.setTitle("To be removed");
+        Listing saved = listingRepository.save(listing);
+
+        mockMvc.perform(delete("/api/listings/" + saved.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isNoContent());
+
+        List<AdminAction> actions = adminActionRepository.findAll();
+        org.assertj.core.api.Assertions.assertThat(actions).hasSize(1);
+        org.assertj.core.api.Assertions.assertThat(actions.get(0).getActionType()).isEqualTo(AdminActionType.DELETE_LISTING);
+        org.assertj.core.api.Assertions.assertThat(actions.get(0).getTargetId()).isEqualTo(saved.getId());
+        org.assertj.core.api.Assertions.assertThat(actions.get(0).getAdminEmail()).isEqualTo(admin.getEmail());
+    }
+
+    @Test
+    void deleteListing_byOwner_writesNoAuditRow() throws Exception {
+        User owner = persistUser();
+        Listing listing = new Listing();
+        listing.setUser(owner);
+        listing.setTitle("My own listing");
+        Listing saved = listingRepository.save(listing);
+
+        mockMvc.perform(delete("/api/listings/" + saved.getId())
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(owner)))
+                .andExpect(status().isNoContent());
+
+        org.assertj.core.api.Assertions.assertThat(adminActionRepository.findAll()).isEmpty();
     }
 }

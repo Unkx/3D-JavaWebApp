@@ -3,6 +3,7 @@ package com.printplatform.controller;
 import com.printplatform.dto.CreateListingRequest;
 import com.printplatform.dto.PageResponse;
 import com.printplatform.dto.UpdateListingRequest;
+import com.printplatform.model.AdminActionType;
 import com.printplatform.model.Listing;
 import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
@@ -12,6 +13,7 @@ import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.StlFileRepository;
+import com.printplatform.service.AdminAuditService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -65,13 +67,16 @@ public class ListingController {
     private final ListingRepository listingRepository;
     private final OfferRepository offerRepository;
     private final StlFileRepository stlFileRepository;
+    private final AdminAuditService adminAuditService;
 
     public ListingController(ListingRepository listingRepository,
                              OfferRepository offerRepository,
-                             StlFileRepository stlFileRepository) {
+                             StlFileRepository stlFileRepository,
+                             AdminAuditService adminAuditService) {
         this.listingRepository = listingRepository;
         this.offerRepository = offerRepository;
         this.stlFileRepository = stlFileRepository;
+        this.adminAuditService = adminAuditService;
     }
 
     @GetMapping
@@ -172,6 +177,10 @@ public class ListingController {
         Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
         requireOwnerOrAdmin(listing, user);
+        boolean isAdminAction = user.getRole() == Role.ADMIN && !listing.getUser().getId().equals(user.getId());
+        if (isAdminAction) {
+            adminAuditService.log(user, AdminActionType.DELETE_LISTING, "Listing", id, listing.getTitle());
+        }
         // Remove dependent rows first (listing_id FKs are non-nullable).
         offerRepository.deleteAll(offerRepository.findByListingId(id));
         stlFileRepository.deleteByListingId(id);
