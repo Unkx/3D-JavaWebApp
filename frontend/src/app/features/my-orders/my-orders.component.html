@@ -83,8 +83,9 @@
                       }
                       <div class="star-picker" role="radiogroup" aria-label="Ocena w gwiazdkach">
                         @for (star of [1,2,3,4,5]; track star) {
-                          <button type="button" class="star-picker__star"
+                          <button type="button" class="star-picker__star" role="radio"
                                   [class.star-picker__star--filled]="star <= ratingStars()"
+                                  [attr.aria-checked]="star === ratingStars()"
                                   (click)="ratingStars.set(star)"
                                   [attr.aria-label]="star + ' gwiazdek'">&#9733;</button>
                         }
@@ -318,8 +319,9 @@
                       }
                       <div class="star-picker" role="radiogroup" aria-label="Ocena w gwiazdkach">
                         @for (star of [1,2,3,4,5]; track star) {
-                          <button type="button" class="star-picker__star"
+                          <button type="button" class="star-picker__star" role="radio"
                                   [class.star-picker__star--filled]="star <= ratingStars()"
+                                  [attr.aria-checked]="star === ratingStars()"
                                   (click)="ratingStars.set(star)"
                                   [attr.aria-label]="star + ' gwiazdek'">&#9733;</button>
                         }

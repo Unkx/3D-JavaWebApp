@@ -42,7 +42,7 @@
           <ul class="review-list">
             @for (r of ratings()!.ratings.content; track r.id) {
               <li class="review-row">
-                <span class="review-row__stars">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span>
+                <span class="review-row__stars" [attr.aria-label]="'Ocena: ' + r.stars + ' na 5 gwiazdek'"><span aria-hidden="true">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span></span>
                 @if (r.comment) { <p class="review-row__comment">{{ r.comment }}</p> }
                 <time class="review-row__date">{{ formatDate(r.createdAt) }}</time>
               </li>
