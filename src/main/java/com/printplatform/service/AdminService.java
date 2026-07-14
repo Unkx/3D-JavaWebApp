@@ -4,7 +4,10 @@ import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.UserSummaryDto;
+import com.printplatform.model.AdminActionType;
 import com.printplatform.model.AdminCode;
+import com.printplatform.model.Listing;
+import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.AdminCodeRepository;
@@ -22,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AdminService {
@@ -35,15 +39,18 @@ public class AdminService {
     private final UserRepository userRepository;
     private final ListingRepository listingRepository;
     private final JwtService jwtService;
+    private final AdminAuditService adminAuditService;
 
     public AdminService(AdminCodeRepository codeRepository,
                         UserRepository userRepository,
                         ListingRepository listingRepository,
-                        JwtService jwtService) {
+                        JwtService jwtService,
+                        AdminAuditService adminAuditService) {
         this.codeRepository = codeRepository;
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
         this.jwtService = jwtService;
+        this.adminAuditService = adminAuditService;
     }
 
     /** Admin generates a new single-use admin code. */
@@ -132,6 +139,46 @@ public class AdminService {
         if (updated == 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ten kod został już wykorzystany");
         }
+    }
+
+    /** Suspends a user's account: blocks future logins and revokes any already-issued JWT (admin only). */
+    public UserSummaryDto suspendUser(User admin, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie istnieje"));
+        user.setSuspended(true);
+        userRepository.save(user);
+        adminAuditService.log(admin, AdminActionType.BAN_USER, "User", user.getId(), null);
+        return new UserSummaryDto(user);
+    }
+
+    /** Lifts a suspension (admin only). */
+    public UserSummaryDto unsuspendUser(User admin, UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie istnieje"));
+        user.setSuspended(false);
+        userRepository.save(user);
+        adminAuditService.log(admin, AdminActionType.UNBAN_USER, "User", user.getId(), null);
+        return new UserSummaryDto(user);
+    }
+
+    /** Hides a listing from the public feed without deleting it (admin only). */
+    public AdminListingDto hideListing(User admin, UUID listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
+        listing.setModerationStatus(ListingModerationStatus.HIDDEN);
+        listingRepository.save(listing);
+        adminAuditService.log(admin, AdminActionType.HIDE_LISTING, "Listing", listing.getId(), null);
+        return new AdminListingDto(listing);
+    }
+
+    /** Restores a previously hidden listing to the public feed (admin only). */
+    public AdminListingDto unhideListing(User admin, UUID listingId) {
+        Listing listing = listingRepository.findById(listingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
+        listing.setModerationStatus(ListingModerationStatus.VISIBLE);
+        listingRepository.save(listing);
+        adminAuditService.log(admin, AdminActionType.UNHIDE_LISTING, "Listing", listing.getId(), null);
+        return new AdminListingDto(listing);
     }
 
     private String randomCode() {

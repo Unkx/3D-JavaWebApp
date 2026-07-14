@@ -10,6 +10,7 @@ public class UserSummaryDto {
     private String firstName;
     private String lastName;
     private LocalDateTime createdAt;
+    private boolean suspended;
 
     public UserSummaryDto(User u) {
         this.id        = u.getId().toString();
@@ -18,6 +19,7 @@ public class UserSummaryDto {
         this.firstName = u.getFirstName();
         this.lastName  = u.getLastName();
         this.createdAt = u.getCreatedAt();
+        this.suspended = u.isSuspended();
     }
 
     public String getId()            { return id; }
@@ -26,4 +28,5 @@ public class UserSummaryDto {
     public String getFirstName()     { return firstName; }
     public String getLastName()      { return lastName; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isSuspended()     { return suspended; }
 }

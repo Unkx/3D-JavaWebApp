@@ -4,8 +4,10 @@ import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.UserSummaryDto;
+import com.printplatform.model.AdminActionType;
 import com.printplatform.model.AdminCode;
 import com.printplatform.model.Listing;
+import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
@@ -44,12 +46,14 @@ class AdminServiceTest {
     private ListingRepository listingRepository;
     @Mock
     private JwtService jwtService;
+    @Mock
+    private AdminAuditService adminAuditService;
 
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
-        adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService);
+        adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService, adminAuditService);
     }
 
     private User buildUser(Role role) {
@@ -239,5 +243,83 @@ class AdminServiceTest {
                         .isEqualTo(HttpStatus.BAD_REQUEST));
 
         assertThat(user.getRole()).isEqualTo(Role.USER);
+    }
+
+    @Test
+    void suspendUser_marksSuspendedAndLogsAudit() {
+        User admin = buildUser(Role.ADMIN);
+        admin.setEmail("admin@example.com");
+        User target = buildUser(Role.USER);
+
+        when(userRepository.findById(target.getId())).thenReturn(Optional.of(target));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserSummaryDto result = adminService.suspendUser(admin, target.getId());
+
+        assertThat(target.isSuspended()).isTrue();
+        assertThat(result.getId()).isEqualTo(target.getId().toString());
+        verify(adminAuditService).log(admin, AdminActionType.BAN_USER, "User", target.getId(), null);
+    }
+
+    @Test
+    void unsuspendUser_clearsSuspendedAndLogsAudit() {
+        User admin = buildUser(Role.ADMIN);
+        User target = buildUser(Role.USER);
+        target.setSuspended(true);
+
+        when(userRepository.findById(target.getId())).thenReturn(Optional.of(target));
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        adminService.unsuspendUser(admin, target.getId());
+
+        assertThat(target.isSuspended()).isFalse();
+        verify(adminAuditService).log(admin, AdminActionType.UNBAN_USER, "User", target.getId(), null);
+    }
+
+    @Test
+    void suspendUser_unknownUser_throwsNotFound() {
+        User admin = buildUser(Role.ADMIN);
+        UUID missingId = UUID.randomUUID();
+        when(userRepository.findById(missingId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.suspendUser(admin, missingId))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode())
+                        .isEqualTo(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    void hideListing_marksHiddenAndLogsAudit() {
+        User admin = buildUser(Role.ADMIN);
+        Listing listing = new Listing();
+        listing.setId(UUID.randomUUID());
+        listing.setTitle("Suspicious listing");
+        listing.setUser(buildUser(Role.USER));
+
+        when(listingRepository.findById(listing.getId())).thenReturn(Optional.of(listing));
+        when(listingRepository.save(any(Listing.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        adminService.hideListing(admin, listing.getId());
+
+        assertThat(listing.getModerationStatus()).isEqualTo(ListingModerationStatus.HIDDEN);
+        verify(adminAuditService).log(admin, AdminActionType.HIDE_LISTING, "Listing", listing.getId(), null);
+    }
+
+    @Test
+    void unhideListing_marksVisibleAndLogsAudit() {
+        User admin = buildUser(Role.ADMIN);
+        Listing listing = new Listing();
+        listing.setId(UUID.randomUUID());
+        listing.setTitle("Reviewed listing");
+        listing.setUser(buildUser(Role.USER));
+        listing.setModerationStatus(ListingModerationStatus.HIDDEN);
+
+        when(listingRepository.findById(listing.getId())).thenReturn(Optional.of(listing));
+        when(listingRepository.save(any(Listing.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        adminService.unhideListing(admin, listing.getId());
+
+        assertThat(listing.getModerationStatus()).isEqualTo(ListingModerationStatus.VISIBLE);
+        verify(adminAuditService).log(admin, AdminActionType.UNHIDE_LISTING, "Listing", listing.getId(), null);
     }
 }

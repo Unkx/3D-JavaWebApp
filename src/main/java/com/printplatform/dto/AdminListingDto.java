@@ -13,6 +13,7 @@ public class AdminListingDto {
     private String ownerFirstName;
     private String ownerLastName;
     private BigDecimal maxBudget;
+    private String moderationStatus;
 
     public AdminListingDto(Listing l) {
         this.id            = l.getId().toString();
@@ -23,6 +24,7 @@ public class AdminListingDto {
         this.ownerFirstName = l.getUser().getFirstName();
         this.ownerLastName  = l.getUser().getLastName();
         this.maxBudget     = l.getMaxBudget();
+        this.moderationStatus = l.getModerationStatus().name();
     }
 
     public String getId()            { return id; }
@@ -33,4 +35,5 @@ public class AdminListingDto {
     public String getOwnerFirstName() { return ownerFirstName; }
     public String getOwnerLastName()  { return ownerLastName; }
     public BigDecimal getMaxBudget() { return maxBudget; }
+    public String getModerationStatus() { return moderationStatus; }
 }

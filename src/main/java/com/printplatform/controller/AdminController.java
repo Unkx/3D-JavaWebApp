@@ -13,6 +13,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -54,5 +55,29 @@ public class AdminController {
     public AuthResponse redeem(@AuthenticationPrincipal User user,
                                @Valid @RequestBody RedeemCodeRequest request) {
         return adminService.redeemCode(user, request.getCode());
+    }
+
+    /** Suspend a user's account (admin only). */
+    @PutMapping("/users/{id}/suspend")
+    public UserSummaryDto suspendUser(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        return adminService.suspendUser(admin, id);
+    }
+
+    /** Lift a user's suspension (admin only). */
+    @PutMapping("/users/{id}/unsuspend")
+    public UserSummaryDto unsuspendUser(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        return adminService.unsuspendUser(admin, id);
+    }
+
+    /** Hide a listing from the public feed without deleting it (admin only). */
+    @PutMapping("/listings/{id}/hide")
+    public AdminListingDto hideListing(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        return adminService.hideListing(admin, id);
+    }
+
+    /** Restore a hidden listing to the public feed (admin only). */
+    @PutMapping("/listings/{id}/unhide")
+    public AdminListingDto unhideListing(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        return adminService.unhideListing(admin, id);
     }
 }

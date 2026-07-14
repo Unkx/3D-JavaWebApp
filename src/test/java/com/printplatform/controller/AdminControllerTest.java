@@ -3,9 +3,11 @@ package com.printplatform.controller;
 import com.printplatform.controller.support.AbstractControllerTest;
 import com.printplatform.dto.RedeemCodeRequest;
 import com.printplatform.model.AdminCode;
+import com.printplatform.model.Listing;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.AdminCodeRepository;
+import com.printplatform.repository.ListingRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,6 +26,8 @@ class AdminControllerTest extends AbstractControllerTest {
 
     @Autowired
     private AdminCodeRepository adminCodeRepository;
+    @Autowired
+    private ListingRepository listingRepository;
 
     @Test
     void listAllListings_admin_returns200() throws Exception {
@@ -177,5 +182,41 @@ class AdminControllerTest extends AbstractControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void suspendUser_admin_returns200AndMarksSuspended() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+        User target = persistUser();
+
+        mockMvc.perform(put("/api/admin/users/" + target.getId() + "/suspend")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.suspended").value(true));
+    }
+
+    @Test
+    void suspendUser_nonAdmin_returns403() throws Exception {
+        User user = persistUser();
+        User target = persistUser();
+
+        mockMvc.perform(put("/api/admin/users/" + target.getId() + "/suspend")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(user)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void hideListing_admin_returns200AndMarksHidden() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+        User owner = persistUser();
+        Listing listing = new Listing();
+        listing.setUser(owner);
+        listing.setTitle("Test listing");
+        Listing saved = listingRepository.save(listing);
+
+        mockMvc.perform(put("/api/admin/listings/" + saved.getId() + "/hide")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.moderationStatus").value("HIDDEN"));
     }
 }
