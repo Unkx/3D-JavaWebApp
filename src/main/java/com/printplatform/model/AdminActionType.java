@@ -5,5 +5,7 @@ public enum AdminActionType {
     BAN_USER,
     UNBAN_USER,
     HIDE_LISTING,
-    UNHIDE_LISTING
+    UNHIDE_LISTING,
+    HIDE_RATING,
+    UNHIDE_RATING
 }

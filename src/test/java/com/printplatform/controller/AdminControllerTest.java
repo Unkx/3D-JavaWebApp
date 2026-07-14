@@ -4,10 +4,15 @@ import com.printplatform.controller.support.AbstractControllerTest;
 import com.printplatform.dto.RedeemCodeRequest;
 import com.printplatform.model.AdminCode;
 import com.printplatform.model.Listing;
+import com.printplatform.model.Offer;
+import com.printplatform.model.OfferStatus;
+import com.printplatform.model.Rating;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
+import com.printplatform.repository.OfferRepository;
+import com.printplatform.repository.RatingRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +33,10 @@ class AdminControllerTest extends AbstractControllerTest {
     private AdminCodeRepository adminCodeRepository;
     @Autowired
     private ListingRepository listingRepository;
+    @Autowired
+    private RatingRepository ratingRepository;
+    @Autowired
+    private OfferRepository offerRepository;
 
     @Test
     void listAllListings_admin_returns200() throws Exception {
@@ -215,6 +224,39 @@ class AdminControllerTest extends AbstractControllerTest {
         Listing saved = listingRepository.save(listing);
 
         mockMvc.perform(put("/api/admin/listings/" + saved.getId() + "/hide")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.moderationStatus").value("HIDDEN"));
+    }
+
+    @Test
+    void hideRating_admin_returns200AndMarksHidden() throws Exception {
+        User admin = persistUser(Role.ADMIN);
+        User buyer = persistUser();
+        User seller = persistUser();
+
+        Listing listing = new Listing();
+        listing.setUser(buyer);
+        listing.setTitle("Test listing");
+        Listing savedListing = listingRepository.save(listing);
+
+        Offer offer = new Offer();
+        offer.setListing(savedListing);
+        offer.setUser(seller);
+        offer.setPrice(java.math.BigDecimal.TEN);
+        offer.setPrintingTimeHours(2.0);
+        offer.setFilamentGrams(100);
+        offer.setStatus(OfferStatus.DELIVERED);
+        Offer savedOffer = offerRepository.save(offer);
+
+        Rating rating = new Rating();
+        rating.setOfferId(savedOffer.getId());
+        rating.setRaterId(buyer.getId());
+        rating.setRatedUserId(seller.getId());
+        rating.setStars(1);
+        Rating savedRating = ratingRepository.save(rating);
+
+        mockMvc.perform(put("/api/admin/ratings/" + savedRating.getId() + "/hide")
                         .header(HttpHeaders.AUTHORIZATION, bearerToken(admin)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.moderationStatus").value("HIDDEN"));

@@ -14,6 +14,8 @@ import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.ListingStatus;
 import com.printplatform.model.Payment;
 import com.printplatform.model.PaymentStatus;
+import com.printplatform.model.Rating;
+import com.printplatform.model.RatingModerationStatus;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.dto.RevenueSummaryDto;
@@ -21,6 +23,7 @@ import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.PaymentRepository;
+import com.printplatform.repository.RatingRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
@@ -68,13 +71,15 @@ class AdminServiceTest {
     private AdminActionRepository adminActionRepository;
     @Mock
     private PaymentRepository paymentRepository;
+    @Mock
+    private RatingRepository ratingRepository;
 
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
         adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService,
-                adminAuditService, adminActionRepository, paymentRepository);
+                adminAuditService, adminActionRepository, paymentRepository, ratingRepository);
     }
 
     private User buildUser(Role role) {
@@ -342,6 +347,45 @@ class AdminServiceTest {
 
         assertThat(listing.getModerationStatus()).isEqualTo(ListingModerationStatus.VISIBLE);
         verify(adminAuditService).log(admin, AdminActionType.UNHIDE_LISTING, "Listing", listing.getId(), null);
+    }
+
+    @Test
+    void hideRating_marksHiddenAndLogsAudit() {
+        User admin = buildUser(Role.ADMIN);
+        Rating rating = new Rating();
+        rating.setId(UUID.randomUUID());
+        rating.setOfferId(UUID.randomUUID());
+        rating.setRaterId(UUID.randomUUID());
+        rating.setRatedUserId(UUID.randomUUID());
+        rating.setStars(1);
+
+        when(ratingRepository.findById(rating.getId())).thenReturn(Optional.of(rating));
+        when(ratingRepository.save(any(Rating.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        adminService.hideRating(admin, rating.getId());
+
+        assertThat(rating.getModerationStatus()).isEqualTo(RatingModerationStatus.HIDDEN);
+        verify(adminAuditService).log(admin, AdminActionType.HIDE_RATING, "Rating", rating.getId(), null);
+    }
+
+    @Test
+    void unhideRating_marksVisibleAndLogsAudit() {
+        User admin = buildUser(Role.ADMIN);
+        Rating rating = new Rating();
+        rating.setId(UUID.randomUUID());
+        rating.setOfferId(UUID.randomUUID());
+        rating.setRaterId(UUID.randomUUID());
+        rating.setRatedUserId(UUID.randomUUID());
+        rating.setStars(1);
+        rating.setModerationStatus(RatingModerationStatus.HIDDEN);
+
+        when(ratingRepository.findById(rating.getId())).thenReturn(Optional.of(rating));
+        when(ratingRepository.save(any(Rating.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        adminService.unhideRating(admin, rating.getId());
+
+        assertThat(rating.getModerationStatus()).isEqualTo(RatingModerationStatus.VISIBLE);
+        verify(adminAuditService).log(admin, AdminActionType.UNHIDE_RATING, "Rating", rating.getId(), null);
     }
 
     @Test

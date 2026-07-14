@@ -5,6 +5,7 @@ import com.printplatform.dto.AdminCodeDto;
 import com.printplatform.dto.AdminListingDto;
 import com.printplatform.dto.AuthResponse;
 import com.printplatform.dto.PageResponse;
+import com.printplatform.dto.RatingDto;
 import com.printplatform.dto.RedeemCodeRequest;
 import com.printplatform.dto.RevenueSummaryDto;
 import com.printplatform.dto.TrafficSummaryDto;
@@ -86,6 +87,18 @@ public class AdminController {
     @PutMapping("/listings/{id}/unhide")
     public AdminListingDto unhideListing(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
         return adminService.unhideListing(admin, id);
+    }
+
+    /** Hide a rating from public view without deleting it (admin only). */
+    @PutMapping("/ratings/{id}/hide")
+    public RatingDto hideRating(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        return adminService.hideRating(admin, id);
+    }
+
+    /** Restore a hidden rating to public view (admin only). */
+    @PutMapping("/ratings/{id}/unhide")
+    public RatingDto unhideRating(@PathVariable UUID id, @AuthenticationPrincipal User admin) {
+        return adminService.unhideRating(admin, id);
     }
 
     /** Paged admin action history, newest first (admin only). */

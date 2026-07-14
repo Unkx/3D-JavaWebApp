@@ -15,12 +15,16 @@ import com.printplatform.model.Listing;
 import com.printplatform.model.ListingModerationStatus;
 import com.printplatform.model.Payment;
 import com.printplatform.model.PaymentStatus;
+import com.printplatform.model.Rating;
+import com.printplatform.model.RatingModerationStatus;
+import com.printplatform.dto.RatingDto;
 import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.AdminActionRepository;
 import com.printplatform.repository.AdminCodeRepository;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.PaymentRepository;
+import com.printplatform.repository.RatingRepository;
 import com.printplatform.repository.UserRepository;
 import com.printplatform.security.JwtService;
 import org.slf4j.Logger;
@@ -60,6 +64,7 @@ public class AdminService {
     private final AdminAuditService adminAuditService;
     private final AdminActionRepository adminActionRepository;
     private final PaymentRepository paymentRepository;
+    private final RatingRepository ratingRepository;
 
     public AdminService(AdminCodeRepository codeRepository,
                         UserRepository userRepository,
@@ -67,7 +72,8 @@ public class AdminService {
                         JwtService jwtService,
                         AdminAuditService adminAuditService,
                         AdminActionRepository adminActionRepository,
-                        PaymentRepository paymentRepository) {
+                        PaymentRepository paymentRepository,
+                        RatingRepository ratingRepository) {
         this.codeRepository = codeRepository;
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
@@ -75,6 +81,7 @@ public class AdminService {
         this.adminAuditService = adminAuditService;
         this.adminActionRepository = adminActionRepository;
         this.paymentRepository = paymentRepository;
+        this.ratingRepository = ratingRepository;
     }
 
     /** Admin generates a new single-use admin code. */
@@ -203,6 +210,26 @@ public class AdminService {
         listingRepository.save(listing);
         adminAuditService.log(admin, AdminActionType.UNHIDE_LISTING, "Listing", listing.getId(), null);
         return new AdminListingDto(listing);
+    }
+
+    /** Hides a rating from public view without deleting it (admin only). */
+    public RatingDto hideRating(User admin, UUID ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocena nie istnieje"));
+        rating.setModerationStatus(RatingModerationStatus.HIDDEN);
+        ratingRepository.save(rating);
+        adminAuditService.log(admin, AdminActionType.HIDE_RATING, "Rating", rating.getId(), null);
+        return new RatingDto(rating);
+    }
+
+    /** Restores a previously hidden rating to public view (admin only). */
+    public RatingDto unhideRating(User admin, UUID ratingId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Ocena nie istnieje"));
+        rating.setModerationStatus(RatingModerationStatus.VISIBLE);
+        ratingRepository.save(rating);
+        adminAuditService.log(admin, AdminActionType.UNHIDE_RATING, "Rating", rating.getId(), null);
+        return new RatingDto(rating);
     }
 
     /** Paged, newest-first admin action history (admin only). */
