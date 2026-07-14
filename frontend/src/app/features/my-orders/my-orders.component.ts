@@ -11,6 +11,8 @@ import {
 import { ListingService, Listing } from '../../services/listing.service';
 import { OfferService, Offer, OrderTracking, Payment, Shipment } from '../../services/offer.service';
 import { ConversationService } from '../../services/conversation.service';
+import { AuthService } from '../../services/auth.service';
+import { RatingService } from '../../services/rating.service';
 import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
 
 interface ListingWithOffers extends Listing {
@@ -32,6 +34,8 @@ export class MyOrdersComponent implements OnInit {
   private listingService = inject(ListingService);
   private offerService = inject(OfferService);
   private conversationService = inject(ConversationService);
+  private ratingService = inject(RatingService);
+  private auth = inject(AuthService);
   private router = inject(Router);
   private http = inject(HttpClient);
 
@@ -59,6 +63,15 @@ export class MyOrdersComponent implements OnInit {
   advancingShipmentId = signal<string | null>(null);
   shipmentPaczkomat = signal('');
 
+  // --- Ratings ---
+  ratedOfferIds = signal<Set<string>>(new Set());
+  ratingFormOfferId = signal<string | null>(null);
+  ratingStars = signal(0);
+  ratingComment = signal('');
+  submittingRatingId = signal<string | null>(null);
+  ratingError = signal<string | null>(null);
+  deliveredOfferIdByListing = signal<Record<string, string>>({});
+
   ngOnInit(): void {
     this.load();
     this.loadMyOffers();
@@ -67,7 +80,7 @@ export class MyOrdersComponent implements OnInit {
   private load(): void {
     this.loading.set(true);
     this.listingService.getMyListings().subscribe({
-      next: data => { this.listings.set(data); this.loading.set(false); },
+      next: data => { this.listings.set(data); this.loading.set(false); this.checkListingOrderRatings(data); },
       error: () => { this.error.set('Nie udało się załadować zleceń.'); this.loading.set(false); }
     });
   }
@@ -82,8 +95,73 @@ export class MyOrdersComponent implements OnInit {
               this.loadShipment(o.id!);
               this.loadPayment(o.id!);
             });
+        this.checkExistingRatings(data.filter(o => o.status === 'DELIVERED').map(o => o.id!));
       },
       error: () => {}
+    });
+  }
+
+  // --- Ratings ---
+
+  openRatingForm(offerId: string): void {
+    this.ratingFormOfferId.set(offerId);
+    this.ratingStars.set(0);
+    this.ratingComment.set('');
+    this.ratingError.set(null);
+  }
+
+  cancelRating(): void {
+    this.ratingFormOfferId.set(null);
+  }
+
+  submitRating(offerId: string): void {
+    const stars = this.ratingStars();
+    if (stars < 1 || stars > 5) {
+      this.ratingError.set('Wybierz ocenę od 1 do 5 gwiazdek.');
+      return;
+    }
+    this.submittingRatingId.set(offerId);
+    this.ratingError.set(null);
+    const comment = this.ratingComment().trim() || undefined;
+    this.ratingService.createRating(offerId, stars, comment).subscribe({
+      next: () => {
+        this.ratedOfferIds.update(set => new Set(set).add(offerId));
+        this.ratingFormOfferId.set(null);
+        this.submittingRatingId.set(null);
+      },
+      error: (err) => {
+        this.submittingRatingId.set(null);
+        this.ratingError.set(err.error?.message ?? 'Nie udało się zapisać oceny.');
+      }
+    });
+  }
+
+  private checkExistingRatings(offerIds: string[]): void {
+    offerIds.forEach(offerId => {
+      this.ratingService.getOfferRatings(offerId).subscribe({
+        next: ratings => {
+          const currentUserId = this.auth.currentUser()?.userId;
+          if (ratings.some(r => r.raterId === currentUserId)) {
+            this.ratedOfferIds.update(set => new Set(set).add(offerId));
+          }
+        },
+        error: () => {}
+      });
+    });
+  }
+
+  private checkListingOrderRatings(listings: ListingWithOffers[]): void {
+    listings.filter(l => l.status === 'AWARDED' && l.id).forEach(l => {
+      this.offerService.getOffersForListing(l.id!).subscribe({
+        next: offers => {
+          const delivered = offers.filter(o => o.status === 'DELIVERED');
+          delivered.forEach(o => {
+            this.deliveredOfferIdByListing.update(d => ({ ...d, [l.id!]: o.id! }));
+          });
+          this.checkExistingRatings(delivered.map(o => o.id!));
+        },
+        error: () => {}
+      });
     });
   }
 
