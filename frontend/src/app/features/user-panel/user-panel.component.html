@@ -27,6 +27,30 @@
         </div>
       </section>
 
+      <!-- ── Oceny ── -->
+      <section class="card" aria-label="Oceny">
+        <h2 class="card__title">⭐ Oceny</h2>
+        @if (ratingsLoading()) {
+          <p class="muted">Ładowanie...</p>
+        } @else if (!ratings() || ratings()!.summary.count === 0) {
+          <p class="muted">Brak ocen.</p>
+        } @else {
+          <p class="rating-average">
+            <strong>{{ ratings()!.summary.averageStars | number:'1.1-1' }}</strong> / 5
+            ({{ ratings()!.summary.count }} {{ ratings()!.summary.count === 1 ? 'ocena' : 'ocen' }})
+          </p>
+          <ul class="review-list">
+            @for (r of ratings()!.ratings.content; track r.id) {
+              <li class="review-row">
+                <span class="review-row__stars">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span>
+                @if (r.comment) { <p class="review-row__comment">{{ r.comment }}</p> }
+                <time class="review-row__date">{{ formatDate(r.createdAt) }}</time>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
       <!-- ── Stats ── -->
       <section class="card stats-card" aria-label="Statystyki aktywności">
         <h2 class="card__title">Aktywność</h2>

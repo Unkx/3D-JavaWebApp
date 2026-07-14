@@ -1,9 +1,11 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { DecimalPipe } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { RatingService, UserRatings } from '../../services/rating.service';
 
 interface UserProfile {
   id: string;
@@ -26,19 +28,23 @@ interface UserProfile {
 
 @Component({
   selector: 'app-user-panel',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, DecimalPipe],
   templateUrl: './user-panel.component.html',
   styleUrl: './user-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserPanelComponent implements OnInit {
-  private http   = inject(HttpClient);
-  private router = inject(Router);
-  auth           = inject(AuthService);
+  private http          = inject(HttpClient);
+  private router        = inject(Router);
+  private ratingService = inject(RatingService);
+  auth = inject(AuthService);
 
   profile = signal<UserProfile | null>(null);
   loading = signal(true);
   error   = signal<string | null>(null);
+
+  ratings = signal<UserRatings | null>(null);
+  ratingsLoading = signal(false);
 
   // --- Profile details ---
   editingDetails  = signal(false);
@@ -76,8 +82,16 @@ export class UserPanelComponent implements OnInit {
   private loadProfile(): void {
     this.loading.set(true);
     this.http.get<UserProfile>('/api/users/me').subscribe({
-      next: p => { this.profile.set(p); this.loading.set(false); },
+      next: p => { this.profile.set(p); this.loading.set(false); this.loadRatings(p.id); },
       error: () => { this.error.set('Nie udało się załadować profilu.'); this.loading.set(false); }
+    });
+  }
+
+  private loadRatings(userId: string): void {
+    this.ratingsLoading.set(true);
+    this.ratingService.getUserRatings(userId).subscribe({
+      next: r => { this.ratings.set(r); this.ratingsLoading.set(false); },
+      error: () => this.ratingsLoading.set(false)
     });
   }
 
