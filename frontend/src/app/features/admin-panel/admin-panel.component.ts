@@ -29,6 +29,7 @@ interface UserSummary {
   firstName: string | null;
   lastName: string | null;
   createdAt: string;
+  suspended: boolean;
 }
 
 interface AdminListing {
@@ -91,6 +92,7 @@ export class AdminPanelComponent implements OnInit {
   // --- Users ---
   users        = signal<UserSummary[]>([]);
   usersLoading = signal(false);
+  suspendingUserId = signal<string | null>(null);
 
   // --- Admin codes ---
   codes        = signal<AdminCode[]>([]);
@@ -140,6 +142,28 @@ export class AdminPanelComponent implements OnInit {
     this.http.get<UserSummary[]>('/api/admin/users').subscribe({
       next: list => { this.users.set(list); this.usersLoading.set(false); },
       error: () => this.usersLoading.set(false)
+    });
+  }
+
+  suspendUser(id: string): void {
+    this.suspendingUserId.set(id);
+    this.http.put<UserSummary>(`/api/admin/users/${id}/suspend`, {}).subscribe({
+      next: updated => {
+        this.users.update(list => list.map(u => u.id === id ? updated : u));
+        this.suspendingUserId.set(null);
+      },
+      error: () => this.suspendingUserId.set(null)
+    });
+  }
+
+  unsuspendUser(id: string): void {
+    this.suspendingUserId.set(id);
+    this.http.put<UserSummary>(`/api/admin/users/${id}/unsuspend`, {}).subscribe({
+      next: updated => {
+        this.users.update(list => list.map(u => u.id === id ? updated : u));
+        this.suspendingUserId.set(null);
+      },
+      error: () => this.suspendingUserId.set(null)
     });
   }
 

@@ -92,6 +92,7 @@
                   <th scope="col">Imię i nazwisko</th>
                   <th scope="col">Rola</th>
                   <th scope="col">Data rejestracji</th>
+                  <th scope="col"><span class="sr-only">Akcje</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -103,8 +104,22 @@
                       <span class="role-pill" [class.role-pill--admin]="u.role === 'ADMIN'">
                         {{ u.role === 'ADMIN' ? '🔑 Admin' : '👤 User' }}
                       </span>
+                      @if (u.suspended) {
+                        <span class="status-pill status-pill--closed">Zawieszony</span>
+                      }
                     </td>
                     <td class="date-cell">{{ formatDate(u.createdAt) }}</td>
+                    <td class="action-cell">
+                      @if (u.suspended) {
+                        <button class="btn btn--ghost btn--sm" (click)="unsuspendUser(u.id)" [disabled]="suspendingUserId() === u.id">
+                          Przywróć
+                        </button>
+                      } @else {
+                        <button class="btn btn--danger btn--sm" (click)="suspendUser(u.id)" [disabled]="suspendingUserId() === u.id">
+                          Zawieś
+                        </button>
+                      }
+                    </td>
                   </tr>
                 }
               </tbody>
