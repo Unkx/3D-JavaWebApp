@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import { FacebookAuthService } from '../../services/facebook-auth.service';
 import { GoogleAuthService } from '../../services/google-auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { IconComponent } from '../../components/icon.component';
 
 type Tab = 'login' | 'register' | 'forgot';
 
@@ -19,7 +20,7 @@ export function passwordComplexity(control: AbstractControl) {
 
 @Component({
   selector: 'app-auth',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -4,10 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
 import { ConversationService, ConversationSummary, ChatMessage } from '../../services/conversation.service';
 import { AuthService } from '../../services/auth.service';
+import { IconComponent } from '../../components/icon.component';
 
 @Component({
   selector: 'app-messages',
-  imports: [RouterLink, FormsModule, SlicePipe],
+  imports: [RouterLink, FormsModule, SlicePipe, IconComponent],
   templateUrl: './messages.component.html',
   styleUrl: './messages.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

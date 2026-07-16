@@ -1,23 +1,24 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, ChangeDetectionStrategy, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ListingService } from '../services/listing.service';
+import { IconComponent } from './icon.component';
 
 @Component({
   selector: 'app-stl-file-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   template: `
     <div class="upload-container">
       <h3 class="upload-title">Przesłanie plików (STL / zdjęcia)</h3>
 
       @if (successMessage()) {
         <div class="alert alert--success" role="alert" aria-live="polite">
-          ✅ {{ successMessage() }}
+          <app-icon name="check-circle" [size]="16" /> {{ successMessage() }}
         </div>
       }
       @if (errorMessage()) {
         <div class="alert alert--error" role="alert" aria-live="polite">
-          ⚠️ {{ errorMessage() }}
+          <app-icon name="warning" [size]="16" /> {{ errorMessage() }}
         </div>
       }
 
@@ -39,7 +40,7 @@ import { ListingService } from '../services/listing.service';
           />
 
           <span class="file-label">
-            <span class="file-icon">📁</span>
+            <span class="file-icon"><app-icon name="folder" [size]="40" /></span>
             <span class="file-text">
               <strong>Kliknij aby wybrać</strong> lub przeciągnij pliki
               <small>Modele .stl oraz zdjęcia (.png, .jpg, .gif, .webp) — kilka naraz</small>
@@ -51,9 +52,9 @@ import { ListingService } from '../services/listing.service';
           <ul class="selected-list">
             @for (f of selectedFiles(); track f.name + f.size) {
               <li class="selected-item">
-                <span class="selected-item__name">📄 {{ f.name }}</span>
+                <span class="selected-item__name"><app-icon name="file" [size]="16" /> {{ f.name }}</span>
                 <span class="selected-item__size">{{ formatSize(f.size) }}</span>
-                <button type="button" class="selected-item__remove" (click)="removeFile(f)" [disabled]="uploading()" aria-label="Usuń z listy">✕</button>
+                <button type="button" class="selected-item__remove" (click)="removeFile(f)" [disabled]="uploading()" aria-label="Usuń z listy"><app-icon name="x" [size]="14" /></button>
               </li>
             }
           </ul>
@@ -132,14 +133,14 @@ import { ListingService } from '../services/listing.service';
     }
 
     .file-input-wrapper:hover {
-      border-color: #2563eb;
-      background: #eff6ff;
+      border-color: var(--accent, #00928c);
+      background: var(--al, rgba(0, 146, 140, 0.08));
     }
 
     .file-input-wrapper.dragover {
-      border-color: #2563eb;
-      background: #dbeafe;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      border-color: var(--accent, #00928c);
+      background: var(--al, rgba(0, 146, 140, 0.08));
+      box-shadow: 0 0 0 3px var(--al, rgba(0, 146, 140, 0.15));
     }
 
     .file-input {

@@ -5,10 +5,11 @@ import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 import { ListingService, Listing } from '../../services/listing.service';
 import { AuthService } from '../../services/auth.service';
+import { IconComponent } from '../../components/icon.component';
 
 @Component({
   selector: 'app-listings',
-  imports: [RouterLink, SlicePipe],
+  imports: [RouterLink, SlicePipe, IconComponent],
   templateUrl: './listings.component.html',
   styleUrl: './listings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

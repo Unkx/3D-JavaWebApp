@@ -56,10 +56,10 @@
           <div class="chat-header">
             <div class="chat-header__row">
               <button class="chat-back" (click)="deselectConversation()" aria-label="Wróć do listy rozmów">
-                <span aria-hidden="true">←</span>
+                <app-icon name="arrow-left" [size]="16" />
               </button>
               <a [routerLink]="['/zlecenia', selectedConversation()!.listingId]" class="chat-header__listing">
-                <span class="chat-header__icon" aria-hidden="true">📋</span>
+                <span class="chat-header__icon"><app-icon name="clipboard" [size]="18" /></span>
                 <span class="chat-header__title">{{ selectedConversation()!.listingTitle }}</span>
               </a>
             </div>

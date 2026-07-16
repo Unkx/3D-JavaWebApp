@@ -7,7 +7,7 @@
       <p>Ładowanie profilu...</p>
     </div>
   } @else if (error()) {
-    <div class="state-box state-box--error" role="alert">⚠️ {{ error() }}</div>
+    <div class="state-box state-box--error" role="alert"><app-icon name="warning" [size]="16" /> {{ error() }}</div>
   } @else if (profile()) {
     <div class="panel-grid">
 
@@ -22,14 +22,14 @@
           @if (profile()!.bio) {
             <p class="profile-bio">{{ profile()!.bio }}</p>
           }
-          <span class="role-badge">{{ roleLabel(profile()!.role) }}</span>
+          <span class="role-badge"><app-icon [name]="roleIcon(profile()!.role)" [size]="14" /> {{ roleLabel(profile()!.role) }}</span>
           <p class="profile-since">Konto od: <strong>{{ formatDate(profile()!.createdAt) }}</strong></p>
         </div>
       </section>
 
       <!-- ── Oceny ── -->
       <section class="card" aria-label="Oceny">
-        <h2 class="card__title">⭐ Oceny</h2>
+        <h2 class="card__title"><app-icon name="star" [size]="16" /> Oceny</h2>
         @if (ratingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!ratings() || ratings()!.summary.count === 0) {
@@ -71,17 +71,17 @@
         <h2 class="card__title">Szybkie akcje</h2>
         <div class="actions-list">
           <a routerLink="/dodaj-zlecenie" class="action-item">
-            <span class="action-item__icon" aria-hidden="true">➕</span>
+            <span class="action-item__icon"><app-icon name="plus" [size]="20" /></span>
             <div><strong>Dodaj zlecenie</strong><p>Opisz co chcesz wydrukować</p></div>
             <span class="action-item__arrow" aria-hidden="true">→</span>
           </a>
           <a routerLink="/moje-zlecenia" class="action-item">
-            <span class="action-item__icon" aria-hidden="true">📋</span>
+            <span class="action-item__icon"><app-icon name="clipboard" [size]="20" /></span>
             <div><strong>Moje zlecenia</strong><p>Zarządzaj swoimi zleceniami</p></div>
             <span class="action-item__arrow" aria-hidden="true">→</span>
           </a>
           <a routerLink="/zlecenia" class="action-item">
-            <span class="action-item__icon" aria-hidden="true">🔍</span>
+            <span class="action-item__icon"><app-icon name="search" [size]="20" /></span>
             <div><strong>Przeglądaj zlecenia</strong><p>Znajdź zlecenia do realizacji</p></div>
             <span class="action-item__arrow" aria-hidden="true">→</span>
           </a>
@@ -100,7 +100,7 @@
         @if (editingDetails()) {
           <form class="edit-form" (ngSubmit)="saveDetails()" aria-label="Edytuj dane profilu">
             @if (detailsError()) {
-              <div class="alert alert--error" role="alert">⚠️ {{ detailsError() }}</div>
+              <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ detailsError() }}</div>
             }
             <div class="edit-grid edit-grid--3">
               <div class="edit-field">
@@ -182,7 +182,7 @@
         @if (editingAccount()) {
           <form class="edit-form" (ngSubmit)="saveAccount()" aria-label="Edytuj dane konta">
             @if (accountError()) {
-              <div class="alert alert--error" role="alert">⚠️ {{ accountError() }}</div>
+              <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ accountError() }}</div>
             }
             <div class="edit-grid edit-grid--1">
               <div class="edit-field">
@@ -235,7 +235,7 @@
         @if (editingShipping()) {
           <form class="edit-form" (ngSubmit)="saveShipping()" aria-label="Edytuj adres wysyłki">
             @if (shippingError()) {
-              <div class="alert alert--error" role="alert">⚠️ {{ shippingError() }}</div>
+              <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ shippingError() }}</div>
             }
             <div class="edit-grid edit-grid--3">
               <div class="edit-field edit-field--2">
@@ -297,12 +297,12 @@
 
       <!-- ── Redeem admin code ── -->
       <section class="card admin-card" aria-label="Zostań administratorem">
-        <h2 class="card__title">🔑 Masz kod administratora?</h2>
+        <h2 class="card__title"><app-icon name="key" [size]="16" /> Masz kod administratora?</h2>
         <p class="admin-card__desc">
           Wpisz kod otrzymany od administratora, aby uzyskać uprawnienia administratora.
         </p>
         @if (redeemError()) {
-          <div class="alert alert--error" role="alert">⚠️ {{ redeemError() }}</div>
+          <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ redeemError() }}</div>
         }
         <div class="redeem-row">
           <input type="text" class="field__input" placeholder="np. ABCD-EFGH-JKLM"

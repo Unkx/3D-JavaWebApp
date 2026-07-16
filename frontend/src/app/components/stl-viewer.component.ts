@@ -1,5 +1,6 @@
 import { Component, Input, ViewChild, ElementRef, AfterViewInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { IconComponent } from './icon.component';
 // @ts-ignore
 import * as THREE from 'three';
 // @ts-ignore
@@ -10,7 +11,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 @Component({
   selector: 'app-stl-viewer',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   template: `
     <div class="stl-viewer-wrapper" [class.fullscreen]="isFullscreen()">
       <div class="stl-viewer-container">
@@ -44,7 +45,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
         }
         @if (error()) {
           <div class="stl-error" role="alert">
-            <p>⚠️ {{ error() }}</p>
+            <p><app-icon name="warning" [size]="16" /> {{ error() }}</p>
             <a [href]="stlUrl" target="_blank" class="download-fallback">Pobierz plik</a>
           </div>
         }

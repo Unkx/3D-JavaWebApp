@@ -41,7 +41,7 @@
     <!-- Server error -->
     @if (serverError()) {
       <div class="alert alert--error" role="alert" aria-live="assertive">
-        ⚠️ {{ serverError() }}
+        <app-icon name="warning" [size]="16" /> {{ serverError() }}
       </div>
     }
 

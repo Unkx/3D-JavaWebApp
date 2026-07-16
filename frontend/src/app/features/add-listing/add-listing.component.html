@@ -1,7 +1,7 @@
 <div class="page">
   <header class="page__header">
     <a routerLink="/zlecenia" class="back-link">
-      <span aria-hidden="true">← </span>Wróć do zleceń
+      <app-icon name="arrow-left" [size]="16" /> Wróć do zleceń
     </a>
     <h1 class="page__title">Dodaj zlecenie druku</h1>
     <p class="page__subtitle">Opisz co chcesz wydrukować, a drukarze złożą Ci oferty.</p>
@@ -9,7 +9,7 @@
 
   @if (success()) {
     <div class="alert alert--success" role="alert" aria-live="polite">
-      <span class="alert__icon" aria-hidden="true">✅</span>
+      <span class="alert__icon"><app-icon name="check-circle" [size]="20" /></span>
       <div>
         <strong>Zlecenie dodane!</strong>
         <p>Za chwilę zostaniesz przekierowany do listy zleceń...</p>
@@ -19,7 +19,7 @@
 
   @if (serverError()) {
     <div class="alert alert--error" role="alert" aria-live="polite">
-      <span class="alert__icon" aria-hidden="true">❌</span>
+      <span class="alert__icon"><app-icon name="x-circle" [size]="20" /></span>
       <p>{{ serverError() }}</p>
     </div>
   }
@@ -110,7 +110,7 @@
     <!-- Wycena AI -->
     <div class="estimator" aria-label="Wycena AI kosztu druku">
       <div class="estimator__header">
-        <span aria-hidden="true">⚡</span>
+        <app-icon name="zap" [size]="16" />
         <span class="estimator__title">Wycena AI</span>
         <span class="estimator__subtitle">dla materiału: <strong>{{ materialCtrl.value }}</strong></span>
       </div>
@@ -167,7 +167,7 @@
 
       @if (priceEstimate(); as est) {
         <div class="estimator__result">
-          <span class="estimator__result-label"><span aria-hidden="true">⚡</span> SZACUNKOWY KOSZT</span>
+          <span class="estimator__result-label"><app-icon name="zap" [size]="16" /> SZACUNKOWY KOSZT</span>
           <span class="estimator__result-value">{{ est.priceLow }} – {{ est.priceHigh }} zł</span>
         </div>
         <span class="estimator__badge" [class.estimator__badge--ai]="est.aiGenerated">
@@ -229,7 +229,7 @@
         (dragleave)="onDragLeave($event)"
         (drop)="onDropFiles($event)"
       >
-        <span class="upload-zone__icon" aria-hidden="true">📁</span>
+        <span class="upload-zone__icon"><app-icon name="folder" [size]="32" /></span>
         <span class="upload-zone__text">Kliknij lub przeciągnij pliki tutaj</span>
         <span class="upload-zone__hint">.stl, .obj, .jpg, .png — maks. 50 MB / plik</span>
         <input
@@ -246,7 +246,7 @@
         <ul class="file-list" aria-label="Wybrane pliki">
           @for (file of selectedFiles(); track file.name) {
             <li class="file-list__item">
-              <span class="file-list__icon" aria-hidden="true">{{ fileIcon(file) }}</span>
+              <span class="file-list__icon"><app-icon [name]="fileIcon(file)" [size]="16" /></span>
               <span class="file-list__name">{{ file.name }}</span>
               <span class="file-list__size">{{ formatSize(file.size) }}</span>
               <button
@@ -254,7 +254,7 @@
                 class="file-list__remove"
                 (click)="removeFile(file)"
                 [attr.aria-label]="'Usuń ' + file.name"
-              >✕</button>
+              ><app-icon name="x" [size]="14" /></button>
             </li>
           }
         </ul>

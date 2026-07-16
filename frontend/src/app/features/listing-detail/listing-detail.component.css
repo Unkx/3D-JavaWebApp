@@ -164,7 +164,7 @@
   box-sizing: border-box;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
-.field__input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.field__input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--al); }
 .field__input--error { border-color: var(--error-text-bright); }
 .field__input--error:focus { border-color: var(--error-text-bright); box-shadow: 0 0 0 3px rgba(239,68,68,0.15); }
 
@@ -385,7 +385,7 @@
   box-sizing: border-box;
   transition: border-color 0.15s;
 }
-.edit-field__input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.15); }
+.edit-field__input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--al); }
 .edit-field__textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
 .edit-field__select { cursor: pointer; appearance: auto; }
 .edit-field__row { display: flex; }

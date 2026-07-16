@@ -7,7 +7,7 @@
       <p>Ładowanie...</p>
     </div>
   } @else if (error()) {
-    <div class="state-box state-box--error" role="alert">⚠️ {{ error() }}</div>
+    <div class="state-box state-box--error" role="alert"><app-icon name="warning" [size]="16" /> {{ error() }}</div>
   } @else if (profile()) {
     <div class="panel-grid">
 
@@ -22,7 +22,7 @@
           @if (profile()!.bio) {
             <p class="profile-bio">{{ profile()!.bio }}</p>
           }
-          <span class="role-badge role-badge--admin">🔑 Administrator</span>
+          <span class="role-badge role-badge--admin"><app-icon name="key" [size]="14" /> Administrator</span>
           <p class="profile-since">Konto od: <strong>{{ formatDate(profile()!.createdAt) }}</strong></p>
         </div>
       </section>
@@ -97,7 +97,7 @@
 
       <!-- ── Ruch na stronie ── -->
       <section class="card traffic-card" aria-label="Ruch na stronie">
-        <h2 class="card__title">📈 Ruch na stronie (7 dni)</h2>
+        <h2 class="card__title"><app-icon name="trending-up" [size]="16" /> Ruch na stronie (7 dni)</h2>
         @if (trafficLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!traffic()) {
@@ -123,7 +123,7 @@
 
       <!-- ── Przychód ── -->
       <section class="card revenue-card" aria-label="Przychód">
-        <h2 class="card__title">💰 Przychód (7 dni)</h2>
+        <h2 class="card__title"><app-icon name="coin" [size]="16" /> Przychód (7 dni)</h2>
         @if (revenueLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!revenue()) {
@@ -163,8 +163,12 @@
                     <td>{{ u.email }}</td>
                     <td>{{ userDisplayName(u) }}</td>
                     <td>
-                      <span class="role-pill" [class.role-pill--admin]="u.role === 'ADMIN'">
-                        {{ u.role === 'ADMIN' ? '🔑 Admin' : '👤 User' }}
+                      <span class="role-pill" [class.role-pill--admin]="u.role === 'ADMIN'" [attr.aria-label]="'Rola: ' + (u.role === 'ADMIN' ? 'Administrator' : 'Użytkownik')">
+                        @if (u.role === 'ADMIN') {
+                          <app-icon name="key" [size]="14" /> Admin
+                        } @else {
+                          <app-icon name="user" [size]="14" /> User
+                        }
                       </span>
                       @if (u.suspended) {
                         <span class="status-pill status-pill--closed">Zawieszony</span>
@@ -198,7 +202,7 @@
 
       <!-- ── Admin codes ── -->
       <section class="card codes-card" aria-label="Kody administratora">
-        <h2 class="card__title">🔑 Kody administratora</h2>
+        <h2 class="card__title"><app-icon name="key" [size]="16" /> Kody administratora</h2>
         <p class="admin-desc">
           Wygeneruj kod i przekaż go zaufanej osobie. Po wpisaniu kodu jej konto otrzyma
           uprawnienia administratora.
@@ -222,7 +226,7 @@
                 } @else {
                   <span class="code-row__status code-row__status--free">Aktywny</span>
                   <button class="btn btn--ghost btn--sm" (click)="copy(c.code)">
-                    @if (copiedCode() === c.code) { Skopiowano ✓ } @else { Kopiuj }
+                    @if (copiedCode() === c.code) { Skopiowano <app-icon name="check" [size]="14" /> } @else { Kopiuj }
                   </button>
                 }
               </li>
@@ -233,7 +237,7 @@
 
       <!-- ── Dziennik działań administratora ── -->
       <section class="card audit-log-card" aria-label="Dziennik działań administratora">
-        <h2 class="card__title">🗒️ Dziennik działań ({{ auditLog().length }})</h2>
+        <h2 class="card__title"><app-icon name="clipboard-list" [size]="16" /> Dziennik działań ({{ auditLog().length }})</h2>
         @if (auditLogLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (auditLog().length === 0) {
@@ -266,7 +270,7 @@
 
       <!-- ── Oceny ── -->
       <section class="card ratings-card" aria-label="Oceny">
-        <h2 class="card__title">⭐ Oceny ({{ ratings().length }})</h2>
+        <h2 class="card__title"><app-icon name="star" [size]="16" /> Oceny ({{ ratings().length }})</h2>
         @if (ratingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (ratings().length === 0) {
@@ -326,7 +330,7 @@
         @if (editingDetails()) {
           <form class="edit-form" (ngSubmit)="saveDetails()">
             @if (detailsError()) {
-              <div class="alert alert--error" role="alert">⚠️ {{ detailsError() }}</div>
+              <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ detailsError() }}</div>
             }
             <div class="edit-grid edit-grid--3">
               <div class="edit-field">
@@ -396,7 +400,7 @@
         @if (editingAccount()) {
           <form class="edit-form" (ngSubmit)="saveAccount()">
             @if (accountError()) {
-              <div class="alert alert--error" role="alert">⚠️ {{ accountError() }}</div>
+              <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ accountError() }}</div>
             }
             <div class="edit-grid edit-grid--1">
               <div class="edit-field">
@@ -437,7 +441,7 @@
         @if (editingShipping()) {
           <form class="edit-form" (ngSubmit)="saveShipping()">
             @if (shippingError()) {
-              <div class="alert alert--error" role="alert">⚠️ {{ shippingError() }}</div>
+              <div class="alert alert--error" role="alert"><app-icon name="warning" [size]="16" /> {{ shippingError() }}</div>
             }
             <div class="edit-grid edit-grid--3">
               <div class="edit-field edit-field--2">

@@ -4,10 +4,11 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { HttpErrorResponse } from '@angular/common/http';
 import { passwordComplexity } from '../auth/auth.component';
+import { IconComponent } from '../../components/icon.component';
 
 @Component({
   selector: 'app-reset-password',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['../auth/auth.component.css'],
   template: `
@@ -27,7 +28,7 @@ import { passwordComplexity } from '../auth/auth.component';
 
         @if (!token()) {
           <div class="alert alert--error" role="alert">
-            ⚠️ Nieprawidłowy link resetujący.
+            <app-icon name="warning" [size]="16" /> Nieprawidłowy link resetujący.
           </div>
           <p class="form__switch">
             <a routerLink="/logowanie" class="link-btn">Wróć do logowania</a>
@@ -44,7 +45,7 @@ import { passwordComplexity } from '../auth/auth.component';
 
           @if (serverError()) {
             <div class="alert alert--error" role="alert" aria-live="assertive">
-              ⚠️ {{ serverError() }}
+              <app-icon name="warning" [size]="16" /> {{ serverError() }}
             </div>
           }
 

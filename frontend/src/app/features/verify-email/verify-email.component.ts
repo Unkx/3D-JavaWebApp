@@ -1,10 +1,11 @@
 import { Component, ChangeDetectionStrategy, signal, inject, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { IconComponent } from '../../components/icon.component';
 
 @Component({
   selector: 'app-verify-email',
-  imports: [RouterLink],
+  imports: [RouterLink, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrls: ['../auth/auth.component.css'],
   template: `
@@ -33,7 +34,7 @@ import { AuthService } from '../../services/auth.service';
           </p>
         } @else {
           <div class="alert alert--error" role="alert">
-            ⚠️ Link wygasł lub jest nieprawidłowy.
+            <app-icon name="warning" [size]="16" /> Link wygasł lub jest nieprawidłowy.
           </div>
           @if (resendSent()) {
             <div class="alert alert--success" role="status" aria-live="polite">

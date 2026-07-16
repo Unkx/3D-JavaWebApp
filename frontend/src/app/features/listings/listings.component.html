@@ -34,7 +34,7 @@
           class="search-bar__clear"
           aria-label="Wyczyść wyszukiwanie"
           (click)="onSearch('')"
-        >✕</button>
+        ><app-icon name="x" [size]="14" /></button>
       }
     </div>
   </div>
@@ -46,12 +46,12 @@
     </div>
   } @else if (error()) {
     <div class="state-box state-box--error" role="alert">
-      <span class="state-box__icon" aria-hidden="true">⚠️</span>
+      <span class="state-box__icon"><app-icon name="warning" [size]="28" /></span>
       <p>{{ error() }}</p>
     </div>
   } @else if (listings().length === 0) {
     <div class="state-box state-box--empty">
-      <span class="state-box__icon" aria-hidden="true">{{ searchQuery() ? '🔍' : '📭' }}</span>
+      <span class="state-box__icon"><app-icon [name]="searchQuery() ? 'search' : 'inbox'" [size]="28" /></span>
       @if (searchQuery()) {
         <p>Brak wyników dla „{{ searchQuery() }}"</p>
         <button type="button" class="btn btn--secondary" (click)="onSearch('')">Wyczyść wyszukiwanie</button>

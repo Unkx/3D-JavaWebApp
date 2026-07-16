@@ -2,10 +2,11 @@ import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RevealDirective } from '../../directives/reveal.directive';
+import { IconComponent } from '../../components/icon.component';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink, RevealDirective],
+  imports: [RouterLink, RevealDirective, IconComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

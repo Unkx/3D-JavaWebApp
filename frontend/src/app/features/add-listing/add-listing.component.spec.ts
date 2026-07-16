@@ -165,9 +165,9 @@ describe('AddListingComponent', () => {
 
     it('fileIcon() maps image/obj/other extensions', () => {
       const component = createComponent();
-      expect(component.fileIcon(fileOf('a.png'))).toBe('🖼️');
-      expect(component.fileIcon(fileOf('a.obj'))).toBe('📦');
-      expect(component.fileIcon(fileOf('a.stl'))).toBe('📄');
+      expect(component.fileIcon(fileOf('a.png'))).toBe('image');
+      expect(component.fileIcon(fileOf('a.obj'))).toBe('package');
+      expect(component.fileIcon(fileOf('a.stl'))).toBe('file');
     });
 
     it('formatSize() formats bytes as KB below 1MB and MB above', () => {

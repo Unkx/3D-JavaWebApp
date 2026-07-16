@@ -6,6 +6,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RatingService, UserRatings } from '../../services/rating.service';
+import { IconComponent, IconName } from '../../components/icon.component';
 
 interface UserProfile {
   id: string;
@@ -28,7 +29,7 @@ interface UserProfile {
 
 @Component({
   selector: 'app-user-panel',
-  imports: [RouterLink, FormsModule, DecimalPipe],
+  imports: [RouterLink, FormsModule, DecimalPipe, IconComponent],
   templateUrl: './user-panel.component.html',
   styleUrl: './user-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -223,6 +224,9 @@ export class UserPanelComponent implements OnInit {
     return `${d}.${m}.${y}`;
   }
   roleLabel(role: string): string {
-    return role === 'ADMIN' ? '🔑 Administrator' : '👤 Użytkownik';
+    return role === 'ADMIN' ? 'Administrator' : 'Użytkownik';
+  }
+  roleIcon(role: string): IconName {
+    return role === 'ADMIN' ? 'key' : 'user';
   }
 }

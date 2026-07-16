@@ -3,10 +3,11 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ListingService } from '../../services/listing.service';
 import { PriceEstimateService, PriceEstimateResponse } from '../../services/price-estimate.service';
+import { IconComponent, IconName } from '../../components/icon.component';
 
 @Component({
   selector: 'app-add-listing',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, IconComponent],
   templateUrl: './add-listing.component.html',
   styleUrl: './add-listing.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -110,11 +111,11 @@ export class AddListingComponent {
     this.selectedFiles.update(prev => prev.filter(f => f !== file));
   }
 
-  fileIcon(file: File): string {
+  fileIcon(file: File): IconName {
     const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
-    if (['jpg', 'jpeg', 'png'].includes(ext)) return '🖼️';
-    if (ext === 'obj') return '📦';
-    return '📄';
+    if (['jpg', 'jpeg', 'png'].includes(ext)) return 'image';
+    if (ext === 'obj') return 'package';
+    return 'file';
   }
 
   formatSize(bytes: number): string {

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AuthService, AdminCode } from '../../services/auth.service';
+import { IconComponent } from '../../components/icon.component';
 
 interface UserProfile {
   id: string;
@@ -86,7 +87,7 @@ interface AdminRating {
 
 @Component({
   selector: 'app-admin-panel',
-  imports: [FormsModule, DecimalPipe],
+  imports: [FormsModule, DecimalPipe, IconComponent],
   templateUrl: './admin-panel.component.html',
   styleUrl: './admin-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
