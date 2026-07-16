@@ -28,6 +28,9 @@ services:
       # that committed default password (see DataInitializer.java) unless the
       # insecure-secret bypass is set, which we deliberately avoid here.
       ADMIN_PASSWORD: ${TEST_USER_PASSWORD:-e2eAdminPass456}
+      # Local/CI compose stack has no real mail server — accounts registered here
+      # would otherwise be stuck unverified forever. Never set this for a real deployment.
+      AUTO_VERIFY_EMAIL: ${AUTO_VERIFY_EMAIL:-true}
     depends_on:
       db:
         condition: service_healthy

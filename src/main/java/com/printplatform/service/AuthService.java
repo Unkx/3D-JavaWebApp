@@ -11,6 +11,7 @@ import com.printplatform.repository.UserRepository;
 import com.printplatform.security.FacebookAuthClient;
 import com.printplatform.security.GoogleAuthClient;
 import com.printplatform.security.JwtService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,10 @@ public class AuthService {
     private final FacebookAuthClient facebookAuthClient;
     private final GoogleAuthClient googleAuthClient;
     private final EmailVerificationService emailVerificationService;
+
+    /** Escape hatch for local dev and e2e tests only. Never enable in a real environment. */
+    @Value("${app.security.auto-verify-email:false}")
+    private boolean autoVerifyEmail;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
@@ -57,8 +62,15 @@ public class AuthService {
             adminService.applyCodeToNewUser(request.getAdminCode(), user);
         }
 
+        if (autoVerifyEmail) {
+            user.setEmailVerified(true);
+        }
+
         userRepository.save(user);
-        emailVerificationService.issueAndSendToken(user);
+
+        if (!autoVerifyEmail) {
+            emailVerificationService.issueAndSendToken(user);
+        }
     }
 
     public AuthResponse login(LoginRequest request) {
