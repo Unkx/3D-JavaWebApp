@@ -80,6 +80,7 @@ export class UserPanelComponent implements OnInit {
   publicSelf = signal<UserPublicProfile | null>(null);
   avatarUploading = signal(false);
   avatarError = signal<string | null>(null);
+  avatarLoadFailed = signal(false);
 
   // --- Privacy ---
   editingPrivacy = signal(false);
@@ -262,6 +263,9 @@ export class UserPanelComponent implements OnInit {
   }
   avatarUrl(id: string): string {
     return this.userService.avatarUrl(id);
+  }
+  onAvatarError(): void {
+    this.avatarLoadFailed.set(true);
   }
 
   // --- Privacy ---

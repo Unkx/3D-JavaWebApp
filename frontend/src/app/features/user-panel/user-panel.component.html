@@ -29,10 +29,10 @@
 
       <section class="card avatar-card" aria-label="Awatar">
         <h2 class="card__title">Awatar</h2>
-        @if (publicSelf()?.hasAvatarData) {
-          <img [src]="avatarUrl(profile()!.id)" [alt]="displayName(profile()!)" class="avatar-card__preview" />
-        } @else if (publicSelf()?.avatarUrl) {
-          <img [src]="publicSelf()!.avatarUrl!" [alt]="displayName(profile()!)" class="avatar-card__preview" />
+        @if (!avatarLoadFailed() && publicSelf()?.hasAvatarData) {
+          <img [src]="avatarUrl(profile()!.id)" [alt]="displayName(profile()!)" class="avatar-card__preview" (error)="onAvatarError()" />
+        } @else if (!avatarLoadFailed() && publicSelf()?.avatarUrl) {
+          <img [src]="publicSelf()!.avatarUrl!" [alt]="displayName(profile()!)" class="avatar-card__preview" (error)="onAvatarError()" />
         } @else {
           <div class="avatar-card__preview avatar-card__preview--placeholder" aria-hidden="true">{{ avatarChar(profile()!) }}</div>
         }

@@ -11,8 +11,8 @@
 } @else if (profile(); as p) {
   <section class="profile-header card" aria-label="Profil użytkownika">
     <div class="profile-header__avatar">
-      @if (avatarUrl(p); as url) {
-        <img [src]="url" [alt]="p.displayName" class="profile-header__avatar-img" />
+      @if (!avatarLoadFailed() && avatarUrl(p); as url) {
+        <img [src]="url" [alt]="p.displayName" class="profile-header__avatar-img" (error)="onAvatarError()" />
       } @else {
         <div class="profile-header__avatar-placeholder" aria-hidden="true">{{ avatarChar(p) }}</div>
       }

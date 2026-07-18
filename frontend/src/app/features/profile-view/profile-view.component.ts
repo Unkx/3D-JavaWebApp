@@ -35,6 +35,7 @@ export class ProfileViewComponent implements OnInit {
   listingsLoading = signal(false);
 
   activeTab = signal<ProfileTab>('listings');
+  avatarLoadFailed = signal(false);
 
   ngOnInit(): void {
     this.loadProfile();
@@ -83,6 +84,10 @@ export class ProfileViewComponent implements OnInit {
 
   avatarChar(p: UserPublicProfile): string {
     return p.displayName.charAt(0).toUpperCase();
+  }
+
+  onAvatarError(): void {
+    this.avatarLoadFailed.set(true);
   }
 
   formatDate(iso: string): string {
