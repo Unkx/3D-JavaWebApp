@@ -98,4 +98,79 @@ class UserControllerTest extends AbstractControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isForbidden());
     }
+
+    @Test
+    void getPublicProfile_existingUser_returns200WithoutEmail() throws Exception {
+        User user = persistUser();
+        user.setFirstName("Jan");
+        user.setLastName("Kowalski");
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/public-profile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.displayName").value("Jan K."))
+                .andExpect(jsonPath("$.email").doesNotExist())
+                .andExpect(jsonPath("$.hasAvatarData").value(false))
+                .andExpect(jsonPath("$.avatarUrl").doesNotExist());
+    }
+
+    @Test
+    void getPublicProfile_unknownId_returns404() throws Exception {
+        mockMvc.perform(get("/api/users/" + java.util.UUID.randomUUID() + "/public-profile"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getPublicProfile_suspendedUser_returns404() throws Exception {
+        User user = persistUser();
+        user.setSuspended(true);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/public-profile"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getPublicProfile_showCityFalse_omitsCity() throws Exception {
+        User user = persistUser();
+        user.setCity("Warszawa");
+        user.setShowCity(false);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/public-profile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.city").doesNotExist());
+    }
+
+    @Test
+    void getPublicProfile_showCityTrue_includesCity() throws Exception {
+        User user = persistUser();
+        user.setCity("Warszawa");
+        user.setShowCity(true);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/public-profile"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.city").value("Warszawa"));
+    }
+
+    @Test
+    void getAvatar_noAvatarSet_returns404() throws Exception {
+        User user = persistUser();
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/avatar"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getAvatar_avatarSet_returnsBytesWithContentType() throws Exception {
+        User user = persistUser();
+        user.setAvatarData(new byte[]{1, 2, 3, 4});
+        user.setAvatarContentType("image/png");
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/avatar"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Content-Type", "image/png"));
+    }
 }

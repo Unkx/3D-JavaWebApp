@@ -3,18 +3,25 @@ package com.printplatform.controller;
 import com.printplatform.dto.UpdateProfileRequest;
 import com.printplatform.dto.UpdateShippingRequest;
 import com.printplatform.dto.UserProfileDto;
+import com.printplatform.dto.UserPublicProfileDto;
+import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.UserRepository;
+import com.printplatform.service.UserDisplayNameService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -23,12 +30,14 @@ public class UserController {
     private final ListingRepository listingRepository;
     private final OfferRepository offerRepository;
     private final UserRepository userRepository;
+    private final UserDisplayNameService userDisplayNameService;
 
     public UserController(ListingRepository listingRepository, OfferRepository offerRepository,
-                          UserRepository userRepository) {
+                          UserRepository userRepository, UserDisplayNameService userDisplayNameService) {
         this.listingRepository = listingRepository;
         this.offerRepository = offerRepository;
         this.userRepository = userRepository;
+        this.userDisplayNameService = userDisplayNameService;
     }
 
     @GetMapping("/me")
@@ -58,6 +67,48 @@ public class UserController {
         user.setPostalCode(trimOrNull(req.getPostalCode()));
         userRepository.save(user);
         return toDto(user);
+    }
+
+    @GetMapping("/{id}/public-profile")
+    public UserPublicProfileDto getPublicProfile(@PathVariable UUID id) {
+        User user = userRepository.findById(id)
+                .filter(u -> !u.isSuspended())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie istnieje"));
+        return toPublicProfileDto(user);
+    }
+
+    @GetMapping("/{id}/avatar")
+    public ResponseEntity<byte[]> getAvatar(@PathVariable UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie istnieje"));
+        if (user.getAvatarData() == null || user.getAvatarData().length == 0) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Brak awatara");
+        }
+        String contentType = user.getAvatarContentType() != null ? user.getAvatarContentType() : "application/octet-stream";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_TYPE, contentType)
+                .header("X-Content-Type-Options", "nosniff")
+                .body(user.getAvatarData());
+    }
+
+    private UserPublicProfileDto toPublicProfileDto(User user) {
+        long activeListingsCount = listingRepository.findByUserId(user.getId()).stream()
+                .filter(l -> l.getStatus() == com.printplatform.model.ListingStatus.OPEN
+                        && l.getModerationStatus() == com.printplatform.model.ListingModerationStatus.VISIBLE)
+                .count();
+        return new UserPublicProfileDto(
+                user.getId().toString(),
+                userDisplayNameService.resolve(user),
+                user.isShowCity() ? user.getCity() : null,
+                user.isEmailVerified(),
+                user.getGoogleId() != null,
+                user.getFacebookId() != null,
+                user.getCreatedAt(),
+                user.getLastLoginAt(),
+                user.getAvatarData() != null && user.getAvatarData().length > 0,
+                user.getAvatarUrl(),
+                activeListingsCount
+        );
     }
 
     private UserProfileDto toDto(User user) {
