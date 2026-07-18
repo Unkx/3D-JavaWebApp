@@ -29,7 +29,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.atLeastOnce;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -313,7 +312,7 @@ class AuthServiceTest {
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getEmail()).isEqualTo("newfb@example.com");
-        verify(userRepository, atLeastOnce()).save(argThat((User u) ->
+        verify(userRepository, times(2)).save(argThat((User u) ->
                 u.getEmail().equals("newfb@example.com")
                         && "fb123".equals(u.getFacebookId())
                         && u.getPassword() == null
@@ -340,7 +339,7 @@ class AuthServiceTest {
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(existing.getFacebookId()).isEqualTo("fb456");
-        verify(userRepository, atLeastOnce()).save(existing);
+        verify(userRepository, times(2)).save(existing);
     }
 
     @Test
@@ -401,7 +400,7 @@ class AuthServiceTest {
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getEmail()).isEqualTo("newgoogle@example.com");
-        verify(userRepository, atLeastOnce()).save(argThat((User u) ->
+        verify(userRepository, times(2)).save(argThat((User u) ->
                 u.getEmail().equals("newgoogle@example.com")
                         && "google123".equals(u.getGoogleId())
                         && u.getPassword() == null
