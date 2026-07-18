@@ -157,6 +157,12 @@
   border-radius: 8px;
 }
 
+.review-row__rater {
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
 .review-row__stars { font-size: 0.95rem; color: var(--accent); letter-spacing: 0.05em; }
 
 .review-row__comment {
