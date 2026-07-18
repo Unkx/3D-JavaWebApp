@@ -78,9 +78,8 @@ class RatingServiceTest {
             }
             return r;
         });
-        lenient().when(userRepository.findById(buyer.getId())).thenReturn(Optional.of(buyer));
-        lenient().when(userRepository.findById(seller.getId())).thenReturn(Optional.of(seller));
-        lenient().when(userDisplayNameService.resolve(any(User.class))).thenReturn("Jan K.");
+        when(userRepository.findById(buyer.getId())).thenReturn(Optional.of(buyer));
+        when(userDisplayNameService.resolve(any(User.class))).thenReturn("Jan K.");
 
         RatingDto dto = ratingService.createRating(buyer, offer.getId(), 5, "Świetna robota!");
 
@@ -111,9 +110,8 @@ class RatingServiceTest {
             }
             return r;
         });
-        lenient().when(userRepository.findById(buyer.getId())).thenReturn(Optional.of(buyer));
-        lenient().when(userRepository.findById(seller.getId())).thenReturn(Optional.of(seller));
-        lenient().when(userDisplayNameService.resolve(any(User.class))).thenReturn("Jan K.");
+        when(userRepository.findById(seller.getId())).thenReturn(Optional.of(seller));
+        when(userDisplayNameService.resolve(any(User.class))).thenReturn("Jan K.");
 
         ratingService.createRating(seller, offer.getId(), 4, null);
 
@@ -204,7 +202,6 @@ class RatingServiceTest {
                 eq(ratedUserId), eq(RatingModerationStatus.VISIBLE), any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(page);
         when(userRepository.findAllById(any())).thenReturn(java.util.List.of());
-        lenient().when(userDisplayNameService.resolve(any(User.class))).thenReturn("Użytkownik");
 
         UserRatingsDto result = ratingService.getUserRatings(ratedUserId, 0, 20);
 
