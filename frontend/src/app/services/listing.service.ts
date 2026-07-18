@@ -12,7 +12,7 @@ export interface Listing {
   stlFileName?: string;
   status?: string;
   createdAt?: string;
-  user?: { id: string };
+  user?: { id: string; firstName?: string | null; lastName?: string | null };
   estimatorSize?: string;
   estimatorQuality?: string;
   previewImageUrl?: string;
@@ -54,6 +54,10 @@ export class ListingService {
     const q = search.trim();
     const params = q ? `page=${page}&size=${size}&search=${encodeURIComponent(q)}` : `page=${page}&size=${size}`;
     return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?${params}`);
+  }
+
+  getListingsByUser(userId: string, page = 0, size = 12): Observable<PageResponse<Listing>> {
+    return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?userId=${userId}&page=${page}&size=${size}`);
   }
 
   getListing(id: string): Observable<Listing> {
