@@ -26,6 +26,8 @@ interface UserProfile {
   houseNumber: string | null;
   city: string | null;
   postalCode: string | null;
+  showCity: boolean;
+  showRealName: boolean;
 }
 
 @Component({
@@ -97,7 +99,12 @@ export class UserPanelComponent implements OnInit {
   private loadProfile(): void {
     this.loading.set(true);
     this.http.get<UserProfile>('/api/users/me').subscribe({
-      next: p => { this.profile.set(p); this.loading.set(false); this.loadRatings(p.id); },
+      next: p => {
+        this.profile.set(p);
+        this.loading.set(false);
+        this.loadRatings(p.id);
+        this.userService.getPublicProfile(p.id).subscribe({ next: ps => this.publicSelf.set(ps), error: () => {} });
+      },
       error: () => { this.error.set('Nie udało się załadować profilu.'); this.loading.set(false); }
     });
   }
@@ -234,9 +241,13 @@ export class UserPanelComponent implements OnInit {
   }
   deleteAvatar(): void {
     this.avatarUploading.set(true);
+    this.avatarError.set(null);
     this.userService.deleteAvatar().subscribe({
       next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
-      error: () => this.avatarUploading.set(false)
+      error: (err: HttpErrorResponse) => {
+        this.avatarUploading.set(false);
+        this.avatarError.set(err.error?.message ?? 'Nie udało się usunąć awatara.');
+      }
     });
   }
   importGoogleAvatar(): void {
@@ -255,8 +266,9 @@ export class UserPanelComponent implements OnInit {
 
   // --- Privacy ---
   startEditPrivacy(): void {
-    this.editShowCity.set(false);
-    this.editShowRealName.set(true);
+    const p = this.profile()!;
+    this.editShowCity.set(p.showCity);
+    this.editShowRealName.set(p.showRealName);
     this.privacyError.set(null);
     this.editingPrivacy.set(true);
   }

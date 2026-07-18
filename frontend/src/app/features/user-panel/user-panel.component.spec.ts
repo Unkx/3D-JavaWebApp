@@ -32,10 +32,12 @@ describe('UserPanelComponent', () => {
     const fixture = TestBed.createComponent(UserPanelComponent);
     fixture.detectChanges();
 
-    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null });
+    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null, showCity: false, showRealName: true });
 
     const req = httpMock.expectOne(req => req.url.startsWith('/api/users/u1/ratings'));
     req.flush({ summary: { averageStars: 4.5, count: 2 }, ratings: { content: [], page: 0, size: 20, totalElements: 2, totalPages: 1, last: true } });
+
+    httpMock.expectOne(req => req.url.startsWith('/api/users/u1/public-profile')).flush({ id: 'u1', displayName: 'a@test.local', city: null, emailVerified: true, hasGoogleAuth: false, hasFacebookAuth: false, createdAt: '2026-01-01', lastLoginAt: null, hasAvatarData: false, avatarUrl: null, activeListingsCount: 0 });
 
     expect(fixture.componentInstance.ratings()?.summary.averageStars).toBe(4.5);
   });
@@ -44,8 +46,9 @@ describe('UserPanelComponent', () => {
     const fixture = TestBed.createComponent(UserPanelComponent);
     fixture.detectChanges();
 
-    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null });
+    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null, showCity: false, showRealName: true });
     httpMock.expectOne(req => req.url.startsWith('/api/users/u1/ratings')).flush({ summary: { averageStars: null, count: 0 }, ratings: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true } });
+    httpMock.expectOne(req => req.url.startsWith('/api/users/u1/public-profile')).flush({ id: 'u1', displayName: 'a@test.local', city: null, emailVerified: true, hasGoogleAuth: false, hasFacebookAuth: false, createdAt: '2026-01-01', lastLoginAt: null, hasAvatarData: false, avatarUrl: null, activeListingsCount: 0 });
 
     const file = new File(['x'], 'avatar.png', { type: 'image/png' });
     fixture.componentInstance.uploadAvatar(file);
@@ -60,8 +63,9 @@ describe('UserPanelComponent', () => {
     const fixture = TestBed.createComponent(UserPanelComponent);
     fixture.detectChanges();
 
-    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null });
+    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null, showCity: false, showRealName: true });
     httpMock.expectOne(req => req.url.startsWith('/api/users/u1/ratings')).flush({ summary: { averageStars: null, count: 0 }, ratings: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true } });
+    httpMock.expectOne(req => req.url.startsWith('/api/users/u1/public-profile')).flush({ id: 'u1', displayName: 'a@test.local', city: null, emailVerified: true, hasGoogleAuth: false, hasFacebookAuth: false, createdAt: '2026-01-01', lastLoginAt: null, hasAvatarData: false, avatarUrl: null, activeListingsCount: 0 });
 
     fixture.componentInstance.startEditPrivacy();
     fixture.componentInstance.editShowCity.set(true);

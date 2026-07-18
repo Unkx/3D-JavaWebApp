@@ -19,12 +19,15 @@ public class UserProfileDto {
     private String houseNumber;
     private String city;
     private String postalCode;
+    private boolean showCity;
+    private boolean showRealName;
 
     public UserProfileDto(String id, String email, String role, LocalDateTime createdAt,
                           long listingsCount, long offersCount,
                           String firstName, String lastName, String phone,
                           String gender, String bio, String dateOfBirth,
-                          String street, String houseNumber, String city, String postalCode) {
+                          String street, String houseNumber, String city, String postalCode,
+                          boolean showCity, boolean showRealName) {
         this.id = id;
         this.email = email;
         this.role = role;
@@ -41,6 +44,8 @@ public class UserProfileDto {
         this.houseNumber = houseNumber;
         this.city = city;
         this.postalCode = postalCode;
+        this.showCity = showCity;
+        this.showRealName = showRealName;
     }
 
     public String getId()            { return id; }
@@ -59,4 +64,6 @@ public class UserProfileDto {
     public String getHouseNumber()   { return houseNumber; }
     public String getCity()          { return city; }
     public String getPostalCode()    { return postalCode; }
+    public boolean isShowCity()      { return showCity; }
+    public boolean isShowRealName()  { return showRealName; }
 }

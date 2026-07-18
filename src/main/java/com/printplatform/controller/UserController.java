@@ -209,7 +209,9 @@ public class UserController {
                 user.getStreet(),
                 user.getHouseNumber(),
                 user.getCity(),
-                user.getPostalCode()
+                user.getPostalCode(),
+                user.isShowCity(),
+                user.isShowRealName()
         );
     }
 
