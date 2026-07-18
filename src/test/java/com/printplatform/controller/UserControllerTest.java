@@ -173,4 +173,16 @@ class UserControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Content-Type", "image/png"));
     }
+
+    @Test
+    void getAvatar_suspendedUser_returns404() throws Exception {
+        User user = persistUser();
+        user.setAvatarData(new byte[]{1, 2, 3, 4});
+        user.setAvatarContentType("image/png");
+        user.setSuspended(true);
+        userRepository.save(user);
+
+        mockMvc.perform(get("/api/users/" + user.getId() + "/avatar"))
+                .andExpect(status().isNotFound());
+    }
 }

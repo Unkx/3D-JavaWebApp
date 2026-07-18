@@ -4,7 +4,6 @@ import com.printplatform.dto.UpdateProfileRequest;
 import com.printplatform.dto.UpdateShippingRequest;
 import com.printplatform.dto.UserProfileDto;
 import com.printplatform.dto.UserPublicProfileDto;
-import com.printplatform.model.Role;
 import com.printplatform.model.User;
 import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
@@ -80,6 +79,7 @@ public class UserController {
     @GetMapping("/{id}/avatar")
     public ResponseEntity<byte[]> getAvatar(@PathVariable UUID id) {
         User user = userRepository.findById(id)
+                .filter(u -> !u.isSuspended())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Użytkownik nie istnieje"));
         if (user.getAvatarData() == null || user.getAvatarData().length == 0) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Brak awatara");
