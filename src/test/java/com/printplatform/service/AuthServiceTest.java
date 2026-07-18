@@ -368,7 +368,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google123", "newgoogle@example.com", "Anna", "Nowak");
+                new GoogleAuthClient.GoogleProfile("google123", "newgoogle@example.com", "Anna", "Nowak", "https://google.example/pic123.jpg");
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
         when(userRepository.findByGoogleId("google123")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("newgoogle@example.com")).thenReturn(Optional.empty());
@@ -398,7 +398,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google456", "repeat@example.com", "Piotr", "Zielinski");
+                new GoogleAuthClient.GoogleProfile("google456", "repeat@example.com", "Piotr", "Zielinski", "https://google.example/pic456.jpg");
         User existing = buildUser("repeat@example.com", null, Role.USER);
         existing.setGoogleId("google456");
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
@@ -417,7 +417,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google789", "existing@example.com", "Ola", "Kowal");
+                new GoogleAuthClient.GoogleProfile("google789", "existing@example.com", "Ola", "Kowal", null);
         User existingPasswordUser = buildUser("existing@example.com", "encoded-secret", Role.USER);
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
         when(userRepository.findByGoogleId("google789")).thenReturn(Optional.empty());
@@ -437,7 +437,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google999", "fbuser@example.com", "Tom", "Nowicki");
+                new GoogleAuthClient.GoogleProfile("google999", "fbuser@example.com", "Tom", "Nowicki", null);
         User existingFacebookUser = buildUser("fbuser@example.com", null, Role.USER);
         existingFacebookUser.setFacebookId("fb-existing-1");
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);

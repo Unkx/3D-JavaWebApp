@@ -21,7 +21,7 @@ public class GoogleAuthClient {
 
     private GoogleIdTokenVerifier verifier;
 
-    public record GoogleProfile(String googleId, String email, String firstName, String lastName) {}
+    public record GoogleProfile(String googleId, String email, String firstName, String lastName, String picture) {}
 
     public GoogleProfile verify(String idTokenString) {
         GoogleIdToken idToken;
@@ -42,7 +42,8 @@ public class GoogleAuthClient {
 
         String firstName = (String) payload.get("given_name");
         String lastName = (String) payload.get("family_name");
-        return new GoogleProfile(payload.getSubject(), payload.getEmail(), firstName, lastName);
+        String picture = (String) payload.get("picture");
+        return new GoogleProfile(payload.getSubject(), payload.getEmail(), firstName, lastName, picture);
     }
 
     private GoogleIdTokenVerifier getVerifier() {

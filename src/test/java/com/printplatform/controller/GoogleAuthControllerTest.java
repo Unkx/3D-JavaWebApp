@@ -34,7 +34,7 @@ class GoogleAuthControllerTest extends AbstractControllerTest {
     void loginWithGoogle_newUser_returns200AndCreatesUser() throws Exception {
         String email = "gnew-" + UUID.randomUUID() + "@test.local";
         when(googleAuthClient.verify(anyString()))
-                .thenReturn(new GoogleAuthClient.GoogleProfile("google-" + UUID.randomUUID(), email, "Jan", "Kowalski"));
+                .thenReturn(new GoogleAuthClient.GoogleProfile("google-" + UUID.randomUUID(), email, "Jan", "Kowalski", null));
 
         mockMvc.perform(post("/api/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -50,7 +50,7 @@ class GoogleAuthControllerTest extends AbstractControllerTest {
     void loginWithGoogle_emailAlreadyExists_returns409() throws Exception {
         User existing = persistUser();
         when(googleAuthClient.verify(anyString()))
-                .thenReturn(new GoogleAuthClient.GoogleProfile("google-" + UUID.randomUUID(), existing.getEmail(), "Anna", "Nowak"));
+                .thenReturn(new GoogleAuthClient.GoogleProfile("google-" + UUID.randomUUID(), existing.getEmail(), "Anna", "Nowak", null));
 
         mockMvc.perform(post("/api/auth/google")
                         .contentType(MediaType.APPLICATION_JSON)
