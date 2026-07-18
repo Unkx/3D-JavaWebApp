@@ -84,7 +84,7 @@
   flex-shrink: 0;
 }
 
-.conv-item__email { font-size: 0.8125rem; color: var(--tm); }
+.conv-item__email { font-size: 0.8125rem; color: var(--ts); }
 .conv-item__preview {
   font-size: 0.8125rem;
   color: var(--ts);
@@ -95,7 +95,7 @@
 .conv-item__time {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  color: var(--tm);
+  color: var(--ts);
 }
 
 /* ===== CHAT HEADER ===== */
@@ -160,7 +160,7 @@
   align-items: center;
   justify-content: center;
   flex: 1;
-  color: var(--tm);
+  color: var(--ts);
   font-size: 0.9375rem;
 }
 
@@ -175,7 +175,7 @@
 
 .chat-view__no-messages {
   text-align: center;
-  color: var(--tm);
+  color: var(--ts);
   margin: auto;
   font-size: 0.875rem;
 }
@@ -212,7 +212,7 @@
 
 .bubble__sender {
   font-size: 0.6875rem;
-  color: var(--tm);
+  color: var(--ts);
 }
 .bubble--own .bubble__sender { display: none; }
 
@@ -226,7 +226,7 @@
 .bubble__time {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  color: var(--tm);
+  color: var(--ts);
   align-self: flex-end;
 }
 
@@ -255,7 +255,7 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--al);
 }
-.chat-input__field::placeholder { color: var(--tm); }
+.chat-input__field::placeholder { color: var(--ts); }
 
 .chat-input__send {
   flex-shrink: 0;
@@ -292,7 +292,7 @@
   text-align: center;
   color: var(--ts);
 }
-.state-box--empty { color: var(--tm); }
+.state-box--empty { color: var(--ts); }
 
 .spinner {
   width: 28px; height: 28px;

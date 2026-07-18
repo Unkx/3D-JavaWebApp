@@ -81,7 +81,7 @@
   margin: 0 0 0.875rem;
 }
 
-.calc-tag { color: var(--tm); font-weight: 500; text-transform: none; letter-spacing: 0; }
+.calc-tag { color: var(--ts); font-weight: 500; text-transform: none; letter-spacing: 0; }
 
 /* ========== ROWS / FIELDS ========== */
 .calc-row {
