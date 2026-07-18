@@ -38,6 +38,7 @@ export const routes: Routes = [
   },
   { path: 'reset-password', loadComponent: () => import('./features/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
   { path: 'verify-email', loadComponent: () => import('./features/verify-email/verify-email.component').then(m => m.VerifyEmailComponent) },
+  { path: 'uzytkownik/:id', loadComponent: () => import('./features/profile-view/profile-view.component').then(m => m.ProfileViewComponent) },
   {
     path: '**',
     data: { fullscreen: true },
