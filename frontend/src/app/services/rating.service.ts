@@ -6,6 +6,7 @@ export interface Rating {
   id: string;
   offerId: string;
   raterId: string;
+  raterDisplayName: string;
   ratedUserId: string;
   stars: number;
   comment: string | null;
