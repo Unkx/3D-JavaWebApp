@@ -87,6 +87,7 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
                     "Potwierdź adres email, aby się zalogować. Sprawdź swoją skrzynkę pocztową.");
         }
+        touchLogin(user);
         return toResponse(user);
     }
 
@@ -106,6 +107,7 @@ public class AuthService {
                         .map(existing -> linkFacebookId(existing, profile.facebookId()))
                         .orElseGet(() -> createFacebookUser(profile)));
 
+        touchLogin(user);
         return toResponse(user);
     }
 
@@ -123,12 +125,36 @@ public class AuthService {
                     return createGoogleUser(profile);
                 });
 
+        applyGoogleLogin(user, profile.picture());
         return toResponse(user);
     }
 
     private User linkFacebookId(User user, String facebookId) {
         user.setFacebookId(facebookId);
         return userRepository.save(user);
+    }
+
+    /** Records that a login happened; used for password and Facebook logins, which have no avatar signal. */
+    private void touchLogin(User user) {
+        user.setLastLoginAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    /**
+     * Records the login and caches Google's current profile picture URL. If the user has never
+     * had any avatar (no upload, no prior import) and hasn't explicitly opted out via a delete,
+     * auto-imports it as the active avatar — but only once; a later manual upload or deletion
+     * sets avatarImportSkipped so this never silently overwrites the user's choice again.
+     */
+    private void applyGoogleLogin(User user, String picture) {
+        user.setGoogleAvatarUrl(picture);
+        boolean neverHadAnAvatar = user.getAvatarData() == null && user.getAvatarUrl() == null;
+        if (!user.isAvatarImportSkipped() && neverHadAnAvatar && picture != null) {
+            user.setAvatarUrl(picture);
+            user.setAvatarImportSkipped(true);
+        }
+        user.setLastLoginAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
     }
 
     private User createFacebookUser(FacebookAuthClient.FacebookProfile profile) {
