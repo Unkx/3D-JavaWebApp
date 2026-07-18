@@ -6,6 +6,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RatingService, UserRatings } from '../../services/rating.service';
+import { UserService, UpdatePrivacyPayload, UserPublicProfile } from '../../services/user.service';
 import { IconComponent, IconName } from '../../components/icon.component';
 
 interface UserProfile {
@@ -38,6 +39,7 @@ export class UserPanelComponent implements OnInit {
   private http          = inject(HttpClient);
   private router        = inject(Router);
   private ratingService = inject(RatingService);
+  private userService = inject(UserService);
   auth = inject(AuthService);
 
   profile = signal<UserProfile | null>(null);
@@ -71,6 +73,18 @@ export class UserPanelComponent implements OnInit {
   editHouseNumber = signal('');
   editCity        = signal('');
   editPostalCode  = signal('');
+
+  // --- Avatar ---
+  publicSelf = signal<UserPublicProfile | null>(null);
+  avatarUploading = signal(false);
+  avatarError = signal<string | null>(null);
+
+  // --- Privacy ---
+  editingPrivacy = signal(false);
+  savingPrivacy  = signal(false);
+  privacyError   = signal<string | null>(null);
+  editShowCity      = signal(false);
+  editShowRealName  = signal(true);
 
   // --- Redeem ---
   redeemCode    = signal('');
@@ -196,6 +210,69 @@ export class UserPanelComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.redeeming.set(false);
         this.redeemError.set(err.error?.message ?? 'Nie udało się zrealizować kodu.');
+      }
+    });
+  }
+
+  // --- Avatar ---
+  uploadAvatar(file: File): void {
+    this.avatarUploading.set(true);
+    this.avatarError.set(null);
+    this.userService.uploadAvatar(file).subscribe({
+      next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.avatarUploading.set(false);
+        this.avatarError.set(err.error?.message ?? 'Nie udało się przesłać awatara.');
+      }
+    });
+  }
+  onAvatarFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.uploadAvatar(file);
+    input.value = '';
+  }
+  deleteAvatar(): void {
+    this.avatarUploading.set(true);
+    this.userService.deleteAvatar().subscribe({
+      next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
+      error: () => this.avatarUploading.set(false)
+    });
+  }
+  importGoogleAvatar(): void {
+    this.avatarUploading.set(true);
+    this.userService.importGoogleAvatar().subscribe({
+      next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.avatarUploading.set(false);
+        this.avatarError.set(err.error?.message ?? 'Nie udało się zaimportować zdjęcia z Google.');
+      }
+    });
+  }
+  avatarUrl(id: string): string {
+    return this.userService.avatarUrl(id);
+  }
+
+  // --- Privacy ---
+  startEditPrivacy(): void {
+    this.editShowCity.set(false);
+    this.editShowRealName.set(true);
+    this.privacyError.set(null);
+    this.editingPrivacy.set(true);
+  }
+  cancelEditPrivacy(): void { this.editingPrivacy.set(false); }
+  savePrivacy(): void {
+    this.savingPrivacy.set(true);
+    this.privacyError.set(null);
+    const payload: UpdatePrivacyPayload = {
+      showCity: this.editShowCity(),
+      showRealName: this.editShowRealName()
+    };
+    this.userService.updatePrivacy(payload).subscribe({
+      next: p => { this.publicSelf.set(p); this.savingPrivacy.set(false); this.editingPrivacy.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.savingPrivacy.set(false);
+        this.privacyError.set(err.error?.message ?? 'Nie udało się zapisać ustawień prywatności.');
       }
     });
   }

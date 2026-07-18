@@ -39,4 +39,37 @@ describe('UserPanelComponent', () => {
 
     expect(fixture.componentInstance.ratings()?.summary.averageStars).toBe(4.5);
   });
+
+  it('uploads an avatar and reflects hasAvatarData afterward', () => {
+    const fixture = TestBed.createComponent(UserPanelComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null });
+    httpMock.expectOne(req => req.url.startsWith('/api/users/u1/ratings')).flush({ summary: { averageStars: null, count: 0 }, ratings: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true } });
+
+    const file = new File(['x'], 'avatar.png', { type: 'image/png' });
+    fixture.componentInstance.uploadAvatar(file);
+
+    const req = httpMock.expectOne('/api/users/me/avatar');
+    req.flush({ id: 'u1', displayName: 'Jan', city: null, emailVerified: true, hasGoogleAuth: false, hasFacebookAuth: false, createdAt: '2026-01-01', lastLoginAt: null, hasAvatarData: true, avatarUrl: null, activeListingsCount: 0 });
+
+    expect(fixture.componentInstance.publicSelf()?.hasAvatarData).toBe(true);
+  });
+
+  it('saves privacy toggles', () => {
+    const fixture = TestBed.createComponent(UserPanelComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/users/me').flush({ id: 'u1', email: 'a@test.local', role: 'USER', createdAt: '2026-01-01', listingsCount: 0, offersCount: 0, firstName: null, lastName: null, phone: null, gender: null, bio: null, dateOfBirth: null, street: null, houseNumber: null, city: null, postalCode: null });
+    httpMock.expectOne(req => req.url.startsWith('/api/users/u1/ratings')).flush({ summary: { averageStars: null, count: 0 }, ratings: { content: [], page: 0, size: 20, totalElements: 0, totalPages: 0, last: true } });
+
+    fixture.componentInstance.startEditPrivacy();
+    fixture.componentInstance.editShowCity.set(true);
+    fixture.componentInstance.editShowRealName.set(false);
+    fixture.componentInstance.savePrivacy();
+
+    const req = httpMock.expectOne('/api/users/me/privacy');
+    expect(req.request.body).toEqual({ showCity: true, showRealName: false });
+    req.flush({ id: 'u1', displayName: 'Silent42', city: null, emailVerified: true, hasGoogleAuth: false, hasFacebookAuth: false, createdAt: '2026-01-01', lastLoginAt: null, hasAvatarData: false, avatarUrl: null, activeListingsCount: 0 });
+  });
 });
