@@ -74,13 +74,15 @@ class AdminServiceTest {
     private PaymentRepository paymentRepository;
     @Mock
     private RatingRepository ratingRepository;
+    @Mock
+    private UserDisplayNameService userDisplayNameService;
 
     private AdminService adminService;
 
     @BeforeEach
     void setUp() {
         adminService = new AdminService(codeRepository, userRepository, listingRepository, jwtService,
-                adminAuditService, adminActionRepository, paymentRepository, ratingRepository);
+                adminAuditService, adminActionRepository, paymentRepository, ratingRepository, userDisplayNameService);
     }
 
     private User buildUser(Role role) {

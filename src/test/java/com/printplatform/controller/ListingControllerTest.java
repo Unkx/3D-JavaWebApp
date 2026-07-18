@@ -248,6 +248,20 @@ class ListingControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void getOpenListings_withUserId_returnsOnlyThatUsersOpenVisibleListings() throws Exception {
+        User owner = persistUser();
+        User otherUser = persistUser();
+        Listing ownerOpen = persistListing(owner, ListingStatus.OPEN);
+        persistListing(owner, ListingStatus.CLOSED);
+        persistListing(otherUser, ListingStatus.OPEN);
+
+        mockMvc.perform(get("/api/listings").param("userId", owner.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(ownerOpen.getId().toString()));
+    }
+
+    @Test
     void getOpenListings_excludesHiddenListings() throws Exception {
         User owner = persistUser();
         Listing visible = new Listing();
@@ -287,6 +301,31 @@ class ListingControllerTest extends AbstractControllerTest {
         org.assertj.core.api.Assertions.assertThat(actions.get(0).getActionType()).isEqualTo(AdminActionType.DELETE_LISTING);
         org.assertj.core.api.Assertions.assertThat(actions.get(0).getTargetId()).isEqualTo(saved.getId());
         org.assertj.core.api.Assertions.assertThat(actions.get(0).getAdminEmail()).isEqualTo(admin.getEmail());
+    }
+
+    /**
+     * Regression test for a fixed bug: the privacy toggle (showRealName) was bypassed on
+     * listing pages because Listing.user serialized firstName/lastName directly. Now the
+     * controller resolves sellerDisplayName via UserDisplayNameService (like the profile
+     * page and reviews list already did), and the raw names are excluded from the nested
+     * user object.
+     */
+    @Test
+    void getOpenListings_withNicknameUser_populatesSellerDisplayNameAndHidesRawNames() throws Exception {
+        User owner = persistUser();
+        owner.setFirstName("Aleksandra");
+        owner.setLastName("Nowak");
+        owner.setShowRealName(false);
+        owner = userRepository.save(owner);
+        persistListing(owner, ListingStatus.OPEN);
+
+        mockMvc.perform(get("/api/listings").param("userId", owner.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].sellerDisplayName").exists())
+                .andExpect(jsonPath("$.content[0].sellerDisplayName").value(
+                        org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(owner.getFirstName()))))
+                .andExpect(jsonPath("$.content[0].user.firstName").doesNotExist())
+                .andExpect(jsonPath("$.content[0].user.lastName").doesNotExist());
     }
 
     @Test

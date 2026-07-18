@@ -5,6 +5,7 @@ import com.printplatform.dto.UserRatingsDto;
 import com.printplatform.model.*;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.RatingRepository;
+import com.printplatform.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +30,14 @@ class RatingServiceTest {
 
     @Mock private RatingRepository ratingRepository;
     @Mock private OfferRepository offerRepository;
+    @Mock private UserRepository userRepository;
+    @Mock private UserDisplayNameService userDisplayNameService;
 
     private RatingService ratingService;
 
     @BeforeEach
     void setUp() {
-        ratingService = new RatingService(ratingRepository, offerRepository);
+        ratingService = new RatingService(ratingRepository, offerRepository, userRepository, userDisplayNameService);
     }
 
     private User buildUser() {
@@ -75,6 +78,8 @@ class RatingServiceTest {
             }
             return r;
         });
+        when(userRepository.findById(buyer.getId())).thenReturn(Optional.of(buyer));
+        when(userDisplayNameService.resolve(any(User.class))).thenReturn("Jan K.");
 
         RatingDto dto = ratingService.createRating(buyer, offer.getId(), 5, "Świetna robota!");
 
@@ -105,6 +110,8 @@ class RatingServiceTest {
             }
             return r;
         });
+        when(userRepository.findById(seller.getId())).thenReturn(Optional.of(seller));
+        when(userDisplayNameService.resolve(any(User.class))).thenReturn("Jan K.");
 
         ratingService.createRating(seller, offer.getId(), 4, null);
 
@@ -194,6 +201,7 @@ class RatingServiceTest {
         when(ratingRepository.findByRatedUserIdAndModerationStatus(
                 eq(ratedUserId), eq(RatingModerationStatus.VISIBLE), any(org.springframework.data.domain.Pageable.class)))
                 .thenReturn(page);
+        when(userRepository.findAllById(any())).thenReturn(java.util.List.of());
 
         UserRatingsDto result = ratingService.getUserRatings(ratedUserId, 0, 20);
 
@@ -215,5 +223,31 @@ class RatingServiceTest {
 
         assertThat(result.getSummary().getAverageStars()).isNull();
         assertThat(result.getSummary().getCount()).isZero();
+    }
+
+    @Test
+    void getUserRatings_resolvesRaterDisplayNameForEachRating() {
+        UUID ratedUserId = UUID.randomUUID();
+        User rater = buildUser();
+        Rating rating = new Rating();
+        rating.setId(UUID.randomUUID());
+        rating.setOfferId(UUID.randomUUID());
+        rating.setRaterId(rater.getId());
+        rating.setRatedUserId(ratedUserId);
+        rating.setStars(5);
+
+        when(ratingRepository.findByRatedUserIdAndModerationStatus(ratedUserId, RatingModerationStatus.VISIBLE))
+                .thenReturn(java.util.List.of(rating));
+        org.springframework.data.domain.Page<Rating> page =
+                new org.springframework.data.domain.PageImpl<>(java.util.List.of(rating));
+        when(ratingRepository.findByRatedUserIdAndModerationStatus(
+                eq(ratedUserId), eq(RatingModerationStatus.VISIBLE), any(org.springframework.data.domain.Pageable.class)))
+                .thenReturn(page);
+        when(userRepository.findAllById(any())).thenReturn(java.util.List.of(rater));
+        when(userDisplayNameService.resolve(rater)).thenReturn("Swift42");
+
+        UserRatingsDto result = ratingService.getUserRatings(ratedUserId, 0, 20);
+
+        assertThat(result.getRatings().getContent().get(0).getRaterDisplayName()).isEqualTo("Swift42");
     }
 }

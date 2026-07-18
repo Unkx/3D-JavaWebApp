@@ -336,6 +336,11 @@
 /* Ratings */
 .rating-done { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.875rem; font-weight: 600; color: var(--success-text); }
 
+.order-card__rating-section {
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
 .rating-form {
   display: flex;
   flex-direction: column;

@@ -6,6 +6,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { RatingService, UserRatings } from '../../services/rating.service';
+import { UserService, UpdatePrivacyPayload, UserPublicProfile } from '../../services/user.service';
 import { IconComponent, IconName } from '../../components/icon.component';
 
 interface UserProfile {
@@ -25,6 +26,8 @@ interface UserProfile {
   houseNumber: string | null;
   city: string | null;
   postalCode: string | null;
+  showCity: boolean;
+  showRealName: boolean;
 }
 
 @Component({
@@ -38,6 +41,7 @@ export class UserPanelComponent implements OnInit {
   private http          = inject(HttpClient);
   private router        = inject(Router);
   private ratingService = inject(RatingService);
+  private userService = inject(UserService);
   auth = inject(AuthService);
 
   profile = signal<UserProfile | null>(null);
@@ -72,6 +76,19 @@ export class UserPanelComponent implements OnInit {
   editCity        = signal('');
   editPostalCode  = signal('');
 
+  // --- Avatar ---
+  publicSelf = signal<UserPublicProfile | null>(null);
+  avatarUploading = signal(false);
+  avatarError = signal<string | null>(null);
+  avatarLoadFailed = signal(false);
+
+  // --- Privacy ---
+  editingPrivacy = signal(false);
+  savingPrivacy  = signal(false);
+  privacyError   = signal<string | null>(null);
+  editShowCity      = signal(false);
+  editShowRealName  = signal(true);
+
   // --- Redeem ---
   redeemCode    = signal('');
   redeeming     = signal(false);
@@ -83,7 +100,12 @@ export class UserPanelComponent implements OnInit {
   private loadProfile(): void {
     this.loading.set(true);
     this.http.get<UserProfile>('/api/users/me').subscribe({
-      next: p => { this.profile.set(p); this.loading.set(false); this.loadRatings(p.id); },
+      next: p => {
+        this.profile.set(p);
+        this.loading.set(false);
+        this.loadRatings(p.id);
+        this.userService.getPublicProfile(p.id).subscribe({ next: ps => this.publicSelf.set(ps), error: () => {} });
+      },
       error: () => { this.error.set('Nie udało się załadować profilu.'); this.loading.set(false); }
     });
   }
@@ -196,6 +218,77 @@ export class UserPanelComponent implements OnInit {
       error: (err: HttpErrorResponse) => {
         this.redeeming.set(false);
         this.redeemError.set(err.error?.message ?? 'Nie udało się zrealizować kodu.');
+      }
+    });
+  }
+
+  // --- Avatar ---
+  uploadAvatar(file: File): void {
+    this.avatarUploading.set(true);
+    this.avatarError.set(null);
+    this.userService.uploadAvatar(file).subscribe({
+      next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.avatarUploading.set(false);
+        this.avatarError.set(err.error?.message ?? 'Nie udało się przesłać awatara.');
+      }
+    });
+  }
+  onAvatarFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.uploadAvatar(file);
+    input.value = '';
+  }
+  deleteAvatar(): void {
+    this.avatarUploading.set(true);
+    this.avatarError.set(null);
+    this.userService.deleteAvatar().subscribe({
+      next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.avatarUploading.set(false);
+        this.avatarError.set(err.error?.message ?? 'Nie udało się usunąć awatara.');
+      }
+    });
+  }
+  importGoogleAvatar(): void {
+    this.avatarUploading.set(true);
+    this.userService.importGoogleAvatar().subscribe({
+      next: p => { this.publicSelf.set(p); this.avatarUploading.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.avatarUploading.set(false);
+        this.avatarError.set(err.error?.message ?? 'Nie udało się zaimportować zdjęcia z Google.');
+      }
+    });
+  }
+  avatarUrl(id: string): string {
+    return this.userService.avatarUrl(id);
+  }
+  onAvatarError(): void {
+    this.avatarLoadFailed.set(true);
+  }
+
+  // --- Privacy ---
+  startEditPrivacy(): void {
+    const p = this.profile()!;
+    this.editShowCity.set(p.showCity);
+    this.editShowRealName.set(p.showRealName);
+    this.privacyError.set(null);
+    this.editingPrivacy.set(true);
+  }
+  cancelEditPrivacy(): void { this.editingPrivacy.set(false); }
+  savePrivacy(): void {
+    this.savingPrivacy.set(true);
+    this.privacyError.set(null);
+    const payload: UpdatePrivacyPayload = {
+      showCity: this.editShowCity(),
+      showRealName: this.editShowRealName()
+    };
+    this.userService.updatePrivacy(payload).subscribe({
+      next: p => { this.publicSelf.set(p); this.savingPrivacy.set(false); this.editingPrivacy.set(false); },
+      error: (err: HttpErrorResponse) => {
+        this.savingPrivacy.set(false);
+        this.privacyError.set(err.error?.message ?? 'Nie udało się zapisać ustawień prywatności.');
       }
     });
   }

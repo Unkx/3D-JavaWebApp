@@ -1,18 +1,16 @@
 import { Component, ChangeDetectionStrategy, signal, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerBrain } from '@ng-icons/tabler-icons';
 import { SlicerAdviceService, SlicerAdviceResponse } from '../services/slicer-advice.service';
+import { IconComponent } from './icon.component';
 
 @Component({
   selector: 'app-slicer-advisor',
-  imports: [FormsModule, NgIcon],
-  providers: [provideIcons({ tablerBrain })],
+  imports: [FormsModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="advisor" aria-label="Asystent ustawień druku">
       <h2 class="advisor__title">
-        <ng-icon name="tablerBrain" aria-hidden="true" />
+        <app-icon name="sparkles" [size]="18" />
         Asystent ustawień druku
       </h2>
       <p class="advisor__subtitle">

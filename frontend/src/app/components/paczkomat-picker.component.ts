@@ -3,10 +3,9 @@ import {
   OnInit, OnDestroy, ElementRef, viewChild, afterNextRender
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerCurrentLocation } from '@ng-icons/tabler-icons';
 import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
 import { InpostService, InpostPoint } from '../services/inpost.service';
+import { IconComponent } from './icon.component';
 import * as L from 'leaflet';
 
 const MARKER_ICON = L.icon({
@@ -32,8 +31,7 @@ const SELECTED_ICON = L.icon({
 
 @Component({
   selector: 'app-paczkomat-picker',
-  imports: [FormsModule, NgIcon],
-  providers: [provideIcons({ tablerCurrentLocation })],
+  imports: [FormsModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="paczkomat-picker">
@@ -58,7 +56,7 @@ const SELECTED_ICON = L.icon({
             @if (locating()) {
               <span class="paczkomat-picker__spinner" aria-hidden="true"></span>
             } @else {
-              <ng-icon name="tablerCurrentLocation" aria-hidden="true" />
+              <app-icon name="current-location" [size]="16" />
             }
           </button>
         </div>

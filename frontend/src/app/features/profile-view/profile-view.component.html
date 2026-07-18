@@ -1,0 +1,107 @@
+@if (loading()) {
+  <div class="state-box" aria-live="polite" aria-busy="true">
+    <div class="spinner" aria-hidden="true"></div>
+    <p>Ładowanie profilu...</p>
+  </div>
+} @else if (notFound()) {
+  <div class="state-box state-box--error" role="alert">
+    <p>Ten użytkownik nie istnieje.</p>
+    <a routerLink="/" class="btn btn--secondary">Wróć na stronę główną</a>
+  </div>
+} @else if (profile(); as p) {
+  <section class="profile-header card" aria-label="Profil użytkownika">
+    <div class="profile-header__avatar">
+      @if (!avatarLoadFailed() && avatarUrl(p); as url) {
+        <img [src]="url" [alt]="p.displayName" class="profile-header__avatar-img" (error)="onAvatarError()" />
+      } @else {
+        <div class="profile-header__avatar-placeholder" aria-hidden="true">{{ avatarChar(p) }}</div>
+      }
+    </div>
+
+    <div class="profile-header__info">
+      <h1 class="profile-header__name">{{ p.displayName }}</h1>
+
+      @if (ratings(); as r) {
+        @if (r.summary.count > 0) {
+          <p class="profile-header__rating" [attr.aria-label]="'Ocena: ' + (r.summary.averageStars | number:'1.1-1') + ' na 5, ' + r.summary.count + ' opinii'">
+            <app-icon name="star" [size]="16" aria-hidden="true" />
+            <strong>{{ r.summary.averageStars | number:'1.1-1' }}</strong> / 5 ({{ r.summary.count }} {{ r.summary.count === 1 ? 'opinia' : 'opinii' }})
+          </p>
+        } @else {
+          <p class="profile-header__rating muted">Brak opinii</p>
+        }
+      }
+
+      <dl class="profile-header__meta">
+        @if (p.city) {
+          <div class="profile-header__meta-row"><dt>Lokalizacja</dt><dd>{{ p.city }}</dd></div>
+        }
+        <div class="profile-header__meta-row"><dt>Dołączył(a)</dt><dd>{{ formatDate(p.createdAt) }}</dd></div>
+        <div class="profile-header__meta-row"><dt>Ostatnie logowanie</dt><dd>{{ formatLastLogin(p.lastLoginAt) }}</dd></div>
+      </dl>
+
+      <div class="profile-header__badges">
+        @if (p.emailVerified) {
+          <span class="badge"><app-icon name="check-circle" [size]="14" aria-hidden="true" /> Zweryfikowany email</span>
+        }
+        @if (p.hasGoogleAuth) {
+          <span class="badge">Google</span>
+        }
+        @if (p.hasFacebookAuth) {
+          <span class="badge">Facebook</span>
+        }
+      </div>
+    </div>
+  </section>
+
+  <nav class="profile-tabs" aria-label="Zakładki profilu">
+    <button type="button" class="profile-tabs__btn" [class.profile-tabs__btn--active]="activeTab() === 'listings'"
+            [attr.aria-pressed]="activeTab() === 'listings'" (click)="setTab('listings')">
+      Ogłoszenia ({{ p.activeListingsCount }})
+    </button>
+    <button type="button" class="profile-tabs__btn" [class.profile-tabs__btn--active]="activeTab() === 'reviews'"
+            [attr.aria-pressed]="activeTab() === 'reviews'" (click)="setTab('reviews')">
+      Opinie
+    </button>
+  </nav>
+
+  @if (activeTab() === 'listings') {
+    <section aria-label="Ogłoszenia użytkownika">
+      @if (listingsLoading()) {
+        <p class="muted">Ładowanie...</p>
+      } @else if (!listings() || listings()!.content.length === 0) {
+        <p class="muted">Ten użytkownik nie ma obecnie żadnych ogłoszeń.</p>
+      } @else {
+        <ul class="profile-listings">
+          @for (l of listings()!.content; track l.id) {
+            <li>
+              <a [routerLink]="['/zlecenia', l.id]" class="profile-listing-card">
+                <span class="profile-listing-card__title">{{ l.title }}</span>
+                <span class="profile-listing-card__material">{{ l.requiredMaterial }}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  } @else {
+    <section aria-label="Opinie o użytkowniku">
+      @if (ratingsLoading()) {
+        <p class="muted">Ładowanie...</p>
+      } @else if (!ratings() || ratings()!.summary.count === 0) {
+        <p class="muted">Brak opinii.</p>
+      } @else {
+        <ul class="review-list">
+          @for (r of ratings()!.ratings.content; track r.id) {
+            <li class="review-row">
+              <a [routerLink]="['/uzytkownik', r.raterId]" class="review-row__rater">{{ r.raterDisplayName }}</a>
+              <span class="review-row__stars" [attr.aria-label]="'Ocena: ' + r.stars + ' na 5 gwiazdek'"><span aria-hidden="true">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span></span>
+              @if (r.comment) { <p class="review-row__comment">{{ r.comment }}</p> }
+              <time class="review-row__date">{{ formatDate(r.createdAt) }}</time>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+}

@@ -27,6 +27,58 @@
         </div>
       </section>
 
+      <section class="card avatar-card" aria-label="Awatar">
+        <h2 class="card__title">Awatar</h2>
+        @if (!avatarLoadFailed() && publicSelf()?.hasAvatarData) {
+          <img [src]="avatarUrl(profile()!.id)" [alt]="displayName(profile()!)" class="avatar-card__preview" (error)="onAvatarError()" />
+        } @else if (!avatarLoadFailed() && publicSelf()?.avatarUrl) {
+          <img [src]="publicSelf()!.avatarUrl!" [alt]="displayName(profile()!)" class="avatar-card__preview" (error)="onAvatarError()" />
+        } @else {
+          <div class="avatar-card__preview avatar-card__preview--placeholder" aria-hidden="true">{{ avatarChar(profile()!) }}</div>
+        }
+        @if (avatarError()) { <p class="error-text" role="alert">{{ avatarError() }}</p> }
+        <div class="avatar-card__actions">
+          <label class="btn btn--ghost btn--sm">
+            <input type="file" accept="image/jpeg,image/png,image/webp" (change)="onAvatarFileSelected($event)" [disabled]="avatarUploading()" hidden />
+            Prześlij zdjęcie
+          </label>
+          @if (profile()?.email && publicSelf(); as ps) {
+            @if (ps.hasAvatarData || ps.avatarUrl) {
+              <button type="button" class="btn btn--ghost btn--sm" (click)="deleteAvatar()" [disabled]="avatarUploading()">Usuń</button>
+            }
+          }
+          <button type="button" class="btn btn--ghost btn--sm" (click)="importGoogleAvatar()" [disabled]="avatarUploading()">Importuj z Google</button>
+        </div>
+      </section>
+
+      <section class="card privacy-card" aria-label="Prywatność">
+        <div class="card__header">
+          <h2 class="card__title">Prywatność profilu</h2>
+          @if (!editingPrivacy()) {
+            <button class="btn btn--ghost btn--sm" (click)="startEditPrivacy()">Edytuj</button>
+          }
+        </div>
+        @if (editingPrivacy()) {
+          <form class="edit-form" (ngSubmit)="savePrivacy()" aria-label="Edytuj ustawienia prywatności">
+            <label class="checkbox-row">
+              <input type="checkbox" [checked]="editShowCity()" (change)="editShowCity.set(!editShowCity())" />
+              Pokaż moje miasto na publicznym profilu
+            </label>
+            <label class="checkbox-row">
+              <input type="checkbox" [checked]="editShowRealName()" (change)="editShowRealName.set(!editShowRealName())" />
+              Pokaż moje imię i nazwisko (zamiast pseudonimu)
+            </label>
+            @if (privacyError()) { <p class="error-text" role="alert">{{ privacyError() }}</p> }
+            <div class="edit-form__actions">
+              <button type="submit" class="btn btn--primary btn--sm" [disabled]="savingPrivacy()">Zapisz</button>
+              <button type="button" class="btn btn--ghost btn--sm" (click)="cancelEditPrivacy()">Anuluj</button>
+            </div>
+          </form>
+        } @else {
+          <p class="muted">Steruj tym, co widzą inni użytkownicy na Twoim publicznym profilu.</p>
+        }
+      </section>
+
       <!-- ── Oceny ── -->
       <section class="card" aria-label="Oceny">
         <h2 class="card__title"><app-icon name="star" [size]="16" /> Oceny</h2>
@@ -42,6 +94,7 @@
           <ul class="review-list">
             @for (r of ratings()!.ratings.content; track r.id) {
               <li class="review-row">
+                <a [routerLink]="['/uzytkownik', r.raterId]" class="review-row__rater">{{ r.raterDisplayName }}</a>
                 <span class="review-row__stars" [attr.aria-label]="'Ocena: ' + r.stars + ' na 5 gwiazdek'"><span aria-hidden="true">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span></span>
                 @if (r.comment) { <p class="review-row__comment">{{ r.comment }}</p> }
                 <time class="review-row__date">{{ formatDate(r.createdAt) }}</time>

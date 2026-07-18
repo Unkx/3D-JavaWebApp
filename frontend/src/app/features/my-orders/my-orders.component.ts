@@ -3,17 +3,13 @@ import { RouterLink, Router } from '@angular/router';
 import { SlicePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  tablerInbox, tablerMail, tablerCurrencyZloty, tablerLock, tablerCircleCheck,
-  tablerPackage, tablerMapPin, tablerFileText, tablerTruck
-} from '@ng-icons/tabler-icons';
 import { ListingService, Listing } from '../../services/listing.service';
 import { OfferService, Offer, OrderTracking, Payment, Shipment } from '../../services/offer.service';
 import { ConversationService } from '../../services/conversation.service';
 import { AuthService } from '../../services/auth.service';
 import { RatingService } from '../../services/rating.service';
 import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
+import { IconComponent } from '../../components/icon.component';
 
 interface ListingWithOffers extends Listing {
   offersCount?: number;
@@ -21,11 +17,7 @@ interface ListingWithOffers extends Listing {
 
 @Component({
   selector: 'app-my-orders',
-  imports: [RouterLink, SlicePipe, FormsModule, NgIcon, PaczkomatPickerComponent],
-  providers: [provideIcons({
-    tablerInbox, tablerMail, tablerCurrencyZloty, tablerLock, tablerCircleCheck,
-    tablerPackage, tablerMapPin, tablerFileText, tablerTruck
-  })],
+  imports: [RouterLink, SlicePipe, FormsModule, IconComponent, PaczkomatPickerComponent],
   templateUrl: './my-orders.component.html',
   styleUrl: './my-orders.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush

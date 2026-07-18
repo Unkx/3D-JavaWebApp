@@ -17,6 +17,7 @@ export interface Listing {
   estimatorQuality?: string;
   previewImageUrl?: string;
   hasAttachments?: boolean;
+  sellerDisplayName?: string | null;
 }
 
 export interface UpdateListingPayload {
@@ -54,6 +55,10 @@ export class ListingService {
     const q = search.trim();
     const params = q ? `page=${page}&size=${size}&search=${encodeURIComponent(q)}` : `page=${page}&size=${size}`;
     return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?${params}`);
+  }
+
+  getListingsByUser(userId: string, page = 0, size = 12): Observable<PageResponse<Listing>> {
+    return this.http.get<PageResponse<Listing>>(`${this.apiUrl}?userId=${userId}&page=${page}&size=${size}`);
   }
 
   getListing(id: string): Observable<Listing> {

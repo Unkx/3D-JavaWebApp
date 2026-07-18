@@ -189,6 +189,22 @@ class AuthServiceTest {
     }
 
     @Test
+    void login_validCredentials_touchesLastLoginAt() {
+        LoginRequest request = new LoginRequest();
+        request.setEmail("touch@example.com");
+        request.setPassword("secret123");
+
+        User user = buildUser("touch@example.com", "encoded-secret", Role.USER);
+        when(userRepository.findByEmail("touch@example.com")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("secret123", "encoded-secret")).thenReturn(true);
+        when(jwtService.generateToken(user)).thenReturn("jwt-token");
+
+        authService.login(request);
+
+        verify(userRepository).save(argThat((User u) -> u.getLastLoginAt() != null));
+    }
+
+    @Test
     void login_unknownEmail_throwsUnauthorized() {
         LoginRequest request = new LoginRequest();
         request.setEmail("ghost@example.com");
@@ -296,7 +312,7 @@ class AuthServiceTest {
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getEmail()).isEqualTo("newfb@example.com");
-        verify(userRepository).save(argThat((User u) ->
+        verify(userRepository, times(2)).save(argThat((User u) ->
                 u.getEmail().equals("newfb@example.com")
                         && "fb123".equals(u.getFacebookId())
                         && u.getPassword() == null
@@ -323,11 +339,11 @@ class AuthServiceTest {
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(existing.getFacebookId()).isEqualTo("fb456");
-        verify(userRepository).save(existing);
+        verify(userRepository, times(2)).save(existing);
     }
 
     @Test
-    void loginWithFacebook_existingFacebookUser_logsInWithoutSaving() {
+    void loginWithFacebook_existingFacebookUser_touchesLastLoginAndSaves() {
         FacebookLoginRequest request = new FacebookLoginRequest();
         request.setAccessToken("fb-access-token");
 
@@ -342,7 +358,8 @@ class AuthServiceTest {
         AuthResponse response = authService.loginWithFacebook(request);
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
-        verify(userRepository, never()).save(any());
+        verify(userRepository).save(existing);
+        assertThat(existing.getLastLoginAt()).isNotNull();
     }
 
     @Test
@@ -368,7 +385,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google123", "newgoogle@example.com", "Anna", "Nowak");
+                new GoogleAuthClient.GoogleProfile("google123", "newgoogle@example.com", "Anna", "Nowak", "https://google.example/pic123.jpg");
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
         when(userRepository.findByGoogleId("google123")).thenReturn(Optional.empty());
         when(userRepository.findByEmail("newgoogle@example.com")).thenReturn(Optional.empty());
@@ -383,7 +400,7 @@ class AuthServiceTest {
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getEmail()).isEqualTo("newgoogle@example.com");
-        verify(userRepository).save(argThat((User u) ->
+        verify(userRepository, times(2)).save(argThat((User u) ->
                 u.getEmail().equals("newgoogle@example.com")
                         && "google123".equals(u.getGoogleId())
                         && u.getPassword() == null
@@ -393,12 +410,37 @@ class AuthServiceTest {
     }
 
     @Test
-    void loginWithGoogle_existingGoogleId_logsInWithoutSaving() {
+    void loginWithGoogle_newUserWithPicture_importsGoogleAvatarOnce() {
         GoogleLoginRequest request = new GoogleLoginRequest();
         request.setIdToken("google-id-token");
 
-        GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google456", "repeat@example.com", "Piotr", "Zielinski");
+        GoogleAuthClient.GoogleProfile profile = new GoogleAuthClient.GoogleProfile(
+                "google-avatar-1", "avatar@example.com", "Ala", "Nowak", "https://google.example/pic.jpg");
+        when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
+        when(userRepository.findByGoogleId("google-avatar-1")).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("avatar@example.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+            User saved = invocation.getArgument(0);
+            if (saved.getId() == null) saved.setId(UUID.randomUUID());
+            return saved;
+        });
+        when(jwtService.generateToken(any(User.class))).thenReturn("jwt-token");
+
+        authService.loginWithGoogle(request);
+
+        verify(userRepository, atLeastOnce()).save(argThat((User u) ->
+                "https://google.example/pic.jpg".equals(u.getAvatarUrl())
+                        && "https://google.example/pic.jpg".equals(u.getGoogleAvatarUrl())
+                        && u.isAvatarImportSkipped()));
+    }
+
+    @Test
+    void loginWithGoogle_existingGoogleId_touchesLastLoginAndCachesGooglePicture() {
+        GoogleLoginRequest request = new GoogleLoginRequest();
+        request.setIdToken("google-id-token");
+
+        GoogleAuthClient.GoogleProfile profile = new GoogleAuthClient.GoogleProfile(
+                "google456", "repeat@example.com", "Piotr", "Zielinski", "https://google.example/new-pic.jpg");
         User existing = buildUser("repeat@example.com", null, Role.USER);
         existing.setGoogleId("google456");
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
@@ -408,7 +450,30 @@ class AuthServiceTest {
         AuthResponse response = authService.loginWithGoogle(request);
 
         assertThat(response.getToken()).isEqualTo("jwt-token");
-        verify(userRepository, never()).save(any());
+        verify(userRepository).save(existing);
+        assertThat(existing.getGoogleAvatarUrl()).isEqualTo("https://google.example/new-pic.jpg");
+        assertThat(existing.getAvatarUrl()).isEqualTo("https://google.example/new-pic.jpg");
+        assertThat(existing.getLastLoginAt()).isNotNull();
+    }
+
+    @Test
+    void loginWithGoogle_avatarImportAlreadySkipped_doesNotOverwriteAvatarUrl() {
+        GoogleLoginRequest request = new GoogleLoginRequest();
+        request.setIdToken("google-id-token");
+
+        GoogleAuthClient.GoogleProfile profile = new GoogleAuthClient.GoogleProfile(
+                "google789", "skipped@example.com", "Ola", "Kowal", "https://google.example/pic.jpg");
+        User existing = buildUser("skipped@example.com", null, Role.USER);
+        existing.setGoogleId("google789");
+        existing.setAvatarImportSkipped(true);
+        when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
+        when(userRepository.findByGoogleId("google789")).thenReturn(Optional.of(existing));
+        when(jwtService.generateToken(existing)).thenReturn("jwt-token");
+
+        authService.loginWithGoogle(request);
+
+        assertThat(existing.getAvatarUrl()).isNull();
+        assertThat(existing.getGoogleAvatarUrl()).isEqualTo("https://google.example/pic.jpg");
     }
 
     @Test
@@ -417,7 +482,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google789", "existing@example.com", "Ola", "Kowal");
+                new GoogleAuthClient.GoogleProfile("google789", "existing@example.com", "Ola", "Kowal", null);
         User existingPasswordUser = buildUser("existing@example.com", "encoded-secret", Role.USER);
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);
         when(userRepository.findByGoogleId("google789")).thenReturn(Optional.empty());
@@ -437,7 +502,7 @@ class AuthServiceTest {
         request.setIdToken("google-id-token");
 
         GoogleAuthClient.GoogleProfile profile =
-                new GoogleAuthClient.GoogleProfile("google999", "fbuser@example.com", "Tom", "Nowicki");
+                new GoogleAuthClient.GoogleProfile("google999", "fbuser@example.com", "Tom", "Nowicki", null);
         User existingFacebookUser = buildUser("fbuser@example.com", null, Role.USER);
         existingFacebookUser.setFacebookId("fb-existing-1");
         when(googleAuthClient.verify("google-id-token")).thenReturn(profile);

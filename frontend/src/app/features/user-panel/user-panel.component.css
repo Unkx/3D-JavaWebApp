@@ -157,6 +157,12 @@
   border-radius: 8px;
 }
 
+.review-row__rater {
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+}
+
 .review-row__stars { font-size: 0.95rem; color: var(--accent); letter-spacing: 0.05em; }
 
 .review-row__comment {
@@ -363,4 +369,41 @@
 
 @media (max-width: 400px) {
   .edit-grid--3 { grid-template-columns: 1fr; }
+}
+
+.avatar-card__preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.75rem;
+}
+
+.avatar-card__preview--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--al);
+  color: var(--accent);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.avatar-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.error-text {
+  color: var(--error-text);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
 }

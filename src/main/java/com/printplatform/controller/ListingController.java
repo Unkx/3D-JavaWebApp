@@ -14,6 +14,7 @@ import com.printplatform.repository.ListingRepository;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.StlFileRepository;
 import com.printplatform.service.AdminAuditService;
+import com.printplatform.service.UserDisplayNameService;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -68,28 +69,34 @@ public class ListingController {
     private final OfferRepository offerRepository;
     private final StlFileRepository stlFileRepository;
     private final AdminAuditService adminAuditService;
+    private final UserDisplayNameService userDisplayNameService;
 
     public ListingController(ListingRepository listingRepository,
                              OfferRepository offerRepository,
                              StlFileRepository stlFileRepository,
-                             AdminAuditService adminAuditService) {
+                             AdminAuditService adminAuditService,
+                             UserDisplayNameService userDisplayNameService) {
         this.listingRepository = listingRepository;
         this.offerRepository = offerRepository;
         this.stlFileRepository = stlFileRepository;
         this.adminAuditService = adminAuditService;
+        this.userDisplayNameService = userDisplayNameService;
     }
 
     @GetMapping
     public PageResponse<Listing> getOpenListings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(defaultValue = "") String search) {
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) UUID userId) {
         int safeSize = Math.clamp(size, 1, 50);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        var resultPage = search.isBlank()
-                ? listingRepository.findByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
-                : listingRepository.searchByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, search.strip(), pageable);
+        var resultPage = userId != null
+                ? listingRepository.findByUserIdAndStatusAndModerationStatus(userId, ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
+                : search.isBlank()
+                    ? listingRepository.findByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
+                    : listingRepository.searchByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, search.strip(), pageable);
 
         List<Listing> content = resultPage.getContent();
         if (!content.isEmpty()) {
@@ -105,12 +112,19 @@ public class ListingController {
                     imageMap.putIfAbsent(listingId, fileId);
                 }
             });
+            // Avoid resolving the same owner's display name twice within one page (mirrors
+            // RatingService.buildRaterCache): compute it once per unique owner up front.
+            Map<UUID, String> sellerNameCache = new HashMap<>();
             content.forEach(l -> {
                 UUID imgId = imageMap.get(l.getId());
                 if (imgId != null) {
                     l.setPreviewImageUrl("/api/listings/" + l.getId() + "/stl-files/" + imgId);
                 }
                 l.setHasAttachments(withFiles.contains(l.getId()) || l.getStlFileName() != null);
+                if (l.getUser() != null) {
+                    l.setSellerDisplayName(sellerNameCache.computeIfAbsent(
+                            l.getUser().getId(), id2 -> userDisplayNameService.resolve(l.getUser())));
+                }
             });
         }
 
@@ -119,8 +133,12 @@ public class ListingController {
 
     @GetMapping("/{id}")
     public Listing getListing(@PathVariable UUID id) {
-        return listingRepository.findById(id)
+        Listing listing = listingRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Zlecenie nie istnieje"));
+        if (listing.getUser() != null) {
+            listing.setSellerDisplayName(userDisplayNameService.resolve(listing.getUser()));
+        }
+        return listing;
     }
 
     @GetMapping("/my")
