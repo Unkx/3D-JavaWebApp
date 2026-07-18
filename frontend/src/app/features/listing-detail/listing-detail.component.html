@@ -47,6 +47,13 @@
           }
         </div>
 
+        @if (listing()!.user?.id) {
+          <a [routerLink]="['/uzytkownik', listing()!.user!.id]" class="listing__seller">
+            <ng-icon name="tablerUserCircle" aria-hidden="true" />
+            Sprzedawca: {{ sellerName(listing()!.user) }}
+          </a>
+        }
+
         @if (canDelete()) {
           <div class="listing__manage">
             @if (isAdmin() && currentUser()?.userId !== listing()!.user?.id) {

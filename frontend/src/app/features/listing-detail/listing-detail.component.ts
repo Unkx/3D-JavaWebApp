@@ -11,7 +11,7 @@ import {
   tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
   tablerInbox, tablerClock, tablerStack, tablerPrinter, tablerTrendingDown,
   tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
-  tablerCircleCheck, tablerCircleX
+  tablerCircleCheck, tablerCircleX, tablerUserCircle
 } from '@ng-icons/tabler-icons';
 import { ListingService, Listing, StlFile, UpdateListingPayload } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
@@ -35,7 +35,7 @@ type EstimatorQuality = 'fast'  | 'normal' | 'ultra';
     tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
     tablerInbox, tablerClock, tablerStack, tablerPrinter, tablerTrendingDown,
     tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
-    tablerCircleCheck, tablerCircleX
+    tablerCircleCheck, tablerCircleX, tablerUserCircle
   })],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
@@ -450,6 +450,14 @@ export class ListingDetailComponent implements OnInit {
     if (offer.price < low) return 'cheap';
     if (offer.price > high) return 'expensive';
     return 'fair';
+  }
+
+  sellerName(user: { firstName?: string | null; lastName?: string | null } | undefined): string {
+    if (!user) return 'Użytkownik';
+    const first = user.firstName;
+    const last = user.lastName;
+    if (!first) return 'Użytkownik';
+    return last ? `${first} ${last.charAt(0)}.` : first;
   }
 
   sizeLabel(v: string | undefined): string {
