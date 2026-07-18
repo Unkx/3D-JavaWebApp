@@ -14,6 +14,7 @@ import java.util.UUID;
 public interface ListingRepository extends JpaRepository<Listing, UUID> {
     List<Listing> findByStatus(ListingStatus status);
     Page<Listing> findByStatusAndModerationStatus(ListingStatus status, ListingModerationStatus moderationStatus, Pageable pageable);
+    Page<Listing> findByUserIdAndStatusAndModerationStatus(UUID userId, ListingStatus status, ListingModerationStatus moderationStatus, Pageable pageable);
     List<Listing> findByUserId(UUID userId);
 
     @Query("SELECT l FROM Listing l WHERE l.status = :status AND l.moderationStatus = :moderationStatus AND " +

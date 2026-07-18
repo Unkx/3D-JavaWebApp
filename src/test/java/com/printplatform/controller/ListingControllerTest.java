@@ -248,6 +248,20 @@ class ListingControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void getOpenListings_withUserId_returnsOnlyThatUsersOpenVisibleListings() throws Exception {
+        User owner = persistUser();
+        User otherUser = persistUser();
+        Listing ownerOpen = persistListing(owner, ListingStatus.OPEN);
+        persistListing(owner, ListingStatus.CLOSED);
+        persistListing(otherUser, ListingStatus.OPEN);
+
+        mockMvc.perform(get("/api/listings").param("userId", owner.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].id").value(ownerOpen.getId().toString()));
+    }
+
+    @Test
     void getOpenListings_excludesHiddenListings() throws Exception {
         User owner = persistUser();
         Listing visible = new Listing();

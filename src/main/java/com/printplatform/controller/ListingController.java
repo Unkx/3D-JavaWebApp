@@ -83,13 +83,16 @@ public class ListingController {
     public PageResponse<Listing> getOpenListings(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size,
-            @RequestParam(defaultValue = "") String search) {
+            @RequestParam(defaultValue = "") String search,
+            @RequestParam(required = false) UUID userId) {
         int safeSize = Math.clamp(size, 1, 50);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        var resultPage = search.isBlank()
-                ? listingRepository.findByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
-                : listingRepository.searchByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, search.strip(), pageable);
+        var resultPage = userId != null
+                ? listingRepository.findByUserIdAndStatusAndModerationStatus(userId, ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
+                : search.isBlank()
+                    ? listingRepository.findByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, pageable)
+                    : listingRepository.searchByStatusAndModerationStatus(ListingStatus.OPEN, ListingModerationStatus.VISIBLE, search.strip(), pageable);
 
         List<Listing> content = resultPage.getContent();
         if (!content.isEmpty()) {
