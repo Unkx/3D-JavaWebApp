@@ -12,11 +12,12 @@ export interface Listing {
   stlFileName?: string;
   status?: string;
   createdAt?: string;
-  user?: { id: string; firstName?: string | null; lastName?: string | null };
+  user?: { id: string };
   estimatorSize?: string;
   estimatorQuality?: string;
   previewImageUrl?: string;
   hasAttachments?: boolean;
+  sellerDisplayName?: string | null;
 }
 
 export interface UpdateListingPayload {

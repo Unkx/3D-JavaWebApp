@@ -452,14 +452,6 @@ export class ListingDetailComponent implements OnInit {
     return 'fair';
   }
 
-  sellerName(user: { firstName?: string | null; lastName?: string | null } | undefined): string {
-    if (!user) return 'Użytkownik';
-    const first = user.firstName;
-    const last = user.lastName;
-    if (!first) return 'Użytkownik';
-    return last ? `${first} ${last.charAt(0)}.` : first;
-  }
-
   sizeLabel(v: string | undefined): string {
     return ({ small: 'Mały', medium: 'Średni', large: 'Duży' } as Record<string, string>)[v ?? ''] ?? v ?? '';
   }

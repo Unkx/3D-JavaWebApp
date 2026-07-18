@@ -50,7 +50,7 @@
         @if (listing()!.user?.id) {
           <a [routerLink]="['/uzytkownik', listing()!.user!.id]" class="listing__seller">
             <ng-icon name="tablerUserCircle" aria-hidden="true" />
-            Sprzedawca: {{ sellerName(listing()!.user) }}
+            Sprzedawca: {{ listing()!.sellerDisplayName }}
           </a>
         }
 

@@ -23,7 +23,7 @@ public class Listing {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnoreProperties({"password", "authorities", "enabled", "accountNonExpired", "accountNonLocked", "credentialsNonExpired"})
+    @JsonIgnoreProperties({"password", "authorities", "enabled", "accountNonExpired", "accountNonLocked", "credentialsNonExpired", "firstName", "lastName"})
     private User user; // osoba 1 - zleceniodawca
 
     @Column(nullable = false)
@@ -68,8 +68,14 @@ public class Listing {
     @Transient
     private boolean hasAttachments;
 
+    /** Populated at query time — seller's display name, resolved via UserDisplayNameService (respects the privacy toggle). */
+    @Transient
+    private String sellerDisplayName;
+
     public String getPreviewImageUrl() { return previewImageUrl; }
     public void setPreviewImageUrl(String previewImageUrl) { this.previewImageUrl = previewImageUrl; }
     public boolean isHasAttachments() { return hasAttachments; }
     public void setHasAttachments(boolean hasAttachments) { this.hasAttachments = hasAttachments; }
+    public String getSellerDisplayName() { return sellerDisplayName; }
+    public void setSellerDisplayName(String sellerDisplayName) { this.sellerDisplayName = sellerDisplayName; }
 }
