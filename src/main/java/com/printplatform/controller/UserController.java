@@ -1,5 +1,6 @@
 package com.printplatform.controller;
 
+import com.printplatform.dto.UpdatePrivacyRequest;
 import com.printplatform.dto.UpdateProfileRequest;
 import com.printplatform.dto.UpdateShippingRequest;
 import com.printplatform.dto.UserProfileDto;
@@ -15,16 +16,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
+    private static final long MAX_AVATAR_SIZE = 5L * 1024 * 1024; // 5MB
+    private static final Set<String> ALLOWED_AVATAR_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
 
     private final ListingRepository listingRepository;
     private final OfferRepository offerRepository;
@@ -89,6 +97,77 @@ public class UserController {
                 .header(HttpHeaders.CONTENT_TYPE, contentType)
                 .header("X-Content-Type-Options", "nosniff")
                 .body(user.getAvatarData());
+    }
+
+    @PostMapping("/me/avatar")
+    public UserPublicProfileDto uploadAvatar(@AuthenticationPrincipal User user,
+                                             @RequestParam("file") MultipartFile file) {
+        validateAvatarFile(file);
+        try {
+            user.setAvatarData(file.getBytes());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nie udało się przesłać pliku.");
+        }
+        user.setAvatarContentType(file.getContentType());
+        user.setAvatarUrl(null);
+        user.setAvatarImportSkipped(true);
+        userRepository.save(user);
+        return toPublicProfileDto(user);
+    }
+
+    @DeleteMapping("/me/avatar")
+    public UserPublicProfileDto deleteAvatar(@AuthenticationPrincipal User user) {
+        user.setAvatarData(null);
+        user.setAvatarContentType(null);
+        user.setAvatarUrl(null);
+        user.setAvatarImportSkipped(true);
+        userRepository.save(user);
+        return toPublicProfileDto(user);
+    }
+
+    @PostMapping("/me/avatar/import-google")
+    public UserPublicProfileDto importGoogleAvatar(@AuthenticationPrincipal User user) {
+        if (user.getGoogleId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Konto nie jest połączone z Google");
+        }
+        if (user.getGoogleAvatarUrl() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Brak zdjęcia profilowego Google do zaimportowania");
+        }
+        user.setAvatarData(null);
+        user.setAvatarContentType(null);
+        user.setAvatarUrl(user.getGoogleAvatarUrl());
+        user.setAvatarImportSkipped(false);
+        userRepository.save(user);
+        return toPublicProfileDto(user);
+    }
+
+    @PutMapping("/me/privacy")
+    public UserPublicProfileDto updatePrivacy(@AuthenticationPrincipal User user,
+                                              @RequestBody UpdatePrivacyRequest request) {
+        user.setShowCity(request.isShowCity());
+        user.setShowRealName(request.isShowRealName());
+        userRepository.save(user);
+        return toPublicProfileDto(user);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<String> handleMaxAvatarSize(MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body("Plik jest zbyt duży (maksymalnie 5MB).");
+    }
+
+    private void validateAvatarFile(MultipartFile file) {
+        if (file.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Plik jest pusty");
+        }
+        if (file.getSize() > MAX_AVATAR_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("Plik jest zbyt duży. Maksymalny rozmiar: %dMB", MAX_AVATAR_SIZE / (1024L * 1024)));
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_AVATAR_TYPES.contains(contentType.toLowerCase())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dozwolone są tylko pliki JPEG, PNG lub WEBP");
+        }
     }
 
     private UserPublicProfileDto toPublicProfileDto(User user) {
