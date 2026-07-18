@@ -72,37 +72,10 @@
                     @if (deletingId() === listing.id) { Usuwanie... } @else { Usuń }
                   </button>
                 }
-                @if (listing.id && deliveredOfferIdByListing()[listing.id]) {
-                  @let deliveredOfferId = deliveredOfferIdByListing()[listing.id];
-                  @if (ratedOfferIds().has(deliveredOfferId)) {
-                    <span class="rating-done">&#x2713; Oceniono</span>
-                  } @else if (ratingFormOfferId() === deliveredOfferId) {
-                    <div class="rating-form">
-                      @if (ratingError()) {
-                        <div class="alert alert--error" role="alert">{{ ratingError() }}</div>
-                      }
-                      <div class="star-picker" role="radiogroup" aria-label="Ocena w gwiazdkach">
-                        @for (star of [1,2,3,4,5]; track star) {
-                          <button type="button" class="star-picker__star" role="radio"
-                                  [class.star-picker__star--filled]="star <= ratingStars()"
-                                  [attr.aria-checked]="star === ratingStars()"
-                                  (click)="ratingStars.set(star)"
-                                  [attr.aria-label]="star + ' gwiazdek'">&#9733;</button>
-                        }
-                      </div>
-                      <textarea class="field__input field__textarea" rows="2" maxlength="500"
-                        placeholder="Komentarz (opcjonalnie)"
-                        [ngModel]="ratingComment()" (ngModelChange)="ratingComment.set($event)"></textarea>
-                      <div class="rating-form__actions">
-                        <button class="btn btn--primary btn--sm" (click)="submitRating(deliveredOfferId)" [disabled]="submittingRatingId() === deliveredOfferId">
-                          @if (submittingRatingId() === deliveredOfferId) { Zapisywanie... } @else { Wyślij ocenę }
-                        </button>
-                        <button class="btn btn--ghost btn--sm" (click)="cancelRating()" [disabled]="submittingRatingId() === deliveredOfferId">Anuluj</button>
-                      </div>
-                    </div>
-                  } @else {
-                    <button class="btn btn--primary" (click)="openRatingForm(deliveredOfferId)">Oceń</button>
-                  }
+                @if (listing.id && deliveredOfferIdByListing()[listing.id] && ratedOfferIds().has(deliveredOfferIdByListing()[listing.id])) {
+                  <span class="rating-done">&#x2713; Oceniono</span>
+                } @else if (listing.id && deliveredOfferIdByListing()[listing.id] && ratingFormOfferId() !== deliveredOfferIdByListing()[listing.id]) {
+                  <button class="btn btn--primary" (click)="openRatingForm(deliveredOfferIdByListing()[listing.id])">Oceń</button>
                 }
               </div>
             </div>
@@ -122,6 +95,35 @@
                 <span class="tag">Plik STL</span>
               }
             </div>
+
+            @if (listing.id && deliveredOfferIdByListing()[listing.id] && ratingFormOfferId() === deliveredOfferIdByListing()[listing.id]) {
+              @let deliveredOfferId = deliveredOfferIdByListing()[listing.id];
+              <div class="order-card__rating-section">
+                <div class="rating-form">
+                  @if (ratingError()) {
+                    <div class="alert alert--error" role="alert">{{ ratingError() }}</div>
+                  }
+                  <div class="star-picker" role="radiogroup" aria-label="Ocena w gwiazdkach">
+                    @for (star of [1,2,3,4,5]; track star) {
+                      <button type="button" class="star-picker__star" role="radio"
+                              [class.star-picker__star--filled]="star <= ratingStars()"
+                              [attr.aria-checked]="star === ratingStars()"
+                              (click)="ratingStars.set(star)"
+                              [attr.aria-label]="star + ' gwiazdek'">&#9733;</button>
+                    }
+                  </div>
+                  <textarea class="field__input field__textarea" rows="2" maxlength="500"
+                    placeholder="Komentarz (opcjonalnie)"
+                    [ngModel]="ratingComment()" (ngModelChange)="ratingComment.set($event)"></textarea>
+                  <div class="rating-form__actions">
+                    <button class="btn btn--primary btn--sm" (click)="submitRating(deliveredOfferId)" [disabled]="submittingRatingId() === deliveredOfferId">
+                      @if (submittingRatingId() === deliveredOfferId) { Zapisywanie... } @else { Wyślij ocenę }
+                    </button>
+                    <button class="btn btn--ghost btn--sm" (click)="cancelRating()" [disabled]="submittingRatingId() === deliveredOfferId">Anuluj</button>
+                  </div>
+                </div>
+              </div>
+            }
           </li>
         }
       </ul>
