@@ -29,7 +29,7 @@
       <div class="state-box state-box--error" role="alert">{{ error() }}</div>
     } @else if (listings().length === 0) {
       <div class="state-box state-box--empty">
-        <ng-icon name="tablerInbox" class="state-box__icon" aria-hidden="true" />
+        <app-icon name="inbox" class="state-box__icon" aria-hidden="true" />
         <p>Nie masz jeszcze żadnych zleceń.</p>
         <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
       </div>
@@ -132,7 +132,7 @@
   @if (activeTab() === 'offers') {
     @if (myOffers().length === 0) {
       <div class="state-box state-box--empty">
-        <ng-icon name="tablerInbox" class="state-box__icon" aria-hidden="true" />
+        <app-icon name="inbox" class="state-box__icon" aria-hidden="true" />
         <p>Nie złożyłeś jeszcze żadnych ofert.</p>
       </div>
     } @else {
@@ -150,7 +150,7 @@
                 @if (offer.listing?.id) {
                   <a [routerLink]="['/zlecenia', offer.listing!.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
                   <button class="btn btn--outline" (click)="openMessage(offer)">
-                    <ng-icon name="tablerMail" aria-hidden="true" /> Wiadomość
+                    <app-icon name="mail" aria-hidden="true" /> Wiadomość
                   </button>
                 }
               </div>
@@ -199,14 +199,14 @@
                 @let pay = paymentData()[offer.id!];
                 <div class="payment-summary">
                   <span class="payment-summary__label">
-                    <ng-icon name="tablerCurrencyZloty" aria-hidden="true" /> Twoje wynagrodzenie:
+                    <app-icon name="currency" aria-hidden="true" /> Twoje wynagrodzenie:
                   </span>
                   <span class="payment-summary__value">{{ pay.contractorPrice }} zł</span>
                   <span class="payment-summary__status">
                     @if (pay.status === 'HELD') {
-                      <ng-icon name="tablerLock" aria-hidden="true" /> Środki zabezpieczone
+                      <app-icon name="lock" aria-hidden="true" /> Środki zabezpieczone
                     } @else if (pay.status === 'RELEASED') {
-                      <ng-icon name="tablerCircleCheck" aria-hidden="true" /> Wypłacono
+                      <app-icon name="check-circle" aria-hidden="true" /> Wypłacono
                     }
                   </span>
                 </div>
@@ -217,15 +217,15 @@
                 @let ship = shipmentData()[offer.id!];
                 <div class="shipment-info">
                   <div class="shipment-info__row">
-                    <span><ng-icon name="tablerPackage" aria-hidden="true" /> Tracking:</span>
+                    <span><app-icon name="package" aria-hidden="true" /> Tracking:</span>
                     <code>{{ ship.trackingNumber }}</code>
                   </div>
                   <div class="shipment-info__row">
-                    <span><ng-icon name="tablerMapPin" aria-hidden="true" /> Paczkomat nadania:</span>
+                    <span><app-icon name="map-pin" aria-hidden="true" /> Paczkomat nadania:</span>
                     <span>{{ ship.senderPaczkomat }}</span>
                   </div>
                   <div class="shipment-info__row">
-                    <span><ng-icon name="tablerMapPin" aria-hidden="true" /> Paczkomat odbioru:</span>
+                    <span><app-icon name="map-pin" aria-hidden="true" /> Paczkomat odbioru:</span>
                     <span>{{ ship.receiverPaczkomat }}</span>
                   </div>
                   <div class="shipment-info__row">
@@ -259,7 +259,7 @@
                   @if (!shipmentData()[offer.id!]) {
                     <div class="shipment-form">
                       <p class="shipment-form__label">
-                        <ng-icon name="tablerPackage" aria-hidden="true" /> Wybierz paczkomat nadania
+                        <app-icon name="package" aria-hidden="true" /> Wybierz paczkomat nadania
                       </p>
                       <app-paczkomat-picker
                         (paczkomatSelected)="shipmentPaczkomat.set($event)"
@@ -275,7 +275,7 @@
                         @if (creatingShipmentId() === offer.id) {
                           Tworzenie...
                         } @else {
-                          <ng-icon name="tablerFileText" aria-hidden="true" /> Utwórz przesyłkę
+                          <app-icon name="file-text" aria-hidden="true" /> Utwórz przesyłkę
                         }
                       </button>
                     </div>
@@ -286,7 +286,7 @@
                       @if (advancingShipmentId() === offer.id) {
                         Aktualizacja...
                       } @else {
-                        <ng-icon name="tablerCircleCheck" aria-hidden="true" /> Nadano w paczkomacie
+                        <app-icon name="check-circle" aria-hidden="true" /> Nadano w paczkomacie
                       }
                     </button>
                   }
@@ -300,11 +300,11 @@
                       @if (advancingShipmentId() === offer.id) {
                         Aktualizacja...
                       } @else if (ship.status === 'DISPATCHED') {
-                        <ng-icon name="tablerTruck" aria-hidden="true" /> W drodze
+                        <app-icon name="truck" aria-hidden="true" /> W drodze
                       } @else if (ship.status === 'IN_TRANSIT') {
-                        <ng-icon name="tablerMapPin" aria-hidden="true" /> Czeka w paczkomacie
+                        <app-icon name="map-pin" aria-hidden="true" /> Czeka w paczkomacie
                       } @else if (ship.status === 'READY_TO_PICKUP') {
-                        <ng-icon name="tablerCircleCheck" aria-hidden="true" /> Odebrano
+                        <app-icon name="check-circle" aria-hidden="true" /> Odebrano
                       }
                     </button>
                   }

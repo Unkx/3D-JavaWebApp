@@ -4,15 +4,6 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, Validators } from '@angu
 import { DecimalPipe } from '@angular/common';
 import { SlicePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import {
-  tablerArrowLeft, tablerAlertTriangle, tablerBox, tablerRuler, tablerSettings,
-  tablerCurrencyZloty, tablerPaperclip, tablerKey, tablerTrash, tablerGripVertical,
-  tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
-  tablerInbox, tablerClock, tablerStack, tablerPrinter, tablerTrendingDown,
-  tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
-  tablerCircleCheck, tablerCircleX, tablerUserCircle
-} from '@ng-icons/tabler-icons';
 import { ListingService, Listing, StlFile, UpdateListingPayload } from '../../services/listing.service';
 import { OfferService, Offer } from '../../services/offer.service';
 import { AuthService } from '../../services/auth.service';
@@ -22,21 +13,14 @@ import { StlViewerComponent } from '../../components/stl-viewer.component';
 import { StlFileUploadComponent } from '../../components/stl-file-upload.component';
 import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
 import { SlicerAdvisorComponent } from '../../components/slicer-advisor.component';
+import { IconComponent } from '../../components/icon.component';
 
 type EstimatorSize    = 'small' | 'medium' | 'large';
 type EstimatorQuality = 'fast'  | 'normal' | 'ultra';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, NgIcon, StlViewerComponent, StlFileUploadComponent, PaczkomatPickerComponent, SlicerAdvisorComponent],
-  providers: [provideIcons({
-    tablerArrowLeft, tablerAlertTriangle, tablerBox, tablerRuler, tablerSettings,
-    tablerCurrencyZloty, tablerPaperclip, tablerKey, tablerTrash, tablerGripVertical,
-    tablerPhoto, tablerFile, tablerX, tablerDownload, tablerPencil, tablerBolt,
-    tablerInbox, tablerClock, tablerStack, tablerPrinter, tablerTrendingDown,
-    tablerTrendingUp, tablerCheck, tablerPackage, tablerShieldCheck, tablerMail,
-    tablerCircleCheck, tablerCircleX, tablerUserCircle
-  })],
+  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, IconComponent, StlViewerComponent, StlFileUploadComponent, PaczkomatPickerComponent, SlicerAdvisorComponent],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
