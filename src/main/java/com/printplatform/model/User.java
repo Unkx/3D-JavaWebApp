@@ -76,6 +76,40 @@ public class User implements UserDetails {
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    // Column-level default is required: Hibernate's ddl-auto=update issues a plain
+    // ALTER TABLE ADD COLUMN with no default unless @ColumnDefault is present, and this field
+    // is a primitive boolean — reading a NULL column into it throws, not just defaults to false.
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean avatarImportSkipped = false;
+
+    @JsonIgnore
+    @Column(columnDefinition = "bytea")
+    private byte[] avatarData;
+
+    private String avatarContentType;
+
+    private String avatarUrl;
+
+    private String googleAvatarUrl;
+
+    private LocalDateTime lastLoginAt;
+
+    private String nickname;
+
+    // Column-level default is required: Hibernate's ddl-auto=update issues a plain
+    // ALTER TABLE ADD COLUMN with no default unless @ColumnDefault is present, and this field
+    // is a primitive boolean — reading a NULL column into it throws, not just defaults to false.
+    @Column(nullable = false)
+    @ColumnDefault("false")
+    private boolean showCity = false;
+
+    // Column-level default is required: same reasoning as showCity above — defaults to true so
+    // existing users keep showing their real name until they explicitly opt into a nickname.
+    @Column(nullable = false)
+    @ColumnDefault("true")
+    private boolean showRealName = true;
+
     // --- UserDetails ---
 
     @Override
@@ -150,4 +184,31 @@ public class User implements UserDetails {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public boolean isAvatarImportSkipped() { return avatarImportSkipped; }
+    public void setAvatarImportSkipped(boolean avatarImportSkipped) { this.avatarImportSkipped = avatarImportSkipped; }
+
+    public byte[] getAvatarData() { return avatarData; }
+    public void setAvatarData(byte[] avatarData) { this.avatarData = avatarData; }
+
+    public String getAvatarContentType() { return avatarContentType; }
+    public void setAvatarContentType(String avatarContentType) { this.avatarContentType = avatarContentType; }
+
+    public String getAvatarUrl() { return avatarUrl; }
+    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
+
+    public String getGoogleAvatarUrl() { return googleAvatarUrl; }
+    public void setGoogleAvatarUrl(String googleAvatarUrl) { this.googleAvatarUrl = googleAvatarUrl; }
+
+    public LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
+    public boolean isShowCity() { return showCity; }
+    public void setShowCity(boolean showCity) { this.showCity = showCity; }
+
+    public boolean isShowRealName() { return showRealName; }
+    public void setShowRealName(boolean showRealName) { this.showRealName = showRealName; }
 }
