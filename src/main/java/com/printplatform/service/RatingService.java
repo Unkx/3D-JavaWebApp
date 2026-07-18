@@ -10,6 +10,7 @@ import com.printplatform.model.RatingModerationStatus;
 import com.printplatform.model.User;
 import com.printplatform.repository.OfferRepository;
 import com.printplatform.repository.RatingRepository;
+import com.printplatform.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +18,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -24,10 +28,15 @@ public class RatingService {
 
     private final RatingRepository ratingRepository;
     private final OfferRepository offerRepository;
+    private final UserRepository userRepository;
+    private final UserDisplayNameService userDisplayNameService;
 
-    public RatingService(RatingRepository ratingRepository, OfferRepository offerRepository) {
+    public RatingService(RatingRepository ratingRepository, OfferRepository offerRepository,
+                         UserRepository userRepository, UserDisplayNameService userDisplayNameService) {
         this.ratingRepository = ratingRepository;
         this.offerRepository = offerRepository;
+        this.userRepository = userRepository;
+        this.userDisplayNameService = userDisplayNameService;
     }
 
     /** Creates a one-time rating from `rater` about the other party on a DELIVERED offer. */
@@ -64,7 +73,8 @@ public class RatingService {
         rating.setRatedUserId(ratedUserId);
         rating.setStars(stars);
         rating.setComment(comment);
-        return new RatingDto(ratingRepository.save(rating));
+        Rating saved = ratingRepository.save(rating);
+        return new RatingDto(saved, resolveDisplayName(saved.getRaterId()));
     }
 
     /** Both ratings for an offer, if they exist — visible only to a party to that offer. */
@@ -78,7 +88,7 @@ public class RatingService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Brak dostępu");
         }
 
-        return ratingRepository.findByOfferId(offerId).stream().map(RatingDto::new).toList();
+        return toDtos(ratingRepository.findByOfferId(offerId));
     }
 
     /** Visible-only average + paged list of ratings a user has received (public). */
@@ -96,8 +106,35 @@ public class RatingService {
 
         Page<Rating> pageResult =
                 ratingRepository.findByRatedUserIdAndModerationStatus(userId, RatingModerationStatus.VISIBLE, pageable);
-        PageResponse<RatingDto> ratingsPage = new PageResponse<>(pageResult.map(RatingDto::new));
+        Map<UUID, User> raterCache = buildRaterCache(pageResult.getContent());
+        PageResponse<RatingDto> ratingsPage =
+                new PageResponse<>(pageResult.map(r -> new RatingDto(r, resolveDisplayName(r, raterCache))));
 
         return new UserRatingsDto(summary, ratingsPage);
+    }
+
+    private List<RatingDto> toDtos(List<Rating> ratings) {
+        Map<UUID, User> raterCache = buildRaterCache(ratings);
+        return ratings.stream()
+                .map(r -> new RatingDto(r, resolveDisplayName(r, raterCache)))
+                .toList();
+    }
+
+    private Map<UUID, User> buildRaterCache(List<Rating> ratings) {
+        List<UUID> raterIds = ratings.stream().map(Rating::getRaterId).distinct().toList();
+        Map<UUID, User> cache = new HashMap<>();
+        userRepository.findAllById(raterIds).forEach(u -> cache.put(u.getId(), u));
+        return cache;
+    }
+
+    private String resolveDisplayName(Rating rating, Map<UUID, User> raterCache) {
+        User rater = raterCache.get(rating.getRaterId());
+        return rater != null ? userDisplayNameService.resolve(rater) : "Użytkownik";
+    }
+
+    private String resolveDisplayName(UUID raterId) {
+        return userRepository.findById(raterId)
+                .map(userDisplayNameService::resolve)
+                .orElse("Użytkownik");
     }
 }

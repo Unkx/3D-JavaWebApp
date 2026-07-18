@@ -65,6 +65,7 @@ public class AdminService {
     private final AdminActionRepository adminActionRepository;
     private final PaymentRepository paymentRepository;
     private final RatingRepository ratingRepository;
+    private final UserDisplayNameService userDisplayNameService;
 
     public AdminService(AdminCodeRepository codeRepository,
                         UserRepository userRepository,
@@ -73,7 +74,8 @@ public class AdminService {
                         AdminAuditService adminAuditService,
                         AdminActionRepository adminActionRepository,
                         PaymentRepository paymentRepository,
-                        RatingRepository ratingRepository) {
+                        RatingRepository ratingRepository,
+                        UserDisplayNameService userDisplayNameService) {
         this.codeRepository = codeRepository;
         this.userRepository = userRepository;
         this.listingRepository = listingRepository;
@@ -82,6 +84,7 @@ public class AdminService {
         this.adminActionRepository = adminActionRepository;
         this.paymentRepository = paymentRepository;
         this.ratingRepository = ratingRepository;
+        this.userDisplayNameService = userDisplayNameService;
     }
 
     /** Admin generates a new single-use admin code. */
@@ -219,7 +222,7 @@ public class AdminService {
         rating.setModerationStatus(RatingModerationStatus.HIDDEN);
         ratingRepository.save(rating);
         adminAuditService.log(admin, AdminActionType.HIDE_RATING, "Rating", rating.getId(), null);
-        return new RatingDto(rating);
+        return new RatingDto(rating, resolveRaterDisplayName(rating.getRaterId()));
     }
 
     /** Restores a previously hidden rating to public view (admin only). */
@@ -229,7 +232,7 @@ public class AdminService {
         rating.setModerationStatus(RatingModerationStatus.VISIBLE);
         ratingRepository.save(rating);
         adminAuditService.log(admin, AdminActionType.UNHIDE_RATING, "Rating", rating.getId(), null);
-        return new RatingDto(rating);
+        return new RatingDto(rating, resolveRaterDisplayName(rating.getRaterId()));
     }
 
     /** All ratings (visible and hidden), newest first, for the moderation list (admin only). */
@@ -238,7 +241,7 @@ public class AdminService {
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize);
         Page<Rating> result = ratingRepository.findAllByOrderByCreatedAtDesc(pageable);
-        return new PageResponse<>(result.map(RatingDto::new));
+        return new PageResponse<>(result.map(r -> new RatingDto(r, resolveRaterDisplayName(r.getRaterId()))));
     }
 
     /** Paged, newest-first admin action history (admin only). */
@@ -286,6 +289,12 @@ public class AdminService {
                 .filter(this::isRealized)
                 .map(field)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String resolveRaterDisplayName(UUID raterId) {
+        return userRepository.findById(raterId)
+                .map(userDisplayNameService::resolve)
+                .orElse("Użytkownik");
     }
 
     private String randomCode() {
