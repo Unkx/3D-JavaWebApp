@@ -6,12 +6,13 @@ import { UserService, UserPublicProfile } from '../../services/user.service';
 import { RatingService, UserRatings } from '../../services/rating.service';
 import { ListingService, Listing, PageResponse } from '../../services/listing.service';
 import { IconComponent } from '../../components/icon.component';
+import { RevealDirective } from '../../directives/reveal.directive';
 
 type ProfileTab = 'listings' | 'reviews';
 
 @Component({
   selector: 'app-profile-view',
-  imports: [RouterLink, DecimalPipe, IconComponent],
+  imports: [RouterLink, DecimalPipe, IconComponent, RevealDirective],
   templateUrl: './profile-view.component.html',
   styleUrl: './profile-view.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
