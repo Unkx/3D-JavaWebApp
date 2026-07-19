@@ -16,7 +16,7 @@
     </div>
   } @else if (listing()) {
     <article class="listing" aria-label="Szczegóły zlecenia">
-      <header class="listing__header">
+      <header class="listing__header" appReveal>
         <div class="listing__title-row">
           <h1 class="listing__title">{{ listing()!.title }}</h1>
           <span class="status-badge status-badge--{{ (listing()!.status ?? 'open').toLowerCase() }}">
@@ -75,7 +75,7 @@
       }
 
       @if (stlFiles().length > 0) {
-        <section class="stl-viewer-section" aria-label="Podgląd plików">
+        <section class="stl-viewer-section" appReveal aria-label="Podgląd plików">
           <h2 class="section-title">
             Podgląd
             <span class="badge">{{ stlFiles().length }}</span>
@@ -163,7 +163,7 @@
         </section>
       }
 
-      <section class="listing__description" aria-label="Opis zlecenia">
+      <section class="listing__description" appReveal aria-label="Opis zlecenia">
         <h2 class="section-title">
           Opis
           @if (canManage()) {
@@ -239,7 +239,7 @@
       </section>
 
       @if (!isAdmin()) {
-        <section class="estimator" aria-label="Wycena AI kosztu druku">
+        <section class="estimator" appReveal aria-label="Wycena AI kosztu druku">
           <h2 class="section-title">
             <app-icon name="zap" class="estimator__icon" aria-hidden="true" />
             Wycena AI

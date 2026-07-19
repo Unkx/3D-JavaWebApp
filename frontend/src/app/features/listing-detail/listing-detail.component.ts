@@ -14,13 +14,14 @@ import { StlFileUploadComponent } from '../../components/stl-file-upload.compone
 import { PaczkomatPickerComponent } from '../../components/paczkomat-picker.component';
 import { SlicerAdvisorComponent } from '../../components/slicer-advisor.component';
 import { IconComponent } from '../../components/icon.component';
+import { RevealDirective } from '../../directives/reveal.directive';
 
 type EstimatorSize    = 'small' | 'medium' | 'large';
 type EstimatorQuality = 'fast'  | 'normal' | 'ultra';
 
 @Component({
   selector: 'app-listing-detail',
-  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, IconComponent, StlViewerComponent, StlFileUploadComponent, PaczkomatPickerComponent, SlicerAdvisorComponent],
+  imports: [RouterLink, ReactiveFormsModule, FormsModule, SlicePipe, DecimalPipe, IconComponent, StlViewerComponent, StlFileUploadComponent, PaczkomatPickerComponent, SlicerAdvisorComponent, RevealDirective],
   templateUrl: './listing-detail.component.html',
   styleUrl: './listing-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
