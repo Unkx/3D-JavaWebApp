@@ -46,7 +46,7 @@
           @if (stlFiles().length > 0) {
             <section class="stl-viewer-section" appReveal aria-label="Podgląd plików">
               <h2 class="section-label">
-                <span class="tick-num">01</span> Modele
+                <span class="tick-num" aria-hidden="true"></span> Modele
                 <span class="badge">{{ stlFiles().length }}</span>
               </h2>
 
@@ -199,7 +199,7 @@
 
       <section class="listing__description" appReveal aria-label="Opis zlecenia">
         <h2 class="section-label">
-          <span class="tick-num">02</span> Opis
+          <span class="tick-num" aria-hidden="true"></span> Opis
           @if (canManage()) {
             <button class="btn-edit-toggle" (click)="editMode() ? cancelEdit() : openEdit()"
                     [attr.aria-expanded]="editMode()">
@@ -374,7 +374,7 @@
     <!-- Oferty -->
     <section class="offers" aria-label="Oferty drukarzy">
       <h2 class="section-label">
-        <span class="tick-num">03</span> Oferty
+        <span class="tick-num" aria-hidden="true"></span> Oferty
         @if (!offersLoading()) {
           <span class="badge">{{ offers().length }}</span>
         }

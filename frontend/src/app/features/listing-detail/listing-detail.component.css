@@ -4,6 +4,12 @@
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
+  counter-reset: detail-sec;
+}
+
+.page .section-label .tick-num::before {
+  counter-increment: detail-sec;
+  content: counter(detail-sec, decimal-leading-zero);
 }
 
 .back-link {
@@ -45,6 +51,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-block, 1.75rem);
+  animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .listing__title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; }
 .listing__title { font-family: var(--font-display); font-size: var(--fs-title, 1.875rem); line-height: var(--lh-tight, 1.1); font-weight: 700; color: var(--text-primary); margin: 0; }
@@ -98,6 +105,11 @@
   text-align: right;
 }
 
+.datasheet > div > dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .datasheet__link {
   color: var(--accent);
   text-decoration: none;
@@ -105,6 +117,7 @@
   transition: color 0.15s;
 }
 .datasheet__link:hover { color: var(--accent-hover); text-decoration: underline; }
+.datasheet__link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .status-badge { flex-shrink: 0; display: inline-flex; align-items: center; padding: 0.2rem 0.625rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
 .status-badge--open     { background: var(--success-bg);   color: var(--success-text); }
