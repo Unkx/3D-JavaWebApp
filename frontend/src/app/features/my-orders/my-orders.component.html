@@ -34,55 +34,65 @@
         <a routerLink="/dodaj-zlecenie" class="btn btn--primary">Dodaj pierwsze zlecenie</a>
       </div>
     } @else {
-      <ul class="order-list" aria-label="Lista moich zleceń">
+      <ul class="order-list divided-list" aria-label="Lista moich zleceń">
         @for (listing of listings(); track listing.id) {
-          <li class="order-card">
-            <div class="order-card__top">
-              <div class="order-card__meta">
-                <span class="status-badge status-badge--{{ (listing.status ?? 'open').toLowerCase() }}">
-                  {{ statusLabel(listing.status) }}
-                </span>
+          <li class="divided-row order-row"
+              [class.order-row--open]="(listing.status ?? 'OPEN') === 'OPEN'"
+              [class.order-row--closed]="listing.status === 'CLOSED'"
+              [class.order-row--awarded]="listing.status === 'AWARDED'">
+            <div class="order-row__head">
+              <span class="status-badge order-row__badge status-badge--{{ (listing.status ?? 'open').toLowerCase() }}">
+                {{ statusLabel(listing.status) }}
+              </span>
+              <h2 class="order-row__title">
+                <a [routerLink]="['/zlecenia', listing.id]">{{ listing.title }}</a>
+              </h2>
+              <dl class="order-row__specs spec-mono">
+                @if (listing.maxBudget) {
+                  <div>
+                    <dt>Budżet</dt>
+                    <dd>do {{ listing.maxBudget }} zł</dd>
+                  </div>
+                }
                 @if (listing.createdAt) {
-                  <time class="order-card__date" [attr.datetime]="listing.createdAt">
-                    {{ listing.createdAt | slice:0:10 }}
-                  </time>
+                  <div>
+                    <dt>Data</dt>
+                    <dd><time [attr.datetime]="listing.createdAt">{{ listing.createdAt | slice:0:10 }}</time></dd>
+                  </div>
                 }
-              </div>
-              <div class="order-card__actions">
-                <a [routerLink]="['/zlecenia', listing.id]" class="btn btn--ghost" aria-label="Szczegóły zlecenia">
-                  Szczegóły &rarr;
-                </a>
-                @if (listing.status === 'OPEN') {
-                  <button
-                    class="btn btn--outline-warn"
-                    (click)="closeListing(listing.id!)"
-                    [disabled]="closingId() === listing.id"
-                    aria-label="Zamknij zlecenie"
-                  >
-                    @if (closingId() === listing.id) { Zamykanie... } @else { Zamknij }
-                  </button>
-                }
-                @if (listing.status !== 'AWARDED') {
-                  <button
-                    class="btn btn--danger"
-                    (click)="deleteListing(listing.id!)"
-                    [disabled]="deletingId() === listing.id"
-                    aria-label="Usuń zlecenie"
-                  >
-                    @if (deletingId() === listing.id) { Usuwanie... } @else { Usuń }
-                  </button>
-                }
-                @if (listing.id && deliveredOfferIdByListing()[listing.id] && ratedOfferIds().has(deliveredOfferIdByListing()[listing.id])) {
-                  <span class="rating-done">&#x2713; Oceniono</span>
-                } @else if (listing.id && deliveredOfferIdByListing()[listing.id] && ratingFormOfferId() !== deliveredOfferIdByListing()[listing.id]) {
-                  <button class="btn btn--primary" (click)="openRatingForm(deliveredOfferIdByListing()[listing.id])">Oceń</button>
-                }
-              </div>
+              </dl>
             </div>
 
-            <h2 class="order-card__title">
-              <a [routerLink]="['/zlecenia', listing.id]">{{ listing.title }}</a>
-            </h2>
+            <div class="order-card__actions">
+              <a [routerLink]="['/zlecenia', listing.id]" class="btn btn--ghost" aria-label="Szczegóły zlecenia">
+                Szczegóły &rarr;
+              </a>
+              @if (listing.status === 'OPEN') {
+                <button
+                  class="btn btn--outline-warn"
+                  (click)="closeListing(listing.id!)"
+                  [disabled]="closingId() === listing.id"
+                  aria-label="Zamknij zlecenie"
+                >
+                  @if (closingId() === listing.id) { Zamykanie... } @else { Zamknij }
+                </button>
+              }
+              @if (listing.status !== 'AWARDED') {
+                <button
+                  class="btn btn--danger"
+                  (click)="deleteListing(listing.id!)"
+                  [disabled]="deletingId() === listing.id"
+                  aria-label="Usuń zlecenie"
+                >
+                  @if (deletingId() === listing.id) { Usuwanie... } @else { Usuń }
+                </button>
+              }
+              @if (listing.id && deliveredOfferIdByListing()[listing.id] && ratedOfferIds().has(deliveredOfferIdByListing()[listing.id])) {
+                <span class="rating-done">&#x2713; Oceniono</span>
+              } @else if (listing.id && deliveredOfferIdByListing()[listing.id] && ratingFormOfferId() !== deliveredOfferIdByListing()[listing.id]) {
+                <button class="btn btn--primary" (click)="openRatingForm(deliveredOfferIdByListing()[listing.id])">Oceń</button>
+              }
+            </div>
 
             <p class="order-card__desc">{{ listing.description }}</p>
 
@@ -138,31 +148,44 @@
         <p>Nie złożyłeś jeszcze żadnych ofert.</p>
       </div>
     } @else {
-      <ul class="order-list" aria-label="Lista moich ofert">
+      <ul class="order-list divided-list" aria-label="Lista moich ofert">
         @for (offer of myOffers(); track offer.id) {
-          <li class="order-card">
-            <div class="order-card__top">
-              <div class="order-card__meta">
-                <span class="status-badge status-badge--{{ (offer.status ?? 'pending').toLowerCase() }}">
-                  {{ statusLabel(offer.status) }}
-                </span>
-                <span class="order-card__price">{{ offer.price }} zl</span>
-              </div>
-              <div class="order-card__actions">
-                @if (offer.listing?.id) {
-                  <a [routerLink]="['/zlecenia', offer.listing!.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
-                  <button class="btn btn--outline" (click)="openMessage(offer)">
-                    <app-icon name="mail" aria-hidden="true" /> Wiadomość
-                  </button>
+          <li class="divided-row order-row"
+              [class.order-row--selected]="offer.status === 'SELECTED'"
+              [class.order-row--printing]="offer.status === 'PRINTING'"
+              [class.order-row--shipped]="offer.status === 'SHIPPED'"
+              [class.order-row--delivered]="offer.status === 'DELIVERED'">
+            <div class="order-row__head">
+              <span class="status-badge order-row__badge status-badge--{{ (offer.status ?? 'pending').toLowerCase() }}">
+                {{ statusLabel(offer.status) }}
+              </span>
+              @if (offer.listing?.title) {
+                <h2 class="order-row__title">
+                  <a [routerLink]="['/zlecenia', offer.listing!.id]">{{ offer.listing!.title }}</a>
+                </h2>
+              }
+              <dl class="order-row__specs spec-mono">
+                <div>
+                  <dt>Cena</dt>
+                  <dd>{{ offer.price }} zł</dd>
+                </div>
+                @if (offer.createdAt) {
+                  <div>
+                    <dt>Data</dt>
+                    <dd><time [attr.datetime]="offer.createdAt">{{ offer.createdAt | slice:0:10 }}</time></dd>
+                  </div>
                 }
-              </div>
+              </dl>
             </div>
 
-            @if (offer.listing?.title) {
-              <h2 class="order-card__title">
-                <a [routerLink]="['/zlecenia', offer.listing!.id]">{{ offer.listing!.title }}</a>
-              </h2>
-            }
+            <div class="order-card__actions">
+              @if (offer.listing?.id) {
+                <a [routerLink]="['/zlecenia', offer.listing!.id]" class="btn btn--ghost">Zlecenie &rarr;</a>
+                <button class="btn btn--outline" (click)="openMessage(offer)">
+                  <app-icon name="mail" aria-hidden="true" /> Wiadomość
+                </button>
+              }
+            </div>
 
             <div class="order-card__details">
               <span>{{ offer.printingTimeHours }} h</span>
@@ -174,25 +197,18 @@
 
             <!-- Order tracking timeline -->
             @if (offerStatusStep(offer.status) >= 0) {
-              <div class="timeline">
-                <div class="timeline__step" [class.timeline__step--done]="offerStatusStep(offer.status) >= 1" [class.timeline__step--active]="offerStatusStep(offer.status) === 0">
-                  <span class="timeline__dot">@if (offerStatusStep(offer.status) >= 1) { &#x2713; } @else { 1 }</span>
-                  <span class="timeline__label">Wybrana</span>
+              <div class="order-timeline">
+                <div class="order-timeline__step" [class.order-timeline__step--done]="offerStatusStep(offer.status) >= 1">
+                  <span>Wybrana</span>
                 </div>
-                <div class="timeline__line" [class.timeline__line--done]="offerStatusStep(offer.status) >= 1"></div>
-                <div class="timeline__step" [class.timeline__step--done]="offerStatusStep(offer.status) >= 2" [class.timeline__step--active]="offerStatusStep(offer.status) === 1">
-                  <span class="timeline__dot">@if (offerStatusStep(offer.status) >= 2) { &#x2713; } @else { 2 }</span>
-                  <span class="timeline__label">Drukowanie</span>
+                <div class="order-timeline__step" [class.order-timeline__step--done]="offerStatusStep(offer.status) >= 2">
+                  <span>Drukowanie</span>
                 </div>
-                <div class="timeline__line" [class.timeline__line--done]="offerStatusStep(offer.status) >= 2"></div>
-                <div class="timeline__step" [class.timeline__step--done]="offerStatusStep(offer.status) >= 3" [class.timeline__step--active]="offerStatusStep(offer.status) === 2">
-                  <span class="timeline__dot">@if (offerStatusStep(offer.status) >= 3) { &#x2713; } @else { 3 }</span>
-                  <span class="timeline__label">Wysłano</span>
+                <div class="order-timeline__step" [class.order-timeline__step--done]="offerStatusStep(offer.status) >= 3">
+                  <span>Wysłano</span>
                 </div>
-                <div class="timeline__line" [class.timeline__line--done]="offerStatusStep(offer.status) >= 3"></div>
-                <div class="timeline__step" [class.timeline__step--done]="offerStatusStep(offer.status) >= 3 && offer.status === 'DELIVERED'" [class.timeline__step--active]="offerStatusStep(offer.status) === 3 && offer.status !== 'DELIVERED'">
-                  <span class="timeline__dot">@if (offer.status === 'DELIVERED') { &#x2713; } @else { 4 }</span>
-                  <span class="timeline__label">Dostarczono</span>
+                <div class="order-timeline__step" [class.order-timeline__step--done]="offer.status === 'DELIVERED'">
+                  <span>Dostarczono</span>
                 </div>
               </div>
 
