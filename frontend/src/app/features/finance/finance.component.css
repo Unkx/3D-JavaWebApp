@@ -176,3 +176,62 @@
 .pipeline-row__label { color: var(--text-primary); flex: 1 1 auto; }
 .pipeline-row__count { color: var(--text-secondary); }
 .pipeline-row__value { color: var(--text-primary); }
+
+/* ---- Costs ---- */
+.cost-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.cost-row__name { color: var(--text-primary); font-weight: 600; flex: 1 1 auto; }
+.cost-row__amount { color: var(--text-primary); }
+.cost-row__range { color: var(--text-secondary); font-size: 0.8125rem; }
+
+.confirm-text { font-size: 0.8rem; color: var(--error-text); font-weight: 600; margin-right: 0.375rem; }
+
+.btn--danger { background: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border); }
+.btn--danger:hover:not(:disabled) { background: var(--error-bg); opacity: 0.85; }
+.btn--ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent-border); }
+.btn--ghost:hover:not(:disabled) { background: var(--accent-light); }
+.btn--sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ---- Forms (cost + settings) ---- */
+.cost-form, .settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.field { display: flex; flex-direction: column; gap: 0.375rem; }
+.field__label { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); }
+.field__optional { font-size: 0.8125rem; font-weight: 400; color: var(--text-muted); margin-left: 0.375rem; }
+.field__input {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--surface);
+}
+.field__input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+.field__input--error { border-color: var(--error-border); }
+.field__error { font-size: 0.8125rem; color: var(--error-text); margin: 0; }
+
+.form__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.save-confirm { font-size: 0.875rem; color: var(--accent); font-weight: 600; }
+
+@media (max-width: 640px) {
+  .form__actions { flex-wrap: wrap; }
+}

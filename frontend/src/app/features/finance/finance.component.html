@@ -130,5 +130,140 @@
       </div>
     </section>
 
+    <hr class="layer-rule" aria-hidden="true">
+
+    <section class="fin-section" aria-labelledby="fin-sec-4">
+      <h2 class="section-label" id="fin-sec-4"><span class="tick-num" aria-hidden="true"></span> Koszty stałe</h2>
+
+      @if (costs().length) {
+        <div class="divided-list">
+          @for (c of costs(); track c.id) {
+            <div class="divided-row cost-row">
+              <span class="cost-row__name">{{ c.name }}</span>
+              <span class="cost-row__amount spec-mono">{{ c.monthlyAmount | number:'1.2-2' }} zł/mies.</span>
+              <span class="cost-row__range spec-mono">{{ c.startDate }} — {{ c.endDate ?? '—' }}</span>
+              @if (confirmDeleteId() === c.id) {
+                <span class="confirm-text">Na pewno?</span>
+                <button type="button" class="btn btn--danger btn--sm" (click)="confirmDelete()" [disabled]="deletingCostId() === c.id">Tak</button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="cancelDeleteCost()" [disabled]="deletingCostId() === c.id">Nie</button>
+              } @else {
+                <button type="button" class="btn btn--ghost btn--sm" (click)="startEdit(c)">Edytuj</button>
+                <button type="button" class="btn btn--ghost btn--sm" (click)="requestDelete(c.id)">Usuń</button>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="state-box blueprint-grid">
+          <p>Brak kosztów stałych.</p>
+        </div>
+      }
+
+      <form class="cost-form" [formGroup]="costForm" (ngSubmit)="submitCost()" novalidate [attr.aria-label]="editingCostId() ? 'Edytuj koszt stały' : 'Dodaj koszt stały'">
+        <div class="field">
+          <label class="field__label" for="cost-name">Nazwa</label>
+          <input
+            id="cost-name"
+            type="text"
+            class="field__input"
+            [class.field__input--error]="costForm.controls.name.invalid && costForm.controls.name.touched"
+            formControlName="name"
+            maxlength="100"
+            aria-describedby="cost-name-error"
+          />
+          @if (costForm.controls.name.invalid && costForm.controls.name.touched) {
+            <p id="cost-name-error" class="field__error" role="alert">Nazwa jest wymagana.</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cost-amount">Kwota miesięczna (zł)</label>
+          <input
+            id="cost-amount"
+            type="number"
+            class="field__input"
+            [class.field__input--error]="costForm.controls.monthlyAmount.invalid && costForm.controls.monthlyAmount.touched"
+            formControlName="monthlyAmount"
+            min="0.01"
+            step="0.01"
+            aria-describedby="cost-amount-error"
+          />
+          @if (costForm.controls.monthlyAmount.invalid && costForm.controls.monthlyAmount.touched) {
+            <p id="cost-amount-error" class="field__error" role="alert">Kwota musi być większa od 0.</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cost-start">Data rozpoczęcia</label>
+          <input id="cost-start" type="date" class="field__input" formControlName="startDate" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cost-end">
+            Data zakończenia <span class="field__optional">opcjonalnie</span>
+          </label>
+          <input id="cost-end" type="date" class="field__input" formControlName="endDate" />
+        </div>
+
+        <div class="form__actions">
+          @if (editingCostId()) {
+            <button type="button" class="btn btn--ghost" (click)="cancelEdit()">Anuluj</button>
+          }
+          <button type="submit" class="btn btn--primary" [disabled]="costSaving()" [attr.aria-busy]="costSaving()">
+            {{ editingCostId() ? 'Zapisz' : 'Dodaj koszt' }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <hr class="layer-rule" aria-hidden="true">
+
+    <section class="fin-section" aria-labelledby="fin-sec-5">
+      <h2 class="section-label" id="fin-sec-5"><span class="tick-num" aria-hidden="true"></span> Ustawienia kosztów</h2>
+
+      <form class="settings-form" [formGroup]="settingsForm" (ngSubmit)="saveSettings()" novalidate aria-label="Ustawienia kosztów">
+        <div class="field">
+          <label class="field__label" for="settings-filament">Filament (zł/kg)</label>
+          <input
+            id="settings-filament"
+            type="number"
+            class="field__input"
+            [class.field__input--error]="settingsForm.controls.filamentPricePerKg.invalid && settingsForm.controls.filamentPricePerKg.touched"
+            formControlName="filamentPricePerKg"
+            min="0.01"
+            step="0.01"
+            aria-describedby="settings-filament-error"
+          />
+          @if (settingsForm.controls.filamentPricePerKg.invalid && settingsForm.controls.filamentPricePerKg.touched) {
+            <p id="settings-filament-error" class="field__error" role="alert">Cena musi być większa od 0.</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="settings-hour">Koszt pracy (zł/h)</label>
+          <input
+            id="settings-hour"
+            type="number"
+            class="field__input"
+            [class.field__input--error]="settingsForm.controls.costPerPrintHour.invalid && settingsForm.controls.costPerPrintHour.touched"
+            formControlName="costPerPrintHour"
+            min="0.01"
+            step="0.01"
+            aria-describedby="settings-hour-error"
+          />
+          @if (settingsForm.controls.costPerPrintHour.invalid && settingsForm.controls.costPerPrintHour.touched) {
+            <p id="settings-hour-error" class="field__error" role="alert">Koszt musi być większy od 0.</p>
+          }
+        </div>
+
+        <div class="form__actions">
+          <button type="submit" class="btn btn--primary" [disabled]="settingsSaving()" [attr.aria-busy]="settingsSaving()">Zapisz</button>
+          <span class="save-confirm" aria-live="polite">
+            @if (settingsSaved()) { Zapisano. }
+          </span>
+        </div>
+      </form>
+    </section>
+
   }
 </div>

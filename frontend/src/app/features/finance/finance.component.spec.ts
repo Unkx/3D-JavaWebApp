@@ -34,6 +34,9 @@ const pipeline: PipelineEntry[] = [
 ];
 
 const costs: RecurringCost[] = [];
+const oneCost: RecurringCost[] = [
+  { id: 'c1', name: 'Prąd', monthlyAmount: 150, startDate: '2026-01-01', endDate: null }
+];
 const settings: CostSettings = { filamentPricePerKg: 90, costPerPrintHour: 2 };
 
 describe('FinanceComponent', () => {
@@ -125,5 +128,125 @@ describe('FinanceComponent', () => {
 
     const compiled: HTMLElement = fixture.nativeElement;
     expect(compiled.textContent).toContain('Nie udało się załadować danych finansowych.');
+  });
+
+  function flushWithCosts(): void {
+    httpMock.expectOne('/api/finance/summary').flush(summary);
+    httpMock.expectOne('/api/finance/alerts').flush(alerts);
+    httpMock.expectOne('/api/finance/pipeline').flush(pipeline);
+    httpMock.expectOne('/api/finance/costs').flush(oneCost);
+    httpMock.expectOne('/api/finance/settings').flush(settings);
+  }
+
+  it('creates a recurring cost and refreshes the list', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.costForm.setValue({ name: 'Czynsz', monthlyAmount: 500, startDate: '2026-01-01', endDate: '' });
+    component.submitCost();
+
+    const req = httpMock.expectOne('/api/finance/costs');
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ name: 'Czynsz', monthlyAmount: 500, startDate: '2026-01-01', endDate: null });
+    req.flush({ id: 'new1', name: 'Czynsz', monthlyAmount: 500, startDate: '2026-01-01', endDate: null });
+
+    httpMock.expectOne('/api/finance/costs').flush(oneCost);
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.textContent).toContain('Prąd');
+  });
+
+  it('blocks submission with an empty name and does not send a request', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.costForm.patchValue({ name: '', monthlyAmount: 100 });
+    component.submitCost();
+
+    httpMock.expectNone('/api/finance/costs');
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.textContent).toContain('Nazwa jest wymagana');
+  });
+
+  it('patches the form on edit and sends a PUT with the updated values', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushWithCosts();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.startEdit(oneCost[0]);
+    expect(component.costForm.controls.name.value).toBe('Prąd');
+
+    component.costForm.patchValue({ monthlyAmount: 200 });
+    component.submitCost();
+
+    const req = httpMock.expectOne('/api/finance/costs/c1');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body.monthlyAmount).toBe(200);
+    req.flush({ ...oneCost[0], monthlyAmount: 200 });
+
+    httpMock.expectOne('/api/finance/costs').flush([{ ...oneCost[0], monthlyAmount: 200 }]);
+    fixture.detectChanges();
+  });
+
+  it('requires a confirm step before deleting a cost', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushWithCosts();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.requestDelete('c1');
+    httpMock.expectNone('/api/finance/costs/c1');
+
+    component.confirmDelete();
+    const req = httpMock.expectOne('/api/finance/costs/c1');
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+
+    httpMock.expectOne('/api/finance/costs').flush([]);
+    fixture.detectChanges();
+  });
+
+  it('seeds the settings form from the loaded server values, not defaults', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    expect(component.settingsForm.controls.filamentPricePerKg.value).toBe(90);
+    expect(component.settingsForm.controls.costPerPrintHour.value).toBe(2);
+  });
+
+  it('saves settings via PUT and re-fetches the summary', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.settingsForm.setValue({ filamentPricePerKg: 100, costPerPrintHour: 3 });
+    component.saveSettings();
+
+    const req = httpMock.expectOne('/api/finance/settings');
+    expect(req.request.method).toBe('PUT');
+    expect(req.request.body).toEqual({ filamentPricePerKg: 100, costPerPrintHour: 3 });
+    req.flush({ filamentPricePerKg: 100, costPerPrintHour: 3 });
+
+    httpMock.expectOne('/api/finance/summary').flush(summary);
+    fixture.detectChanges();
+
+    expect(component.settingsSaved()).toBe(true);
   });
 });
