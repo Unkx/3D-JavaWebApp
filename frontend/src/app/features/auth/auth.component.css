@@ -134,6 +134,10 @@
   gap: 1.125rem;
 }
 
+.auth-oauth {
+  margin-top: 1.5rem;
+}
+
 .field {
   display: flex;
   flex-direction: column;
