@@ -30,7 +30,7 @@
         </div>
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <section class="panel-section" aria-label="Awatar">
         <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Awatar</h2>
@@ -56,7 +56,7 @@
         </div>
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <section class="panel-section" aria-label="Prywatność">
         <div class="section-header">
@@ -86,7 +86,7 @@
         }
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Oceny ── -->
       <section class="panel-section" aria-label="Oceny">
@@ -106,31 +106,31 @@
                 <a [routerLink]="['/uzytkownik', r.raterId]" class="review-row__rater">{{ r.raterDisplayName }}</a>
                 <span class="review-row__stars" [attr.aria-label]="'Ocena: ' + r.stars + ' na 5 gwiazdek'"><span aria-hidden="true">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span></span>
                 @if (r.comment) { <p class="review-row__comment">{{ r.comment }}</p> }
-                <time class="review-row__date">{{ formatDate(r.createdAt) }}</time>
+                <time class="review-row__date spec-mono">{{ formatDate(r.createdAt) }}</time>
               </li>
             }
           </ul>
         }
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Stats ── -->
       <section class="panel-section" aria-label="Statystyki aktywności">
         <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Aktywność</h2>
         <div class="stats-grid">
           <div class="stat-item">
-            <span class="stat-item__value">{{ profile()!.listingsCount }}</span>
+            <span class="stat-item__value spec-mono">{{ profile()!.listingsCount }}</span>
             <span class="stat-item__label">Dodanych zleceń</span>
           </div>
           <div class="stat-item">
-            <span class="stat-item__value">{{ profile()!.offersCount }}</span>
+            <span class="stat-item__value spec-mono">{{ profile()!.offersCount }}</span>
             <span class="stat-item__label">Złożonych ofert</span>
           </div>
         </div>
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Quick actions ── -->
       <section class="panel-section" aria-label="Szybkie akcje">
@@ -154,7 +154,7 @@
         </div>
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Szczegóły profilu ── -->
       <section class="panel-section" aria-label="Szczegóły profilu">
@@ -238,7 +238,7 @@
         }
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Dane konta ── -->
       <section class="panel-section" aria-label="Dane konta">
@@ -283,7 +283,7 @@
               <dt>Rola</dt><dd>{{ profile()!.role }}</dd>
             </div>
             <div class="info-row">
-              <dt>ID konta</dt><dd class="monospace">{{ profile()!.id }}</dd>
+              <dt>ID konta</dt><dd class="monospace spec-mono">{{ profile()!.id }}</dd>
             </div>
             <div class="info-row">
               <dt>Data rejestracji</dt><dd>{{ formatDate(profile()!.createdAt) }}</dd>
@@ -293,7 +293,7 @@
         }
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Wysyłka ── -->
       <section class="panel-section" aria-label="Adres wysyłki">
@@ -367,7 +367,7 @@
         }
       </section>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <!-- ── Redeem admin code ── -->
       <section class="panel-section admin-card" aria-label="Zostań administratorem">

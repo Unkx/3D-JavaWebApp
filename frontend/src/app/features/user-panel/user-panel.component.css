@@ -61,8 +61,8 @@
 .profile-avatar {
   width: 72px; height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: #fff;
+  background: var(--accent-light);
+  color: var(--accent-dark);
   font-size: 1.875rem;
   font-weight: 700;
   display: flex;

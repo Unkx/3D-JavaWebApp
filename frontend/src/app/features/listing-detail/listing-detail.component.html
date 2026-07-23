@@ -195,7 +195,7 @@
         </aside>
       </div>
 
-      <hr class="layer-rule" />
+      <hr class="layer-rule" aria-hidden="true" />
 
       <section class="listing__description" appReveal aria-label="Opis zlecenia">
         <h2 class="section-label">
@@ -369,7 +369,7 @@
       }
     </article>
 
-    <hr class="layer-rule" />
+    <hr class="layer-rule" aria-hidden="true" />
 
     <!-- Oferty -->
     <section class="offers" aria-label="Oferty drukarzy">
@@ -385,7 +385,7 @@
           <div class="spinner" aria-hidden="true"></div>
         </div>
       } @else if (offers().length === 0) {
-        <div class="state-box state-box--empty">
+        <div class="state-box state-box--empty blueprint-grid">
           <app-icon name="inbox" aria-hidden="true" />
           <p>Brak ofert. Złóż pierwszą!</p>
         </div>

@@ -47,11 +47,11 @@
 
 .profile-avatar {
   width: 72px; height: 72px; border-radius: 50%;
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: #fff; font-size: 1.875rem; font-weight: 700;
+  background: var(--accent-light);
+  color: var(--accent-dark); font-size: 1.875rem; font-weight: 700;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.admin-avatar { background: linear-gradient(135deg, #dc2626, #9333ea); }
+.admin-avatar { background: var(--error-bg); color: var(--error-text-bright); }
 
 .profile-info { display: flex; flex-direction: column; gap: 0.375rem; }
 
