@@ -29,7 +29,7 @@
 
       <!-- ── Listings ── -->
       <section class="card listings-card" aria-label="Ogłoszenia">
-        <h2 class="card__title">Ogłoszenia ({{ listings().length }})</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Ogłoszenia ({{ listings().length }})</h2>
         @if (listingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (listings().length === 0) {
@@ -97,17 +97,17 @@
 
       <!-- ── Ruch na stronie ── -->
       <section class="card traffic-card" aria-label="Ruch na stronie">
-        <h2 class="card__title"><app-icon name="trending-up" [size]="16" /> Ruch na stronie (7 dni)</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="trending-up" [size]="16" /> Ruch na stronie (7 dni)</h2>
         @if (trafficLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!traffic()) {
           <p class="muted">Brak danych.</p>
         } @else {
           <dl class="info-list">
-            <div class="info-row"><dt>Odsłony łącznie</dt><dd>{{ totalPageViews() }}</dd></div>
-            <div class="info-row"><dt>Zapytania API</dt><dd>{{ traffic()!.apiStats.totalRequests }}</dd></div>
-            <div class="info-row"><dt>Błędy API</dt><dd>{{ traffic()!.apiStats.errorCount }}</dd></div>
-            <div class="info-row"><dt>Śr. czas odpowiedzi</dt><dd>{{ traffic()!.apiStats.avgDurationMs | number:'1.0-0' }} ms</dd></div>
+            <div class="info-row"><dt>Odsłony łącznie</dt><dd class="spec-mono">{{ totalPageViews() }}</dd></div>
+            <div class="info-row"><dt>Zapytania API</dt><dd class="spec-mono">{{ traffic()!.apiStats.totalRequests }}</dd></div>
+            <div class="info-row"><dt>Błędy API</dt><dd class="spec-mono">{{ traffic()!.apiStats.errorCount }}</dd></div>
+            <div class="info-row"><dt>Śr. czas odpowiedzi</dt><dd class="spec-mono">{{ traffic()!.apiStats.avgDurationMs | number:'1.0-0' }} ms</dd></div>
           </dl>
           <h3 class="card__subtitle">Najczęściej odwiedzane strony</h3>
           <ul class="code-list">
@@ -123,24 +123,24 @@
 
       <!-- ── Przychód ── -->
       <section class="card revenue-card" aria-label="Przychód">
-        <h2 class="card__title"><app-icon name="coin" [size]="16" /> Przychód (7 dni)</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="coin" [size]="16" /> Przychód (7 dni)</h2>
         @if (revenueLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!revenue()) {
           <p class="muted">Brak danych.</p>
         } @else {
           <dl class="info-list">
-            <div class="info-row"><dt>Prowizja platformy</dt><dd>{{ revenue()!.totalPlatformFee | number:'1.2-2' }} zł</dd></div>
-            <div class="info-row"><dt>Obrót łącznie</dt><dd>{{ revenue()!.totalVolume | number:'1.2-2' }} zł</dd></div>
-            <div class="info-row"><dt>Zrealizowane płatności</dt><dd>{{ revenue()!.paidCount }}</dd></div>
-            <div class="info-row"><dt>Oczekujące płatności</dt><dd>{{ revenue()!.pendingCount }}</dd></div>
+            <div class="info-row"><dt>Prowizja platformy</dt><dd class="spec-mono">{{ revenue()!.totalPlatformFee | number:'1.2-2' }} zł</dd></div>
+            <div class="info-row"><dt>Obrót łącznie</dt><dd class="spec-mono">{{ revenue()!.totalVolume | number:'1.2-2' }} zł</dd></div>
+            <div class="info-row"><dt>Zrealizowane płatności</dt><dd class="spec-mono">{{ revenue()!.paidCount }}</dd></div>
+            <div class="info-row"><dt>Oczekujące płatności</dt><dd class="spec-mono">{{ revenue()!.pendingCount }}</dd></div>
           </dl>
         }
       </section>
 
       <!-- ── Users table ── -->
       <section class="card users-card" aria-label="Lista użytkowników">
-        <h2 class="card__title">Użytkownicy ({{ users().length }})</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Użytkownicy ({{ users().length }})</h2>
         @if (usersLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (users().length === 0) {
@@ -202,7 +202,7 @@
 
       <!-- ── Admin codes ── -->
       <section class="card codes-card" aria-label="Kody administratora">
-        <h2 class="card__title"><app-icon name="key" [size]="16" /> Kody administratora</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="key" [size]="16" /> Kody administratora</h2>
         <p class="admin-desc">
           Wygeneruj kod i przekaż go zaufanej osobie. Po wpisaniu kodu jej konto otrzyma
           uprawnienia administratora.
@@ -215,9 +215,9 @@
         } @else if (codes().length === 0) {
           <p class="muted">Nie wygenerowano jeszcze żadnych kodów.</p>
         } @else {
-          <ul class="code-list">
+          <ul class="code-list divided-list">
             @for (c of codes(); track c.code) {
-              <li class="code-row" [class.code-row--used]="c.used">
+              <li class="code-row divided-row" [class.code-row--used]="c.used">
                 <code class="code-row__code">{{ c.code }}</code>
                 @if (c.used) {
                   <span class="code-row__status code-row__status--used">
@@ -237,7 +237,7 @@
 
       <!-- ── Dziennik działań administratora ── -->
       <section class="card audit-log-card" aria-label="Dziennik działań administratora">
-        <h2 class="card__title"><app-icon name="clipboard-list" [size]="16" /> Dziennik działań ({{ auditLog().length }})</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="clipboard-list" [size]="16" /> Dziennik działań ({{ auditLog().length }})</h2>
         @if (auditLogLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (auditLog().length === 0) {
@@ -258,7 +258,7 @@
                   <tr>
                     <td>{{ a.adminEmail }}</td>
                     <td>{{ actionLabel(a.actionType) }}</td>
-                    <td class="monospace">{{ a.targetType }} · {{ a.targetId }}</td>
+                    <td class="monospace spec-mono">{{ a.targetType }} · {{ a.targetId }}</td>
                     <td class="date-cell">{{ formatDate(a.createdAt) }}</td>
                   </tr>
                 }
@@ -270,7 +270,7 @@
 
       <!-- ── Oceny ── -->
       <section class="card ratings-card" aria-label="Oceny">
-        <h2 class="card__title"><app-icon name="star" [size]="16" /> Oceny ({{ ratings().length }})</h2>
+        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="star" [size]="16" /> Oceny ({{ ratings().length }})</h2>
         @if (ratingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (ratings().length === 0) {
@@ -290,7 +290,7 @@
               <tbody>
                 @for (r of ratings(); track r.id) {
                   <tr>
-                    <td>{{ r.stars }} / 5</td>
+                    <td class="spec-mono">{{ r.stars }} / 5</td>
                     <td>{{ r.comment || '—' }}</td>
                     <td>
                       @if (r.moderationStatus === 'HIDDEN') {
@@ -322,7 +322,7 @@
       <!-- ── Szczegóły profilu ── -->
       <section class="card" aria-label="Szczegóły profilu">
         <div class="section-header">
-          <h2 class="card__title">Szczegóły profilu</h2>
+          <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Szczegóły profilu</h2>
           @if (!editingDetails()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditDetails()">Edytuj</button>
           }
@@ -392,7 +392,7 @@
       <!-- ── Dane konta ── -->
       <section class="card" aria-label="Dane konta">
         <div class="section-header">
-          <h2 class="card__title">Dane konta</h2>
+          <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Dane konta</h2>
           @if (!editingAccount()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditAccount()">Edytuj</button>
           }
@@ -423,7 +423,7 @@
           <dl class="info-list">
             <div class="info-row"><dt>Email</dt><dd>{{ profile()!.email }}</dd></div>
             <div class="info-row"><dt>Telefon</dt><dd>{{ profile()!.phone || '—' }}</dd></div>
-            <div class="info-row"><dt>ID konta</dt><dd class="monospace">{{ profile()!.id }}</dd></div>
+            <div class="info-row"><dt>ID konta</dt><dd class="monospace spec-mono">{{ profile()!.id }}</dd></div>
             <div class="info-row"><dt>Data rejestracji</dt><dd>{{ formatDate(profile()!.createdAt) }}</dd></div>
           </dl>
           <button class="btn btn--danger" (click)="auth.logout()">Wyloguj się</button>
@@ -433,7 +433,7 @@
       <!-- ── Wysyłka ── -->
       <section class="card" aria-label="Adres wysyłki">
         <div class="section-header">
-          <h2 class="card__title">Wysyłka</h2>
+          <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Wysyłka</h2>
           @if (!editingShipping()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditShipping()">Edytuj</button>
           }
