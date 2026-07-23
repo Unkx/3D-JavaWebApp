@@ -9,26 +9,31 @@
   } @else if (error()) {
     <div class="state-box state-box--error" role="alert"><app-icon name="warning" [size]="16" /> {{ error() }}</div>
   } @else if (profile()) {
-    <div class="panel-grid">
+    <div class="panel-sections">
 
       <!-- ── Profile header ── -->
-      <section class="card profile-card" aria-label="Profil">
-        <div class="profile-avatar" aria-hidden="true">{{ avatarChar(profile()!) }}</div>
-        <div class="profile-info">
-          <h2 class="profile-name">{{ displayName(profile()!) }}</h2>
-          @if (profile()!.firstName || profile()!.lastName) {
-            <p class="profile-email">{{ profile()!.email }}</p>
-          }
-          @if (profile()!.bio) {
-            <p class="profile-bio">{{ profile()!.bio }}</p>
-          }
-          <span class="role-badge"><app-icon [name]="roleIcon(profile()!.role)" [size]="14" /> {{ roleLabel(profile()!.role) }}</span>
-          <p class="profile-since">Konto od: <strong>{{ formatDate(profile()!.createdAt) }}</strong></p>
+      <section class="panel-section" aria-label="Profil">
+        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Profil</h2>
+        <div class="profile-card">
+          <div class="profile-avatar" aria-hidden="true">{{ avatarChar(profile()!) }}</div>
+          <div class="profile-info">
+            <h3 class="profile-name">{{ displayName(profile()!) }}</h3>
+            @if (profile()!.firstName || profile()!.lastName) {
+              <p class="profile-email">{{ profile()!.email }}</p>
+            }
+            @if (profile()!.bio) {
+              <p class="profile-bio">{{ profile()!.bio }}</p>
+            }
+            <span class="role-badge"><app-icon [name]="roleIcon(profile()!.role)" [size]="14" /> {{ roleLabel(profile()!.role) }}</span>
+            <p class="profile-since">Konto od: <strong>{{ formatDate(profile()!.createdAt) }}</strong></p>
+          </div>
         </div>
       </section>
 
-      <section class="card avatar-card" aria-label="Awatar">
-        <h2 class="card__title">Awatar</h2>
+      <hr class="layer-rule" />
+
+      <section class="panel-section" aria-label="Awatar">
+        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Awatar</h2>
         @if (!avatarLoadFailed() && publicSelf()?.hasAvatarData) {
           <img [src]="avatarUrl(profile()!.id)" [alt]="displayName(profile()!)" class="avatar-card__preview" (error)="onAvatarError()" />
         } @else if (!avatarLoadFailed() && publicSelf()?.avatarUrl) {
@@ -51,9 +56,11 @@
         </div>
       </section>
 
-      <section class="card privacy-card" aria-label="Prywatność">
-        <div class="card__header">
-          <h2 class="card__title">Prywatność profilu</h2>
+      <hr class="layer-rule" />
+
+      <section class="panel-section" aria-label="Prywatność">
+        <div class="section-header">
+          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Prywatność profilu</h2>
           @if (!editingPrivacy()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditPrivacy()">Edytuj</button>
           }
@@ -79,9 +86,11 @@
         }
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Oceny ── -->
-      <section class="card" aria-label="Oceny">
-        <h2 class="card__title"><app-icon name="star" [size]="16" /> Oceny</h2>
+      <section class="panel-section" aria-label="Oceny">
+        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> <app-icon name="star" [size]="16" /> Oceny</h2>
         @if (ratingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!ratings() || ratings()!.summary.count === 0) {
@@ -104,9 +113,11 @@
         }
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Stats ── -->
-      <section class="card stats-card" aria-label="Statystyki aktywności">
-        <h2 class="card__title">Aktywność</h2>
+      <section class="panel-section" aria-label="Statystyki aktywności">
+        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Aktywność</h2>
         <div class="stats-grid">
           <div class="stat-item">
             <span class="stat-item__value">{{ profile()!.listingsCount }}</span>
@@ -119,9 +130,11 @@
         </div>
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Quick actions ── -->
-      <section class="card actions-card" aria-label="Szybkie akcje">
-        <h2 class="card__title">Szybkie akcje</h2>
+      <section class="panel-section" aria-label="Szybkie akcje">
+        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Szybkie akcje</h2>
         <div class="actions-list">
           <a routerLink="/dodaj-zlecenie" class="action-item">
             <span class="action-item__icon"><app-icon name="plus" [size]="20" /></span>
@@ -141,10 +154,12 @@
         </div>
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Szczegóły profilu ── -->
-      <section class="card details-card" aria-label="Szczegóły profilu">
+      <section class="panel-section" aria-label="Szczegóły profilu">
         <div class="section-header">
-          <h2 class="card__title">Szczegóły profilu</h2>
+          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Szczegóły profilu</h2>
           @if (!editingDetails()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditDetails()">Edytuj</button>
           }
@@ -223,10 +238,12 @@
         }
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Dane konta ── -->
-      <section class="card account-card" aria-label="Dane konta">
+      <section class="panel-section" aria-label="Dane konta">
         <div class="section-header">
-          <h2 class="card__title">Dane konta</h2>
+          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Dane konta</h2>
           @if (!editingAccount()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditAccount()">Edytuj</button>
           }
@@ -276,10 +293,12 @@
         }
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Wysyłka ── -->
-      <section class="card shipping-card" aria-label="Adres wysyłki">
+      <section class="panel-section" aria-label="Adres wysyłki">
         <div class="section-header">
-          <h2 class="card__title">Wysyłka</h2>
+          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Wysyłka</h2>
           @if (!editingShipping()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditShipping()">Edytuj</button>
           }
@@ -348,9 +367,11 @@
         }
       </section>
 
+      <hr class="layer-rule" />
+
       <!-- ── Redeem admin code ── -->
-      <section class="card admin-card" aria-label="Zostań administratorem">
-        <h2 class="card__title"><app-icon name="key" [size]="16" /> Masz kod administratora?</h2>
+      <section class="panel-section admin-card" aria-label="Zostań administratorem">
+        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> <app-icon name="key" [size]="16" /> Masz kod administratora?</h2>
         <p class="admin-card__desc">
           Wpisz kod otrzymany od administratora, aby uzyskać uprawnienia administratora.
         </p>
