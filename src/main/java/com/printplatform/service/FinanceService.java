@@ -226,6 +226,10 @@ public class FinanceService {
         if (req.getStartDate() != null) {
             cost.setStartDate(req.getStartDate());
         }
+        if (req.getEndDate() != null && req.getEndDate().isBefore(cost.getStartDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia");
+        }
         cost.setEndDate(req.getEndDate());
         return recurringCostRepository.save(cost);
     }

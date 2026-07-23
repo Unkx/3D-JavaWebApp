@@ -338,4 +338,20 @@ class FinanceServiceTest {
         assertThat(updated.getFilamentPricePerKg()).isEqualByComparingTo("95.00");
         assertThat(updated.getCostPerPrintHour()).isEqualByComparingTo("2.20");
     }
+
+    @Test
+    void updateCost_rejectsEndBeforeKeptStartDate() {
+        RecurringCost mine = existingCost(seller); // startDate = now minus 2 months
+        when(recurringCostRepository.findById(mine.getId())).thenReturn(Optional.of(mine));
+        RecurringCostRequest req = new RecurringCostRequest();
+        req.setName("Licencja CAD");
+        req.setMonthlyAmount(new BigDecimal("45.00"));
+        req.setStartDate(null);
+        req.setEndDate(LocalDate.now().minusMonths(3)); // before kept startDate
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> financeService.updateCost(seller, mine.getId(), req))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                .hasMessageContaining("400");
+    }
 }
