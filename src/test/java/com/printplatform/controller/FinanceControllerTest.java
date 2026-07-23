@@ -3,14 +3,8 @@ package com.printplatform.controller;
 import com.printplatform.controller.support.AbstractControllerTest;
 import com.printplatform.dto.CostSettingsRequest;
 import com.printplatform.dto.RecurringCostRequest;
-import com.printplatform.model.Listing;
-import com.printplatform.model.Offer;
-import com.printplatform.model.OfferStatus;
 import com.printplatform.model.User;
-import com.printplatform.repository.ListingRepository;
-import com.printplatform.repository.OfferRepository;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,30 +22,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class FinanceControllerTest extends AbstractControllerTest {
 
-    @Autowired private ListingRepository listingRepository;
-    @Autowired private OfferRepository offerRepository;
-
     private RecurringCostRequest recurringCostRequest(String name, String amount) {
         RecurringCostRequest request = new RecurringCostRequest();
         request.setName(name);
         request.setMonthlyAmount(new BigDecimal(amount));
         return request;
-    }
-
-    private Offer persistOffer(User buyer, User seller, OfferStatus status) {
-        Listing listing = new Listing();
-        listing.setUser(buyer);
-        listing.setTitle("Test listing");
-        Listing savedListing = listingRepository.save(listing);
-
-        Offer offer = new Offer();
-        offer.setListing(savedListing);
-        offer.setUser(seller);
-        offer.setPrice(BigDecimal.valueOf(50));
-        offer.setPrintingTimeHours(2.0);
-        offer.setFilamentGrams(100);
-        offer.setStatus(status);
-        return offerRepository.save(offer);
     }
 
     @Test
