@@ -1,5 +1,5 @@
 <!-- HERO -->
-<section class="hero" aria-labelledby="hero-title">
+<section class="hero blueprint-grid" aria-labelledby="hero-title">
   <div class="hero__content">
     <span class="hero__badge">Platforma druku 3D</span>
     <h1 class="hero__title" id="hero-title">
@@ -96,6 +96,8 @@
   </div>
 </section>
 
+<hr class="layer-rule" aria-hidden="true">
+
 <!-- TRUST BAR -->
 <div class="trust-bar" appReveal aria-label="Statystyki platformy">
   <div class="trust-stat">
@@ -121,33 +123,35 @@
 
 <!-- JAK TO DZIAŁA -->
 <section class="section" appReveal aria-labelledby="steps-title">
-  <h2 class="section__title" id="steps-title">Jak to działa?</h2>
+  <h2 class="section-label" id="steps-title"><span class="tick-num">01</span> Jak to działa?</h2>
   <div class="steps">
-    <div class="steps__connector" aria-hidden="true"></div>
     @for (step of steps; track step.title; let i = $index) {
       <div class="step">
-        <div class="step__circle" [class.step__circle--active]="i === 0" aria-hidden="true">
-          <span>{{ i + 1 }}</span>
-        </div>
-        <h3 class="step__title">{{ step.title }}</h3>
+        <h3 class="step__title">
+          <span class="tick-num">{{ i < 9 ? '0' + (i + 1) : (i + 1) }}</span> {{ step.title }}
+        </h3>
         <p class="step__desc">{{ step.desc }}</p>
       </div>
     }
   </div>
 </section>
 
+<hr class="layer-rule" aria-hidden="true">
+
 <!-- MATERIAŁY -->
 <section class="section" appReveal aria-labelledby="materials-title">
-  <h2 class="section__title" id="materials-title">Obsługiwane materiały</h2>
-  <div class="materials">
+  <h2 class="section-label" id="materials-title"><span class="tick-num">02</span> Obsługiwane materiały</h2>
+  <div class="divided-list">
     @for (mat of materials; track mat.name; let i = $index) {
-      <div class="material-chip" [class.material-chip--featured]="i === 0">
-        <span class="material-chip__name">{{ mat.name }}</span>
-        <span class="material-chip__desc">{{ mat.desc }}</span>
+      <div class="divided-row material-row" [class.material-row--featured]="i === 0">
+        <span class="material-row__name spec-mono">{{ mat.name }}</span>
+        <span class="material-row__desc">{{ mat.desc }}</span>
       </div>
     }
   </div>
 </section>
+
+<hr class="layer-rule" aria-hidden="true">
 
 <!-- CTA -->
 <section class="cta" appReveal aria-labelledby="cta-title">
