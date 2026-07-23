@@ -36,8 +36,8 @@
         @if (p.city) {
           <div class="profile-header__meta-row"><dt>Lokalizacja</dt><dd>{{ p.city }}</dd></div>
         }
-        <div class="profile-header__meta-row"><dt>Dołączył(a)</dt><dd>{{ formatDate(p.createdAt) }}</dd></div>
-        <div class="profile-header__meta-row"><dt>Ostatnie logowanie</dt><dd>{{ formatLastLogin(p.lastLoginAt) }}</dd></div>
+        <div class="profile-header__meta-row"><dt>Dołączył(a)</dt><dd class="spec-mono">{{ formatDate(p.createdAt) }}</dd></div>
+        <div class="profile-header__meta-row"><dt>Ostatnie logowanie</dt><dd class="spec-mono">{{ formatLastLogin(p.lastLoginAt) }}</dd></div>
       </dl>
 
       <div class="profile-header__badges">
@@ -70,7 +70,9 @@
       @if (listingsLoading()) {
         <p class="muted">Ładowanie...</p>
       } @else if (!listings() || listings()!.content.length === 0) {
-        <p class="muted">Ten użytkownik nie ma obecnie żadnych ogłoszeń.</p>
+        <div class="state-box state-box--empty blueprint-grid">
+          <p>Ten użytkownik nie ma obecnie żadnych ogłoszeń.</p>
+        </div>
       } @else {
         <ul class="profile-listings">
           @for (l of listings()!.content; track l.id) {
@@ -89,7 +91,9 @@
       @if (ratingsLoading()) {
         <p class="muted">Ładowanie...</p>
       } @else if (!ratings() || ratings()!.summary.count === 0) {
-        <p class="muted">Brak opinii.</p>
+        <div class="state-box state-box--empty blueprint-grid">
+          <p>Brak opinii.</p>
+        </div>
       } @else {
         <ul class="review-list">
           @for (r of ratings()!.ratings.content; track r.id) {
@@ -97,7 +101,7 @@
               <a [routerLink]="['/uzytkownik', r.raterId]" class="review-row__rater">{{ r.raterDisplayName }}</a>
               <span class="review-row__stars" [attr.aria-label]="'Ocena: ' + r.stars + ' na 5 gwiazdek'"><span aria-hidden="true">{{ '★'.repeat(r.stars) }}{{ '☆'.repeat(5 - r.stars) }}</span></span>
               @if (r.comment) { <p class="review-row__comment">{{ r.comment }}</p> }
-              <time class="review-row__date">{{ formatDate(r.createdAt) }}</time>
+              <time class="review-row__date spec-mono">{{ formatDate(r.createdAt) }}</time>
             </li>
           }
         </ul>
