@@ -3,7 +3,7 @@
     <div class="page__heading">
       <h1 class="page__title">Zlecenia druku</h1>
       @if (!loading()) {
-        <span class="badge" aria-label="{{ total() }} zleceń">{{ total() }}</span>
+        <span class="badge spec-mono" aria-label="{{ total() }} zleceń">{{ total() }}</span>
       }
     </div>
     @if (auth.isLoggedIn() && !auth.isAdmin()) {
@@ -50,7 +50,7 @@
       <p>{{ error() }}</p>
     </div>
   } @else if (listings().length === 0) {
-    <div class="state-box state-box--empty">
+    <div class="state-box state-box--empty blueprint-grid">
       <span class="state-box__icon"><app-icon [name]="searchQuery() ? 'search' : 'inbox'" [size]="28" /></span>
       @if (searchQuery()) {
         <p>Brak wyników dla „{{ searchQuery() }}"</p>
@@ -61,81 +61,54 @@
       }
     </div>
   } @else {
-    <ul class="listing-grid" aria-label="Lista zleceń druku">
+    <ul class="divided-list listing-rows" aria-label="Lista zleceń druku">
       @for (listing of listings(); track listing.id) {
-        <li>
+        <li class="divided-row job-row"
+            [class.job-row--open]="(listing.status ?? 'OPEN') === 'OPEN'"
+            [class.job-row--closed]="listing.status === 'CLOSED'"
+            [class.job-row--awarded]="listing.status === 'AWARDED'">
           <a [routerLink]="['/zlecenia', listing.id]"
-             class="listing-card"
-             [class.listing-card--closed]="listing.status === 'CLOSED'"
-             [class.listing-card--awarded]="listing.status === 'AWARDED'"
+             class="job-row__link"
              aria-label="Zlecenie: {{ listing.title }}">
+            <div class="job-row__main">
+              <div class="job-row__heading">
+                <h2 class="job-row__title">{{ listing.title }}</h2>
+                <span class="card-status card-status--{{ (listing.status ?? 'open').toLowerCase() }}">
+                  {{ statusLabel(listing.status) }}
+                </span>
+                @if (listing.hasAttachments || listing.stlFileName) {
+                  <span class="card-badge-stl">STL</span>
+                }
+              </div>
+              <p class="job-row__desc">{{ listing.description }}</p>
+            </div>
 
-            <div class="listing-card__img" aria-hidden="true">
-              <span class="card-status card-status--{{ (listing.status ?? 'open').toLowerCase() }}">
-                {{ statusLabel(listing.status) }}
-              </span>
-              @if (listing.previewImageUrl) {
-                <img class="listing-card__photo" [src]="listing.previewImageUrl" alt="" loading="lazy"/>
-              } @else if (listing.hasAttachments || listing.stlFileName) {
-                <span class="card-badge-stl">STL</span>
-                <div class="listing-card__placeholder listing-card__placeholder--stl">
-                  <svg class="card-icon" width="56" height="56" viewBox="0 0 100 100" fill="none" aria-hidden="true">
-                    <polygon points="50,10 90,32 90,68 50,90 10,68 10,32" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.5"/>
-                    <polygon points="50,10 70,21 50,32 30,21" stroke="currentColor" stroke-width="1" fill="currentColor" fill-opacity="0.06" opacity="0.8"/>
-                    <polygon points="30,21 50,32 50,54 10,32" stroke="currentColor" stroke-width="1" fill="currentColor" fill-opacity="0.04" opacity="0.7"/>
-                    <polygon points="70,21 90,32 50,54 50,32" stroke="currentColor" stroke-width="1" fill="currentColor" fill-opacity="0.03" opacity="0.7"/>
-                    <line x1="50" y1="10" x2="50" y2="32" stroke="currentColor" stroke-width="1" opacity="0.4"/>
-                    <line x1="30" y1="21" x2="50" y2="54" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
-                    <line x1="70" y1="21" x2="50" y2="54" stroke="currentColor" stroke-width="0.8" opacity="0.3"/>
-                    <line x1="10" y1="32" x2="90" y2="32" stroke="currentColor" stroke-width="0.8" opacity="0.25"/>
-                    <line x1="10" y1="68" x2="90" y2="68" stroke="currentColor" stroke-width="0.8" opacity="0.2"/>
-                    <line x1="10" y1="32" x2="10" y2="68" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                    <line x1="90" y1="32" x2="90" y2="68" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                    <line x1="50" y1="54" x2="10" y2="68" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                    <line x1="50" y1="54" x2="90" y2="68" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                    <line x1="50" y1="54" x2="50" y2="90" stroke="currentColor" stroke-width="1" opacity="0.25"/>
-                  </svg>
-                  <span class="card-material-label">{{ listing.requiredMaterial }}</span>
-                </div>
-              } @else {
-                <div class="listing-card__placeholder">
-                  <svg class="card-icon" width="52" height="52" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-                    <path d="M32 6L58 22V42L32 58L6 42V22Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M32 6L58 22L32 38L6 22Z" fill="currentColor" opacity="0.13"/>
-                    <path d="M6 22L32 38V58L6 42Z" fill="currentColor" opacity="0.08"/>
-                    <path d="M58 22L32 38V58L58 42Z" fill="currentColor" opacity="0.06"/>
-                    <line x1="32" y1="6" x2="32" y2="38" stroke="currentColor" stroke-width="1.5" opacity="0.45"/>
-                  </svg>
-                  <span class="card-material-label">{{ listing.requiredMaterial }}</span>
+            <dl class="job-row__specs">
+              <div>
+                <dt>Materiał</dt>
+                <dd class="spec-mono">{{ listing.requiredMaterial }}</dd>
+              </div>
+              @if (listing.estimatorSize) {
+                <div>
+                  <dt>Rozmiar</dt>
+                  <dd class="spec-mono">{{ sizeLabel(listing.estimatorSize) }}</dd>
                 </div>
               }
-            </div>
-
-            <div class="listing-card__body">
-              <h2 class="listing-card__title">{{ listing.title }}</h2>
-
-              <div class="listing-card__price">
+              <div>
+                <dt>Budżet</dt>
                 @if (listing.maxBudget) {
-                  <span class="price__amount">{{ listing.maxBudget }}<span class="price__currency"> zł</span></span>
-                  <span class="price__label">maks. budżet</span>
+                  <dd class="spec-mono">{{ listing.maxBudget }} zł</dd>
                 } @else {
-                  <span class="price__amount price__amount--open">Do ustalenia</span>
+                  <dd class="spec-mono">Do ustalenia</dd>
                 }
               </div>
-
-              <div class="listing-card__tags">
-                @if (listing.estimatorSize) {
-                  <span class="tag tag--size">{{ sizeLabel(listing.estimatorSize) }}</span>
-                }
-                @if (listing.createdAt) {
-                  <time class="listing-card__date" [attr.datetime]="listing.createdAt">
-                    {{ listing.createdAt | slice:0:10 }}
-                  </time>
-                }
-              </div>
-
-              <span class="listing-card__cta">Zobacz zlecenie</span>
-            </div>
+              @if (listing.createdAt) {
+                <div>
+                  <dt>Dodano</dt>
+                  <dd class="spec-mono"><time [attr.datetime]="listing.createdAt">{{ listing.createdAt | slice:0:10 }}</time></dd>
+                </div>
+              }
+            </dl>
           </a>
         </li>
       }
