@@ -9,7 +9,7 @@
   } @else {
 
     <section class="fin-section" aria-labelledby="fin-sec-1">
-      <h2 class="section-label" id="fin-sec-1"><span class="tick-num"></span> Przepływy</h2>
+      <h2 class="section-label" id="fin-sec-1"><span class="tick-num" aria-hidden="true"></span> Przepływy</h2>
 
       <div class="kpi-row">
         <div class="kpi">
@@ -82,7 +82,7 @@
     <hr class="layer-rule" aria-hidden="true">
 
     <section class="fin-section" aria-labelledby="fin-sec-2">
-      <h2 class="section-label" id="fin-sec-2"><span class="tick-num"></span> Zaległości</h2>
+      <h2 class="section-label" id="fin-sec-2"><span class="tick-num" aria-hidden="true"></span> Zaległości</h2>
 
       @if (alerts().length) {
         <div class="divided-list">
@@ -105,7 +105,7 @@
     <hr class="layer-rule" aria-hidden="true">
 
     <section class="fin-section" aria-labelledby="fin-sec-3">
-      <h2 class="section-label" id="fin-sec-3"><span class="tick-num"></span> Pipeline</h2>
+      <h2 class="section-label" id="fin-sec-3"><span class="tick-num" aria-hidden="true"></span> Pipeline</h2>
 
       <div class="pipeline-bars">
         @for (p of pipelineBars(); track p.status) {
@@ -209,7 +209,7 @@
           @if (editingCostId()) {
             <button type="button" class="btn btn--ghost" (click)="cancelEdit()">Anuluj</button>
           }
-          <button type="submit" class="btn btn--primary" [disabled]="costSaving()" [attr.aria-busy]="costSaving()">
+          <button type="submit" class="btn btn--primary" [attr.aria-disabled]="costSaving() ? 'true' : null" [attr.aria-busy]="costSaving()">
             {{ editingCostId() ? 'Zapisz' : 'Dodaj koszt' }}
           </button>
         </div>
@@ -257,7 +257,7 @@
         </div>
 
         <div class="form__actions">
-          <button type="submit" class="btn btn--primary" [disabled]="settingsSaving()" [attr.aria-busy]="settingsSaving()">Zapisz</button>
+          <button type="submit" class="btn btn--primary" [attr.aria-disabled]="settingsSaving() ? 'true' : null" [attr.aria-busy]="settingsSaving()">Zapisz</button>
           <span class="save-confirm" aria-live="polite">
             @if (settingsSaved()) { Zapisano. }
           </span>

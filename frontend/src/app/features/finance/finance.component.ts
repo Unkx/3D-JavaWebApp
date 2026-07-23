@@ -126,6 +126,7 @@ export class FinanceComponent implements OnInit {
   }
 
   submitCost(): void {
+    if (this.costSaving()) { return; }
     this.costFormError.set(false);
     if (this.costForm.invalid) {
       this.costForm.markAllAsTouched();
@@ -199,6 +200,7 @@ export class FinanceComponent implements OnInit {
   }
 
   saveSettings(): void {
+    if (this.settingsSaving()) { return; }
     this.settingsSaved.set(false);
     if (this.settingsForm.invalid) {
       this.settingsForm.markAllAsTouched();

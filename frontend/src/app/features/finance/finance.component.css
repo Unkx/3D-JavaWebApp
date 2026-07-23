@@ -190,7 +190,8 @@
 .btn--ghost { background: transparent; color: var(--accent); border: 1px solid var(--accent-border); }
 .btn--ghost:hover:not(:disabled) { background: var(--accent-light); }
 .btn--sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
-.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn:disabled,
+.btn[aria-disabled="true"] { opacity: 0.6; cursor: not-allowed; }
 
 /* ---- Forms (cost + settings) ---- */
 .cost-form, .settings-form {
