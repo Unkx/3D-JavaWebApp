@@ -10,7 +10,9 @@
 <!-- CATEGORIES -->
 @for (category of categories; track category.title; let ci = $index) {
   <section class="section" appReveal [attr.aria-labelledby]="'faq-cat-' + ci">
-    <h2 class="section__title" [id]="'faq-cat-' + ci">{{ category.title }}</h2>
+    <h2 class="section-label" [id]="'faq-cat-' + ci">
+      <span class="tick-num">{{ ci < 9 ? '0' + (ci + 1) : (ci + 1) }}</span> {{ category.title }}
+    </h2>
     <div class="faq-list">
       @for (item of category.items; track item.q; let i = $index) {
         <div class="faq-item" [class.faq-item--open]="isOpen(ci + '-' + i)">
