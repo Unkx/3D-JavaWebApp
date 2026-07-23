@@ -12,7 +12,7 @@
   <!-- LEWA: DANE WEJŚCIOWE -->
   <div class="calc-col">
     <section class="calc-card" aria-labelledby="calc-filament-title">
-      <h2 class="calc-card__title" id="calc-filament-title">Filament</h2>
+      <h2 class="section-label calc-card__title" id="calc-filament-title"><span class="tick-num">01</span> Filament</h2>
 
       <div class="calc-row">
         <label for="filPrice">Cena filamentu <span class="calc-hint">za 1 kg</span></label>
@@ -46,7 +46,7 @@
     </section>
 
     <section class="calc-card" aria-labelledby="calc-print-title">
-      <h2 class="calc-card__title" id="calc-print-title">Druk — czas, prąd, maszyna</h2>
+      <h2 class="section-label calc-card__title" id="calc-print-title"><span class="tick-num">02</span> Druk — czas, prąd, maszyna</h2>
 
       <div class="calc-row">
         <label for="hours">Czas druku</label>
@@ -90,7 +90,7 @@
     </section>
 
     <section class="calc-card" aria-labelledby="calc-other-title">
-      <h2 class="calc-card__title" id="calc-other-title">Twój czas i pozostałe koszty</h2>
+      <h2 class="section-label calc-card__title" id="calc-other-title"><span class="tick-num">03</span> Twój czas i pozostałe koszty</h2>
 
       <div class="calc-row">
         <label for="laborH">Twój czas pracy <span class="calc-hint">modelowanie, obróbka, pakowanie</span></label>
@@ -114,7 +114,7 @@
     </section>
 
     <section class="calc-card" aria-labelledby="calc-price-title">
-      <h2 class="calc-card__title" id="calc-price-title">Jak ustalić cenę? <span class="calc-tag">— edytuj jedno z trzech pól</span></h2>
+      <h2 class="section-label calc-card__title" id="calc-price-title"><span class="tick-num">04</span> Jak ustalić cenę? <span class="calc-tag">— edytuj jedno z trzech pól</span></h2>
 
       <div class="calc-row" [class.calc-row--active]="lastEdited() === 'markup'">
         <label for="markup">1) Narzut na koszt</label>
@@ -153,54 +153,54 @@
   <!-- PRAWA: WYNIKI -->
   <div class="calc-col">
     <section class="calc-card calc-card--out" aria-labelledby="calc-cost-title">
-      <h2 class="calc-card__title" id="calc-cost-title">Koszty produkcji <span class="calc-hint">bez Twojej pracy</span></h2>
+      <h2 class="section-label calc-card__title" id="calc-cost-title"><span class="tick-num">05</span> Koszty produkcji <span class="calc-hint">bez Twojej pracy</span></h2>
       <div class="calc-line">
         <span>Filament <span class="calc-tag">({{ formatNumber(effectiveGrams(), 0, 0) }} g)</span></span>
-        <span class="calc-v">{{ formatPln(filamentCost()) }}</span>
+        <span class="calc-v spec-mono">{{ formatPln(filamentCost()) }}</span>
       </div>
       <div class="calc-line">
         <span>Prąd <span class="calc-tag">({{ formatNumber(energyKwh(), 2, 2) }} kWh)</span></span>
-        <span class="calc-v">{{ formatPln(energyCost()) }}</span>
+        <span class="calc-v spec-mono">{{ formatPln(energyCost()) }}</span>
       </div>
       <div class="calc-line">
         <span>Amortyzacja maszyny</span>
-        <span class="calc-v">{{ formatPln(machineCost()) }}</span>
+        <span class="calc-v spec-mono">{{ formatPln(machineCost()) }}</span>
       </div>
       <div class="calc-line">
         <span>Materiały dodatkowe</span>
-        <span class="calc-v">{{ formatPln(extraMaterials()) }}</span>
+        <span class="calc-v spec-mono">{{ formatPln(extraMaterials()) }}</span>
       </div>
       <div class="calc-line calc-line--total">
         <span>Koszt całkowity</span>
-        <span class="calc-v calc-v--accent">{{ formatPln(totalCost()) }}</span>
+        <span class="calc-v calc-v--accent spec-mono">{{ formatPln(totalCost()) }}</span>
       </div>
     </section>
 
     <section class="calc-card calc-card--out" aria-labelledby="calc-customer-price-title">
-      <h2 class="calc-card__title" id="calc-customer-price-title">Cena dla klienta</h2>
+      <h2 class="section-label calc-card__title" id="calc-customer-price-title"><span class="tick-num">06</span> Cena dla klienta</h2>
       <div class="calc-kpi-split">
         <div class="calc-kpi">
           <div class="calc-kpi__lbl">Cena</div>
-          <div class="calc-kpi__num calc-kpi__num--accent">{{ formatPln(priceNet()) }}</div>
+          <div class="calc-kpi__num calc-kpi__num--accent spec-mono">{{ formatPln(priceNet()) }}</div>
         </div>
         <div class="calc-kpi">
           <div class="calc-kpi__lbl">Marża na koszcie</div>
-          <div class="calc-kpi__num">{{ formatNumber(markupPctDisplay(), 1, 1) }} %</div>
+          <div class="calc-kpi__num spec-mono">{{ formatNumber(markupPctDisplay(), 1, 1) }} %</div>
         </div>
       </div>
     </section>
 
     <section class="calc-card calc-card--result" aria-labelledby="calc-result-title">
-      <h2 class="calc-card__title" id="calc-result-title">Ile Ci zostaje</h2>
+      <h2 class="section-label calc-card__title" id="calc-result-title"><span class="tick-num">07</span> Ile Ci zostaje</h2>
       <div class="calc-line calc-line--big">
         <span class="calc-total">Na rękę</span>
-        <span class="calc-hand" [class.calc-hand--pos]="takeHome() >= 0" [class.calc-hand--neg]="takeHome() < 0">
+        <span class="calc-hand spec-mono" [class.calc-hand--pos]="takeHome() >= 0" [class.calc-hand--neg]="takeHome() < 0">
           {{ formatPln(takeHome()) }}
         </span>
       </div>
       <div class="calc-line calc-line--big">
         <span class="calc-total">Twoja stawka za godzinę pracy</span>
-        <span class="calc-rate">{{ formatRate(hourlyRate()) }}</span>
+        <span class="calc-rate spec-mono">{{ formatRate(hourlyRate()) }}</span>
       </div>
       <p class="calc-foot">
         @if (laborHours() > 0) {
