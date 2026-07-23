@@ -9,7 +9,7 @@
           <div class="spinner" aria-hidden="true"></div>
         </div>
       } @else if (conversations().length === 0) {
-        <div class="state-box state-box--empty">
+        <div class="state-box state-box--empty blueprint-grid">
           <p>Brak rozmów</p>
         </div>
       } @else {
@@ -36,7 +36,7 @@
                 <span class="conv-item__preview">{{ conv.lastMessageContent | slice:0:60 }}</span>
               }
               @if (conv.lastMessageAt) {
-                <time class="conv-item__time">{{ formatTime(conv.lastMessageAt) }}</time>
+                <time class="conv-item__time spec-mono">{{ formatTime(conv.lastMessageAt) }}</time>
               }
             </li>
           }
@@ -47,7 +47,7 @@
     <!-- Conversation view -->
     <section class="chat-view" aria-label="Rozmowa">
       @if (!selectedId()) {
-        <div class="chat-view__empty">
+        <div class="chat-view__empty blueprint-grid">
           <p>Wybierz rozmowę z listy</p>
         </div>
       } @else {
@@ -77,7 +77,7 @@
               <div class="bubble" [class.bubble--own]="isOwn(msg)" [class.bubble--other]="!isOwn(msg)">
                 <span class="bubble__sender">{{ msg.sender.email }}</span>
                 <p class="bubble__content">{{ msg.content }}</p>
-                <time class="bubble__time">{{ formatTime(msg.createdAt) }}</time>
+                <time class="bubble__time spec-mono">{{ formatTime(msg.createdAt) }}</time>
               </div>
             }
             @if (messages().length === 0) {
