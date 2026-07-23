@@ -1,9 +1,11 @@
 package com.printplatform.service;
 
+import com.printplatform.dto.CostSettingsRequest;
 import com.printplatform.dto.FinanceSummaryDto;
 import com.printplatform.dto.MonthBucketDto;
 import com.printplatform.dto.OverdueAlertDto;
 import com.printplatform.dto.PipelineEntryDto;
+import com.printplatform.dto.RecurringCostRequest;
 import com.printplatform.model.*;
 import com.printplatform.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -255,5 +257,85 @@ class FinanceServiceTest {
         when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
 
         assertThat(financeService.getAlerts(seller)).hasSize(1);
+    }
+
+    private RecurringCost existingCost(User owner) {
+        RecurringCost c = new RecurringCost();
+        c.setId(UUID.randomUUID());
+        c.setSeller(owner);
+        c.setName("Licencja CAD");
+        c.setMonthlyAmount(new BigDecimal("45.00"));
+        c.setStartDate(LocalDate.now().minusMonths(2));
+        return c;
+    }
+
+    @Test
+    void createCost_defaultsStartDateToToday() {
+        RecurringCostRequest req = new RecurringCostRequest();
+        req.setName("Prąd");
+        req.setMonthlyAmount(new BigDecimal("60.00"));
+        when(recurringCostRepository.save(any(RecurringCost.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        RecurringCost created = financeService.createCost(seller, req);
+
+        assertThat(created.getStartDate()).isEqualTo(LocalDate.now());
+        assertThat(created.getSeller()).isEqualTo(seller);
+    }
+
+    @Test
+    void createCost_rejectsEndBeforeStart() {
+        RecurringCostRequest req = new RecurringCostRequest();
+        req.setName("Prąd");
+        req.setMonthlyAmount(new BigDecimal("60.00"));
+        req.setStartDate(LocalDate.now());
+        req.setEndDate(LocalDate.now().minusDays(1));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> financeService.createCost(seller, req))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                .hasMessageContaining("400");
+    }
+
+    @Test
+    void updateCost_forbiddenForForeignCost() {
+        User other = new User();
+        other.setId(UUID.randomUUID());
+        RecurringCost foreign = existingCost(other);
+        when(recurringCostRepository.findById(foreign.getId())).thenReturn(Optional.of(foreign));
+        RecurringCostRequest req = new RecurringCostRequest();
+        req.setName("X");
+        req.setMonthlyAmount(BigDecimal.ONE);
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> financeService.updateCost(seller, foreign.getId(), req))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                .hasMessageContaining("403");
+    }
+
+    @Test
+    void deleteCost_notFoundForUnknownId() {
+        UUID unknown = UUID.randomUUID();
+        when(recurringCostRepository.findById(unknown)).thenReturn(Optional.empty());
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(
+                        () -> financeService.deleteCost(seller, unknown))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                .hasMessageContaining("404");
+    }
+
+    @Test
+    void updateSettings_overwritesBothValues() {
+        when(settingsRepository.findBySellerId(seller.getId())).thenReturn(Optional.of(settings));
+        when(settingsRepository.save(any(SellerCostSettings.class)))
+                .thenAnswer(inv -> inv.getArgument(0));
+        CostSettingsRequest req = new CostSettingsRequest();
+        req.setFilamentPricePerKg(new BigDecimal("95.00"));
+        req.setCostPerPrintHour(new BigDecimal("2.20"));
+
+        SellerCostSettings updated = financeService.updateSettings(seller, req);
+
+        assertThat(updated.getFilamentPricePerKg()).isEqualByComparingTo("95.00");
+        assertThat(updated.getCostPerPrintHour()).isEqualByComparingTo("2.20");
     }
 }

@@ -1,13 +1,17 @@
 package com.printplatform.service;
 
+import com.printplatform.dto.CostSettingsRequest;
 import com.printplatform.dto.FinanceSummaryDto;
 import com.printplatform.dto.MonthBucketDto;
 import com.printplatform.dto.OverdueAlertDto;
 import com.printplatform.dto.PipelineEntryDto;
+import com.printplatform.dto.RecurringCostRequest;
 import com.printplatform.model.*;
 import com.printplatform.repository.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -177,5 +181,65 @@ public class FinanceService {
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingLong(OverdueAlertDto::getDaysOverdue).reversed())
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<RecurringCost> getCosts(User seller) {
+        return recurringCostRepository.findBySellerId(seller.getId());
+    }
+
+    private void validateDates(RecurringCostRequest req) {
+        if (req.getStartDate() != null && req.getEndDate() != null
+                && req.getEndDate().isBefore(req.getStartDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia");
+        }
+    }
+
+    @Transactional
+    public RecurringCost createCost(User seller, RecurringCostRequest req) {
+        validateDates(req);
+        RecurringCost cost = new RecurringCost();
+        cost.setSeller(seller);
+        cost.setName(req.getName());
+        cost.setMonthlyAmount(req.getMonthlyAmount());
+        cost.setStartDate(req.getStartDate() != null ? req.getStartDate() : LocalDate.now());
+        cost.setEndDate(req.getEndDate());
+        return recurringCostRepository.save(cost);
+    }
+
+    private RecurringCost ownedCost(User seller, UUID id) {
+        RecurringCost cost = recurringCostRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!cost.getSeller().getId().equals(seller.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
+        return cost;
+    }
+
+    @Transactional
+    public RecurringCost updateCost(User seller, UUID id, RecurringCostRequest req) {
+        validateDates(req);
+        RecurringCost cost = ownedCost(seller, id);
+        cost.setName(req.getName());
+        cost.setMonthlyAmount(req.getMonthlyAmount());
+        if (req.getStartDate() != null) {
+            cost.setStartDate(req.getStartDate());
+        }
+        cost.setEndDate(req.getEndDate());
+        return recurringCostRepository.save(cost);
+    }
+
+    @Transactional
+    public void deleteCost(User seller, UUID id) {
+        recurringCostRepository.delete(ownedCost(seller, id));
+    }
+
+    @Transactional
+    public SellerCostSettings updateSettings(User seller, CostSettingsRequest req) {
+        SellerCostSettings s = getOrCreateSettings(seller);
+        s.setFilamentPricePerKg(req.getFilamentPricePerKg());
+        s.setCostPerPrintHour(req.getCostPerPrintHour());
+        return settingsRepository.save(s);
     }
 }
