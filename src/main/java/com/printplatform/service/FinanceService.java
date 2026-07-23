@@ -2,6 +2,8 @@ package com.printplatform.service;
 
 import com.printplatform.dto.FinanceSummaryDto;
 import com.printplatform.dto.MonthBucketDto;
+import com.printplatform.dto.OverdueAlertDto;
+import com.printplatform.dto.PipelineEntryDto;
 import com.printplatform.model.*;
 import com.printplatform.repository.*;
 import org.springframework.stereotype.Service;
@@ -120,5 +122,60 @@ public class FinanceService {
                 currentBucket.getNet(),
                 currentBucket.getCosts(),
                 months);
+    }
+
+    private static final List<OfferStatus> PIPELINE_ORDER = List.of(
+            OfferStatus.PENDING, OfferStatus.SELECTED, OfferStatus.PAID,
+            OfferStatus.PRINTING, OfferStatus.SHIPPED, OfferStatus.DELIVERED,
+            OfferStatus.REJECTED);
+
+    private static final int OVERDUE_DAYS = 7;
+
+    @Transactional(readOnly = true)
+    public List<PipelineEntryDto> getPipeline(User seller) {
+        List<Offer> offers = offerRepository.findByUserId(seller.getId());
+        List<PipelineEntryDto> result = new ArrayList<>();
+        for (OfferStatus status : PIPELINE_ORDER) {
+            List<Offer> matching = offers.stream()
+                    .filter(o -> o.getStatus() == status)
+                    .toList();
+            BigDecimal value = status == OfferStatus.REJECTED
+                    ? BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
+                    : matching.stream()
+                        .map(Offer::getPrice)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add)
+                        .setScale(2, RoundingMode.HALF_UP);
+            result.add(new PipelineEntryDto(status.name(), matching.size(), value));
+        }
+        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<OverdueAlertDto> getAlerts(User seller) {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        return offerRepository.findByUserId(seller.getId()).stream()
+                .filter(o -> o.getStatus() == OfferStatus.SELECTED)
+                .filter(o -> paymentRepository.findByOfferId(o.getId())
+                        .map(p -> p.getStatus() == PaymentStatus.REFUNDED)
+                        .orElse(true))
+                .map(o -> {
+                    java.time.LocalDateTime since =
+                            o.getSelectedAt() != null ? o.getSelectedAt() : o.getCreatedAt();
+                    long days = java.time.temporal.ChronoUnit.DAYS.between(since, now);
+                    if (days <= OVERDUE_DAYS) {
+                        return null;
+                    }
+                    return new OverdueAlertDto(
+                            o.getId(),
+                            o.getListing().getId(),
+                            o.getListing().getTitle(),
+                            displayNameService.resolve(o.getListing().getUser()),
+                            o.getPrice(),
+                            days);
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingLong(OverdueAlertDto::getDaysOverdue).reversed())
+                .toList();
     }
 }

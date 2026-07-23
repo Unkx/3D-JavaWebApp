@@ -2,6 +2,8 @@ package com.printplatform.service;
 
 import com.printplatform.dto.FinanceSummaryDto;
 import com.printplatform.dto.MonthBucketDto;
+import com.printplatform.dto.OverdueAlertDto;
+import com.printplatform.dto.PipelineEntryDto;
 import com.printplatform.model.*;
 import com.printplatform.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -159,5 +161,99 @@ class FinanceServiceTest {
         FinanceSummaryDto dto = financeService.getSummary(seller);
 
         assertThat(dto.getMonths().get(11).getCosts()).isEqualByComparingTo("102.00");
+    }
+
+    @Test
+    void getPipeline_groupsByStatusWithValues() {
+        Offer p1 = offer(0, 0.0); p1.setStatus(OfferStatus.PENDING);
+        Offer p2 = offer(0, 0.0); p2.setStatus(OfferStatus.PENDING);
+        p2.setPrice(new BigDecimal("70.00"));
+        Offer rejected = offer(0, 0.0); rejected.setStatus(OfferStatus.REJECTED);
+        when(offerRepository.findByUserId(seller.getId()))
+                .thenReturn(List.of(p1, p2, rejected));
+
+        List<PipelineEntryDto> pipeline = financeService.getPipeline(seller);
+
+        assertThat(pipeline).hasSize(7);
+        PipelineEntryDto pending = pipeline.get(0);
+        assertThat(pending.getStatus()).isEqualTo("PENDING");
+        assertThat(pending.getCount()).isEqualTo(2);
+        assertThat(pending.getValue()).isEqualByComparingTo("120.00");
+        PipelineEntryDto rej = pipeline.get(6);
+        assertThat(rej.getStatus()).isEqualTo("REJECTED");
+        assertThat(rej.getCount()).isEqualTo(1);
+        assertThat(rej.getValue()).isEqualByComparingTo("0.00");
+    }
+
+    private Offer selectedOffer(LocalDateTime selectedAt, LocalDateTime createdAt) {
+        Offer o = offer(0, 0.0);
+        o.setStatus(OfferStatus.SELECTED);
+        o.setSelectedAt(selectedAt);
+        o.setCreatedAt(createdAt);
+        Listing listing = new Listing();
+        listing.setId(UUID.randomUUID());
+        listing.setTitle("Obudowa czujnika");
+        User buyer = new User();
+        buyer.setId(UUID.randomUUID());
+        listing.setUser(buyer);
+        o.setListing(listing);
+        return o;
+    }
+
+    @Test
+    void getAlerts_overdueOnlyAfterSevenFullDays() {
+        LocalDateTime now = LocalDateTime.now();
+        Offer overdue = selectedOffer(now.minusDays(8), now.minusDays(30));
+        Offer fresh = selectedOffer(now.minusDays(3), now.minusDays(30));
+        Offer exactlySeven = selectedOffer(now.minusDays(7), now.minusDays(30));
+        when(offerRepository.findByUserId(seller.getId()))
+                .thenReturn(List.of(overdue, fresh, exactlySeven));
+        when(paymentRepository.findByOfferId(any())).thenReturn(Optional.empty());
+        when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
+
+        List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
+
+        assertThat(alerts).hasSize(1);
+        assertThat(alerts.get(0).getOfferId()).isEqualTo(overdue.getId());
+        assertThat(alerts.get(0).getDaysOverdue()).isEqualTo(8);
+        assertThat(alerts.get(0).getBuyerName()).isEqualTo("Swift Maker");
+        assertThat(alerts.get(0).getListingTitle()).isEqualTo("Obudowa czujnika");
+    }
+
+    @Test
+    void getAlerts_nullSelectedAtFallsBackToCreatedAt() {
+        LocalDateTime now = LocalDateTime.now();
+        Offer legacy = selectedOffer(null, now.minusDays(10));
+        when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(legacy));
+        when(paymentRepository.findByOfferId(legacy.getId())).thenReturn(Optional.empty());
+        when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
+
+        List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
+
+        assertThat(alerts).hasSize(1);
+        assertThat(alerts.get(0).getDaysOverdue()).isEqualTo(10);
+    }
+
+    @Test
+    void getAlerts_excludedWhenPaymentExists() {
+        LocalDateTime now = LocalDateTime.now();
+        Offer withPayment = selectedOffer(now.minusDays(9), now.minusDays(30));
+        Payment held = payment(PaymentStatus.HELD, new BigDecimal("10.00"), now, null, withPayment);
+        when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(withPayment));
+        when(paymentRepository.findByOfferId(withPayment.getId())).thenReturn(Optional.of(held));
+
+        assertThat(financeService.getAlerts(seller)).isEmpty();
+    }
+
+    @Test
+    void getAlerts_refundedPaymentStillCountsAsUnpaid() {
+        LocalDateTime now = LocalDateTime.now();
+        Offer refundedOffer = selectedOffer(now.minusDays(9), now.minusDays(30));
+        Payment refunded = payment(PaymentStatus.REFUNDED, new BigDecimal("10.00"), now, null, refundedOffer);
+        when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(refundedOffer));
+        when(paymentRepository.findByOfferId(refundedOffer.getId())).thenReturn(Optional.of(refunded));
+        when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
+
+        assertThat(financeService.getAlerts(seller)).hasSize(1);
     }
 }
