@@ -19,40 +19,7 @@
       <header class="listing__header" appReveal>
         <div class="listing__title-row">
           <h1 class="listing__title">{{ listing()!.title }}</h1>
-          <span class="status-badge status-badge--{{ (listing()!.status ?? 'open').toLowerCase() }}">
-            {{ statusLabel(listing()!.status) }}
-          </span>
         </div>
-
-        <div class="listing__meta">
-          <span class="tag"><app-icon name="box" aria-hidden="true" /> {{ listing()!.requiredMaterial }}</span>
-          @if (listing()!.estimatorSize) {
-            <span class="tag tag--size"><app-icon name="ruler" aria-hidden="true" /> {{ sizeLabel(listing()!.estimatorSize) }}</span>
-          }
-          @if (listing()!.estimatorQuality) {
-            <span class="tag tag--size"><app-icon name="settings" aria-hidden="true" /> {{ qualityLabel(listing()!.estimatorQuality) }}</span>
-          }
-          @if (listing()!.maxBudget) {
-            <span class="tag tag--budget"><app-icon name="currency" aria-hidden="true" /> Budżet: do {{ listing()!.maxBudget }} zł</span>
-          }
-          @if (listing()!.stlFileUrl) {
-            <a [href]="listing()!.stlFileUrl" target="_blank" rel="noopener noreferrer" class="tag tag--link">
-              <app-icon name="paperclip" aria-hidden="true" /> Pobierz plik STL
-            </a>
-          }
-          @if (listing()!.createdAt) {
-            <time class="listing__date" [attr.datetime]="listing()!.createdAt">
-              Dodano: {{ listing()!.createdAt | slice:0:10 }}
-            </time>
-          }
-        </div>
-
-        @if (listing()!.user?.id) {
-          <a [routerLink]="['/uzytkownik', listing()!.user!.id]" class="listing__seller">
-            <app-icon name="user-circle" aria-hidden="true" />
-            Sprzedawca: {{ listing()!.sellerDisplayName }}
-          </a>
-        }
 
         @if (canDelete()) {
           <div class="listing__manage">
@@ -70,102 +37,169 @@
         }
       </header>
 
-      @if (canUploadFile()) {
-        <app-stl-file-upload [listingId]="listing()!.id!" (uploaded)="onFileUploaded()"></app-stl-file-upload>
-      }
-
-      @if (stlFiles().length > 0) {
-        <section class="stl-viewer-section" appReveal aria-label="Podgląd plików">
-          <h2 class="section-title">
-            Podgląd
-            <span class="badge">{{ stlFiles().length }}</span>
-          </h2>
-
-          @if (stlFiles().length > 1 || canManage()) {
-            <div class="file-tabs" role="tablist" aria-label="Pliki">
-              @for (f of stlFiles(); track f.id) {
-                <div
-                  class="file-tab"
-                  [class.file-tab--active]="selectedFileId() === f.id"
-                  [class.file-tab--draggable]="canManage()"
-                  role="tab"
-                  [attr.aria-selected]="selectedFileId() === f.id"
-                  [draggable]="canManage()"
-                  (dragstart)="onDragStart(f.id)"
-                  (dragover)="onDragOver($event)"
-                  (drop)="onDrop($event, f.id)"
-                  (dragend)="onDragEnd()"
-                  (click)="selectFile(f.id)"
-                  (keyup.enter)="selectFile(f.id)"
-                  tabindex="0"
-                >
-                  @if (canManage()) {
-                    <app-icon name="grip-vertical" class="file-tab__grip" aria-hidden="true" />
-                  }
-                  <span class="file-tab__name">
-                    @if (f.kind === 'image') {
-                      <app-icon name="photo" aria-hidden="true" />
-                    } @else {
-                      <app-icon name="file" aria-hidden="true" />
-                    }
-                    {{ f.fileName }}
-                  </span>
-                  @if (f.fileSize) {
-                    <span class="file-tab__size">{{ fileSizeLabel(f.fileSize) }}</span>
-                  }
-                  @if (canManage()) {
-                    <button
-                      class="file-tab__del"
-                      (click)="deleteFile(f.id, $event)"
-                      [disabled]="deletingFileId() === f.id"
-                      aria-label="Usuń plik"
-                      title="Usuń plik"
-                    ><app-icon name="x" aria-hidden="true" /></button>
-                  }
-                </div>
-              }
-            </div>
+      <div class="detail-layout">
+        <div class="detail-layout__viewer">
+          @if (canUploadFile()) {
+            <app-stl-file-upload [listingId]="listing()!.id!" (uploaded)="onFileUploaded()"></app-stl-file-upload>
           }
 
-          <div class="stl-viewer-wrapper">
-            @if (viewerVisible() && selectedFileUrl()) {
-              @if (selectedFile()?.kind === 'image') {
-                <div class="image-preview">
-                  <img [src]="selectedFileUrl()" [alt]="selectedFile()?.fileName" />
+          @if (stlFiles().length > 0) {
+            <section class="stl-viewer-section" appReveal aria-label="Podgląd plików">
+              <h2 class="section-label">
+                <span class="tick-num">01</span> Modele
+                <span class="badge">{{ stlFiles().length }}</span>
+              </h2>
+
+              @if (stlFiles().length > 1 || canManage()) {
+                <div class="file-tabs" role="tablist" aria-label="Pliki">
+                  @for (f of stlFiles(); track f.id) {
+                    <div
+                      class="file-tab"
+                      [class.file-tab--active]="selectedFileId() === f.id"
+                      [class.file-tab--draggable]="canManage()"
+                      role="tab"
+                      [attr.aria-selected]="selectedFileId() === f.id"
+                      [draggable]="canManage()"
+                      (dragstart)="onDragStart(f.id)"
+                      (dragover)="onDragOver($event)"
+                      (drop)="onDrop($event, f.id)"
+                      (dragend)="onDragEnd()"
+                      (click)="selectFile(f.id)"
+                      (keyup.enter)="selectFile(f.id)"
+                      tabindex="0"
+                    >
+                      @if (canManage()) {
+                        <app-icon name="grip-vertical" class="file-tab__grip" aria-hidden="true" />
+                      }
+                      <span class="file-tab__name">
+                        @if (f.kind === 'image') {
+                          <app-icon name="photo" aria-hidden="true" />
+                        } @else {
+                          <app-icon name="file" aria-hidden="true" />
+                        }
+                        {{ f.fileName }}
+                      </span>
+                      @if (f.fileSize) {
+                        <span class="file-tab__size">{{ fileSizeLabel(f.fileSize) }}</span>
+                      }
+                      @if (canManage()) {
+                        <button
+                          class="file-tab__del"
+                          (click)="deleteFile(f.id, $event)"
+                          [disabled]="deletingFileId() === f.id"
+                          aria-label="Usuń plik"
+                          title="Usuń plik"
+                        ><app-icon name="x" aria-hidden="true" /></button>
+                      }
+                    </div>
+                  }
                 </div>
-              } @else if (selectedFile()?.kind === 'obj') {
-                <div class="model-placeholder">
-                  <app-icon name="box" class="model-placeholder__icon" aria-hidden="true" />
-                  <p class="model-placeholder__text">Podgląd plików .obj nie jest dostępny w przeglądarce.</p>
-                  <a [href]="selectedFileUrl()!" class="btn btn--download" download>
-                    <app-icon name="download" aria-hidden="true" /> Pobierz plik OBJ
-                  </a>
-                </div>
-              } @else {
-                <app-stl-viewer [stlUrl]="selectedFileUrl()"></app-stl-viewer>
               }
+
+              <div class="stl-viewer-wrapper">
+                @if (viewerVisible() && selectedFileUrl()) {
+                  @if (selectedFile()?.kind === 'image') {
+                    <div class="image-preview">
+                      <img [src]="selectedFileUrl()" [alt]="selectedFile()?.fileName" />
+                    </div>
+                  } @else if (selectedFile()?.kind === 'obj') {
+                    <div class="model-placeholder">
+                      <app-icon name="box" class="model-placeholder__icon" aria-hidden="true" />
+                      <p class="model-placeholder__text">Podgląd plików .obj nie jest dostępny w przeglądarce.</p>
+                      <a [href]="selectedFileUrl()!" class="btn btn--download" download>
+                        <app-icon name="download" aria-hidden="true" /> Pobierz plik OBJ
+                      </a>
+                    </div>
+                  } @else {
+                    <app-stl-viewer [stlUrl]="selectedFileUrl()"></app-stl-viewer>
+                  }
+                }
+              </div>
+
+              @if (zipDownloadUrl()) {
+                <div class="viewer-actions">
+                  <button
+                    class="btn btn--download"
+                    (click)="downloadZip()"
+                    [disabled]="downloading()"
+                    title="Pobierz wszystkie pliki jako ZIP — otwórz .stl w Cura, PrusaSlicer lub innym slicerze"
+                  >
+                    @if (downloading()) { Pobieranie... } @else { <app-icon name="download" aria-hidden="true" /> Pobierz pliki (.zip) }
+                  </button>
+                  <span class="viewer-actions__hint">Zawiera pliki STL, obrazy i README — otwórz w Cura lub innym slicerze</span>
+                </div>
+              }
+            </section>
+          }
+        </div>
+
+        <aside class="detail-layout__specs" aria-label="Specyfikacja zlecenia">
+          <dl class="datasheet">
+            <div>
+              <dt>Materiał</dt>
+              <dd class="spec-mono">{{ listing()!.requiredMaterial }}</dd>
+            </div>
+            @if (listing()!.estimatorSize) {
+              <div>
+                <dt>Rozmiar</dt>
+                <dd class="spec-mono">{{ sizeLabel(listing()!.estimatorSize) }}</dd>
+              </div>
             }
-          </div>
-
-          @if (zipDownloadUrl()) {
-            <div class="viewer-actions">
-              <button
-                class="btn btn--download"
-                (click)="downloadZip()"
-                [disabled]="downloading()"
-                title="Pobierz wszystkie pliki jako ZIP — otwórz .stl w Cura, PrusaSlicer lub innym slicerze"
-              >
-                @if (downloading()) { Pobieranie... } @else { <app-icon name="download" aria-hidden="true" /> Pobierz pliki (.zip) }
-              </button>
-              <span class="viewer-actions__hint">Zawiera pliki STL, obrazy i README — otwórz w Cura lub innym slicerze</span>
+            @if (listing()!.estimatorQuality) {
+              <div>
+                <dt>Jakość</dt>
+                <dd class="spec-mono">{{ qualityLabel(listing()!.estimatorQuality) }}</dd>
+              </div>
+            }
+            @if (listing()!.maxBudget) {
+              <div>
+                <dt>Budżet</dt>
+                <dd class="spec-mono">do {{ listing()!.maxBudget }} zł</dd>
+              </div>
+            }
+            <div>
+              <dt>Status</dt>
+              <dd>
+                <span class="status-badge status-badge--{{ (listing()!.status ?? 'open').toLowerCase() }}">
+                  {{ statusLabel(listing()!.status) }}
+                </span>
+              </dd>
             </div>
-          }
-        </section>
-      }
+            @if (listing()!.createdAt) {
+              <div>
+                <dt>Dodano</dt>
+                <dd class="spec-mono"><time [attr.datetime]="listing()!.createdAt">{{ listing()!.createdAt | slice:0:10 }}</time></dd>
+              </div>
+            }
+            @if (listing()!.user?.id) {
+              <div>
+                <dt>Sprzedawca</dt>
+                <dd>
+                  <a [routerLink]="['/uzytkownik', listing()!.user!.id]" class="datasheet__link">
+                    {{ listing()!.sellerDisplayName }}
+                  </a>
+                </dd>
+              </div>
+            }
+            @if (listing()!.stlFileUrl) {
+              <div>
+                <dt>Plik STL</dt>
+                <dd>
+                  <a [href]="listing()!.stlFileUrl" target="_blank" rel="noopener noreferrer" class="datasheet__link">
+                    Pobierz
+                  </a>
+                </dd>
+              </div>
+            }
+          </dl>
+        </aside>
+      </div>
+
+      <hr class="layer-rule" />
 
       <section class="listing__description" appReveal aria-label="Opis zlecenia">
-        <h2 class="section-title">
-          Opis
+        <h2 class="section-label">
+          <span class="tick-num">02</span> Opis
           @if (canManage()) {
             <button class="btn-edit-toggle" (click)="editMode() ? cancelEdit() : openEdit()"
                     [attr.aria-expanded]="editMode()">
@@ -335,10 +369,12 @@
       }
     </article>
 
+    <hr class="layer-rule" />
+
     <!-- Oferty -->
     <section class="offers" aria-label="Oferty drukarzy">
-      <h2 class="section-title">
-        Oferty
+      <h2 class="section-label">
+        <span class="tick-num">03</span> Oferty
         @if (!offersLoading()) {
           <span class="badge">{{ offers().length }}</span>
         }
@@ -354,9 +390,9 @@
           <p>Brak ofert. Złóż pierwszą!</p>
         </div>
       } @else {
-        <ul class="offer-list" aria-label="Lista ofert">
+        <ul class="divided-list" aria-label="Lista ofert">
           @for (offer of offers(); track offer.id) {
-            <li class="offer-card">
+            <li class="divided-row offer-card">
               <div class="offer-card__row">
                 <span class="offer-card__price">{{ offer.price }} zł</span>
                 <span class="offer-status status-badge status-badge--{{ (offer.status ?? 'pending').toLowerCase() }}">
