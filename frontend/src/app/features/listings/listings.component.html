@@ -70,6 +70,15 @@
           <a [routerLink]="['/zlecenia', listing.id]"
              class="job-row__link"
              aria-label="Zlecenie: {{ listing.title }}">
+            @if (listing.previewImageUrl) {
+              <img
+                class="job-row__thumb"
+                [src]="listing.previewImageUrl"
+                alt=""
+                loading="lazy"
+                aria-hidden="true"
+              />
+            }
             <div class="job-row__main">
               <div class="job-row__heading">
                 <h2 class="job-row__title">{{ listing.title }}</h2>
@@ -84,10 +93,12 @@
             </div>
 
             <dl class="job-row__specs">
-              <div>
-                <dt>Materiał</dt>
-                <dd class="spec-mono">{{ listing.requiredMaterial }}</dd>
-              </div>
+              @if (listing.requiredMaterial) {
+                <div>
+                  <dt>Materiał</dt>
+                  <dd class="spec-mono">{{ listing.requiredMaterial }}</dd>
+                </div>
+              }
               @if (listing.estimatorSize) {
                 <div>
                   <dt>Rozmiar</dt>
