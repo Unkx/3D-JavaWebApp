@@ -1,0 +1,134 @@
+<div class="page">
+  <h1 class="page__title">Finanse</h1>
+
+  @if (loadError()) {
+    <div class="state-box state-box--error" role="alert">
+      <p>Nie udało się załadować danych finansowych.</p>
+      <button type="button" class="btn btn--primary" (click)="ngOnInit()">Spróbuj ponownie</button>
+    </div>
+  } @else {
+
+    <section class="fin-section" aria-labelledby="fin-sec-1">
+      <h2 class="section-label" id="fin-sec-1"><span class="tick-num"></span> Przepływy</h2>
+
+      <div class="kpi-row">
+        <div class="kpi">
+          <span class="kpi__label">Wypłacone</span>
+          <span class="kpi__value spec-mono">{{ (summary()?.totalReleased ?? 0) | number:'1.2-2' }} zł</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__label">Oczekujące</span>
+          <span class="kpi__value spec-mono">{{ (summary()?.totalHeld ?? 0) | number:'1.2-2' }} zł</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__label">Zysk w tym miesiącu</span>
+          <span class="kpi__value spec-mono">{{ (summary()?.monthProfit ?? 0) | number:'1.2-2' }} zł</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi__label">Koszty w tym miesiącu</span>
+          <span class="kpi__value spec-mono">{{ (summary()?.monthCosts ?? 0) | number:'1.2-2' }} zł</span>
+        </div>
+      </div>
+
+      <div class="chart-legend">
+        <span class="chart-legend__item"><span class="chart-legend__swatch chart-legend__swatch--inflow" aria-hidden="true"></span> Wpływy</span>
+        <span class="chart-legend__item"><span class="chart-legend__swatch chart-legend__swatch--costs" aria-hidden="true"></span> Koszty</span>
+      </div>
+
+      <div class="chart" role="img" aria-label="Wykres przepływów z 12 miesięcy: wpływy i koszty w porównaniu miesiąc do miesiąca">
+        @for (m of months(); track m.month) {
+          <div class="chart__col">
+            <div class="chart__bars">
+              <span class="chart__bar chart__bar--inflow"
+                    [style.height.%]="inflowHeight(m)"
+                    [title]="monthLabelFull(m.month) + ' — wpływy: ' + (m.inflow | number:'1.2-2') + ' zł'"></span>
+              <span class="chart__bar chart__bar--costs"
+                    [style.height.%]="costsHeight(m)"
+                    [title]="monthLabelFull(m.month) + ' — koszty: ' + (m.costs | number:'1.2-2') + ' zł'"></span>
+            </div>
+            <span class="chart__label">
+              <span class="chart__label-full">{{ monthLabelFull(m.month) }}</span>
+              <span class="chart__label-short">{{ monthLabelShort(m.month) }}</span>
+            </span>
+          </div>
+        }
+      </div>
+
+      <table class="sr-only">
+        <caption>Przepływy finansowe z 12 miesięcy</caption>
+        <thead>
+          <tr>
+            <th scope="col">Miesiąc</th>
+            <th scope="col">Wpływy</th>
+            <th scope="col">Oczekujące</th>
+            <th scope="col">Koszty</th>
+            <th scope="col">Zysk netto</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of months(); track m.month) {
+            <tr>
+              <td>{{ monthLabelFull(m.month) }}</td>
+              <td>{{ m.inflow | number:'1.2-2' }} zł</td>
+              <td>{{ m.pending | number:'1.2-2' }} zł</td>
+              <td>{{ m.costs | number:'1.2-2' }} zł</td>
+              <td>{{ m.net | number:'1.2-2' }} zł</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <hr class="layer-rule" aria-hidden="true">
+
+    <section class="fin-section" aria-labelledby="fin-sec-2">
+      <h2 class="section-label" id="fin-sec-2"><span class="tick-num"></span> Zaległości</h2>
+
+      @if (alerts().length) {
+        <div class="divided-list">
+          @for (a of alerts(); track a.offerId) {
+            <div class="divided-row alert-row">
+              <a [routerLink]="['/zlecenia', a.listingId]" class="alert-row__title">{{ a.listingTitle }}</a>
+              <span class="alert-row__buyer">{{ a.buyerName }}</span>
+              <span class="alert-row__price spec-mono">{{ a.price | number:'1.2-2' }} zł</span>
+              <span class="alert-row__badge">{{ a.daysOverdue }} dni</span>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="state-box blueprint-grid">
+          <p>Brak zaległości — wszystkie wybrane oferty opłacone.</p>
+        </div>
+      }
+    </section>
+
+    <hr class="layer-rule" aria-hidden="true">
+
+    <section class="fin-section" aria-labelledby="fin-sec-3">
+      <h2 class="section-label" id="fin-sec-3"><span class="tick-num"></span> Pipeline</h2>
+
+      <div class="pipeline-bars">
+        @for (p of pipelineBars(); track p.status) {
+          <div class="pipeline-bar" [style.width.%]="pipelineWidth(p)">
+            <span class="pipeline-bar__label">{{ pipelineLabel(p.status) }}</span>
+            <span class="pipeline-bar__count spec-mono">{{ p.count }}</span>
+          </div>
+        }
+      </div>
+      @if (rejectedCount() > 0) {
+        <p class="pipeline-rejected">Odrzucone: {{ rejectedCount() }}</p>
+      }
+
+      <div class="divided-list">
+        @for (p of pipeline(); track p.status) {
+          <div class="divided-row pipeline-row">
+            <span class="pipeline-row__label">{{ pipelineLabel(p.status) }}</span>
+            <span class="pipeline-row__count spec-mono">{{ p.count }}</span>
+            <span class="pipeline-row__value spec-mono">{{ p.value | number:'1.2-2' }} zł</span>
+          </div>
+        }
+      </div>
+    </section>
+
+  }
+</div>

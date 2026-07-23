@@ -40,6 +40,11 @@ export const routes: Routes = [
   { path: 'verify-email', loadComponent: () => import('./features/verify-email/verify-email.component').then(m => m.VerifyEmailComponent) },
   { path: 'uzytkownik/:id', loadComponent: () => import('./features/profile-view/profile-view.component').then(m => m.ProfileViewComponent) },
   {
+    path: 'finanse',
+    canActivate: [userOnlyGuard],
+    loadComponent: () => import('./features/finance/finance.component').then(m => m.FinanceComponent)
+  },
+  {
     path: '**',
     data: { fullscreen: true },
     loadComponent: () => import('./features/not-found/not-found.component').then(m => m.NotFoundComponent)

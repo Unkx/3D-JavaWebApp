@@ -45,6 +45,7 @@
     @if (auth.isLoggedIn()) {
       @if (!auth.isAdmin()) {
         <a routerLink="/moje-zlecenia" routerLinkActive="active" ariaCurrentWhenActive="page">Moje zlecenia</a>
+        <a routerLink="/finanse" routerLinkActive="active" ariaCurrentWhenActive="page">Finanse</a>
         <a routerLink="/wiadomosci" routerLinkActive="active" ariaCurrentWhenActive="page" class="nav-messages">
           Wiadomości
           @if (unreadCount() > 0) {
@@ -128,6 +129,7 @@
     @if (auth.isLoggedIn()) {
       @if (!auth.isAdmin()) {
         <a routerLink="/moje-zlecenia" routerLinkActive="active" (click)="closeMenu()">Moje zlecenia</a>
+        <a routerLink="/finanse" routerLinkActive="active" (click)="closeMenu()">Finanse</a>
         <a routerLink="/wiadomosci" routerLinkActive="active" class="nav-messages" (click)="closeMenu()">
           Wiadomości
           @if (unreadCount() > 0) {
