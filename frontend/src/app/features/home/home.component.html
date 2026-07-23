@@ -143,7 +143,7 @@
   <h2 class="section-label" id="materials-title"><span class="tick-num">02</span> Obsługiwane materiały</h2>
   <div class="divided-list">
     @for (mat of materials; track mat.name; let i = $index) {
-      <div class="divided-row material-row" [class.material-row--featured]="i === 0">
+      <div class="divided-row material-row">
         <span class="material-row__name spec-mono">{{ mat.name }}</span>
         <span class="material-row__desc">{{ mat.desc }}</span>
       </div>
