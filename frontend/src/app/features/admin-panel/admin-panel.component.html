@@ -110,9 +110,9 @@
             <div class="info-row"><dt>Śr. czas odpowiedzi</dt><dd class="spec-mono">{{ traffic()!.apiStats.avgDurationMs | number:'1.0-0' }} ms</dd></div>
           </dl>
           <h3 class="card__subtitle">Najczęściej odwiedzane strony</h3>
-          <ul class="code-list">
+          <ul class="code-list divided-list">
             @for (p of traffic()!.topPaths; track p.path) {
-              <li class="code-row">
+              <li class="code-row divided-row">
                 <code class="code-row__code">{{ p.path }}</code>
                 <span class="code-row__status">{{ p.count }} odsłon</span>
               </li>
