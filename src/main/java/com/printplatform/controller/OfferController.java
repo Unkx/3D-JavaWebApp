@@ -90,6 +90,7 @@ public class OfferController {
         paymentService.createPayment(offer, currentUser, request.getReceiverPaczkomat());
 
         offer.setStatus(OfferStatus.SELECTED);
+        offer.setSelectedAt(java.time.LocalDateTime.now());
         listing.setStatus(ListingStatus.AWARDED);
         listingRepository.save(listing);
 

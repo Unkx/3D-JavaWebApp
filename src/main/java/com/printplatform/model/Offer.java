@@ -42,5 +42,7 @@ public class Offer {
     @Enumerated(EnumType.STRING)
     private OfferStatus status = OfferStatus.PENDING;
 
+    private LocalDateTime selectedAt;
+
     private LocalDateTime createdAt = LocalDateTime.now();
 }
