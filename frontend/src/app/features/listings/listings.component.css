@@ -172,6 +172,11 @@
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
   flex-shrink: 0;
+  grid-column: 1;
+}
+
+.job-row__main {
+  grid-column: 2;
 }
 
 .job-row__heading {
@@ -201,6 +206,7 @@
   display: flex;
   gap: 32px;
   margin: 0;
+  grid-column: 3;
 }
 
 .job-row__specs dt {
@@ -262,6 +268,9 @@
 
 @media (max-width: 720px) {
   .job-row__link { grid-template-columns: 1fr; gap: 12px; }
+  .job-row__thumb,
+  .job-row__main,
+  .job-row__specs { grid-column: 1; }
   .job-row__specs { gap: 20px; flex-wrap: wrap; }
 }
 
