@@ -69,6 +69,7 @@ export class FinanceComponent implements OnInit {
   maxPipelineCount = computed(() => Math.max(1, ...this.pipelineBars().map(p => p.count)));
 
   ngOnInit(): void {
+    this.loadError.set(false);
     this.finance.getSummary().subscribe({
       next: s => this.summary.set(s),
       error: () => this.loadError.set(true)

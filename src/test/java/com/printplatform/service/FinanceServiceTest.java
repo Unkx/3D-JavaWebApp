@@ -223,6 +223,20 @@ class FinanceServiceTest {
     }
 
     @Test
+    void getAlerts_overdueJustPastSevenDays() {
+        LocalDateTime now = LocalDateTime.now();
+        Offer justPast = selectedOffer(now.minusDays(7).minusSeconds(5), now.minusDays(30));
+        when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(justPast));
+        when(paymentRepository.findByOfferId(justPast.getId())).thenReturn(Optional.empty());
+        when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
+
+        List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
+
+        assertThat(alerts).hasSize(1);
+        assertThat(alerts.get(0).getDaysOverdue()).isEqualTo(7);
+    }
+
+    @Test
     void getAlerts_nullSelectedAtFallsBackToCreatedAt() {
         LocalDateTime now = LocalDateTime.now();
         Offer legacy = selectedOffer(null, now.minusDays(10));

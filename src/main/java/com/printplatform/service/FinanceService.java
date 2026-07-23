@@ -166,10 +166,12 @@ public class FinanceService {
                 .map(o -> {
                     java.time.LocalDateTime since =
                             o.getSelectedAt() != null ? o.getSelectedAt() : o.getCreatedAt();
-                    long days = java.time.temporal.ChronoUnit.DAYS.between(since, now);
-                    if (days <= OVERDUE_DAYS) {
+                    java.time.LocalDateTime sinceSec = since.truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+                    java.time.LocalDateTime nowSec = now.truncatedTo(java.time.temporal.ChronoUnit.SECONDS);
+                    if (!sinceSec.isBefore(nowSec.minusDays(OVERDUE_DAYS))) {
                         return null;
                     }
+                    long days = java.time.temporal.ChronoUnit.DAYS.between(since, now);
                     return new OverdueAlertDto(
                             o.getId(),
                             o.getListing().getId(),

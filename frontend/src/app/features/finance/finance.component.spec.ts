@@ -130,6 +130,32 @@ describe('FinanceComponent', () => {
     expect(compiled.textContent).toContain('Nie udało się załadować danych finansowych.');
   });
 
+  it('clears the error state on retry once all requests succeed', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+
+    httpMock.expectOne('/api/finance/summary').flush('error', { status: 500, statusText: 'Server Error' });
+    httpMock.expectOne('/api/finance/alerts').flush([]);
+    httpMock.expectOne('/api/finance/pipeline').flush([]);
+    httpMock.expectOne('/api/finance/costs').flush([]);
+    httpMock.expectOne('/api/finance/settings').flush(settings);
+    fixture.detectChanges();
+
+    let compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.querySelector('.state-box--error')).toBeTruthy();
+
+    const retryButton = compiled.querySelector<HTMLButtonElement>('.state-box--error .btn--primary');
+    retryButton?.click();
+    fixture.detectChanges();
+
+    flushAll();
+    fixture.detectChanges();
+
+    compiled = fixture.nativeElement;
+    expect(compiled.querySelector('.state-box--error')).toBeFalsy();
+    expect(compiled.querySelectorAll('.kpi__value').length).toBe(4);
+  });
+
   function flushWithCosts(): void {
     httpMock.expectOne('/api/finance/summary').flush(summary);
     httpMock.expectOne('/api/finance/alerts').flush(alerts);
