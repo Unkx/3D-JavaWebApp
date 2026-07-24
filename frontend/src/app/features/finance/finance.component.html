@@ -1,16 +1,20 @@
 <div class="page">
   <h1 class="page__title">Finanse</h1>
 
-  @if (loadError()) {
-    <div class="state-box state-box--error" role="alert">
-      <p>Nie udało się załadować danych finansowych.</p>
-      <button type="button" class="btn btn--primary" (click)="ngOnInit()">Spróbuj ponownie</button>
-    </div>
-  } @else {
+  <section class="fin-section" aria-labelledby="fin-sec-1" [attr.aria-busy]="summaryState() === 'loading'">
+    <h2 class="section-label" id="fin-sec-1"><span class="tick-num" aria-hidden="true"></span> Przepływy</h2>
 
-    <section class="fin-section" aria-labelledby="fin-sec-1">
-      <h2 class="section-label" id="fin-sec-1"><span class="tick-num" aria-hidden="true"></span> Przepływy</h2>
-
+    @if (summaryState() === 'loading') {
+      <div class="skeleton" aria-hidden="true">
+        <span class="skeleton__bar skeleton__bar--kpi"></span>
+        <span class="skeleton__bar skeleton__bar--chart"></span>
+      </div>
+    } @else if (summaryState() === 'error') {
+      <div class="state-box state-box--error" role="alert">
+        <p>Nie udało się załadować danych finansowych.</p>
+        <button type="button" class="btn btn--primary" (click)="loadSummary()">Spróbuj ponownie</button>
+      </div>
+    } @else {
       <div class="kpi-row">
         <div class="kpi">
           <span class="kpi__label">Wypłacone</span>
@@ -77,41 +81,67 @@
           }
         </tbody>
       </table>
-    </section>
+    }
+  </section>
 
-    <hr class="layer-rule" aria-hidden="true">
+  <hr class="layer-rule" aria-hidden="true">
 
-    <section class="fin-section" aria-labelledby="fin-sec-2">
-      <h2 class="section-label" id="fin-sec-2"><span class="tick-num" aria-hidden="true"></span> Zaległości</h2>
+  <section class="fin-section" aria-labelledby="fin-sec-2" [attr.aria-busy]="alertsState() === 'loading'">
+    <h2 class="section-label" id="fin-sec-2"><span class="tick-num" aria-hidden="true"></span> Zaległości</h2>
 
-      @if (alerts().length) {
-        <div class="divided-list">
-          @for (a of alerts(); track a.offerId) {
-            <div class="divided-row alert-row">
-              <a [routerLink]="['/zlecenia', a.listingId]" class="alert-row__title">{{ a.listingTitle }}</a>
-              <span class="alert-row__buyer">{{ a.buyerName }}</span>
-              <span class="alert-row__price spec-mono">{{ a.price | number:'1.2-2' }} zł</span>
-              <span class="alert-row__badge">{{ a.daysOverdue }} dni</span>
-            </div>
-          }
-        </div>
-      } @else {
-        <div class="state-box blueprint-grid">
-          <p>Brak zaległości — wszystkie wybrane oferty opłacone.</p>
-        </div>
-      }
-    </section>
+    @if (alertsState() === 'loading') {
+      <div class="skeleton" aria-hidden="true">
+        <span class="skeleton__bar"></span>
+        <span class="skeleton__bar"></span>
+      </div>
+    } @else if (alertsState() === 'error') {
+      <div class="state-box state-box--error" role="alert">
+        <p>Nie udało się załadować danych finansowych.</p>
+        <button type="button" class="btn btn--primary" (click)="loadAlerts()">Spróbuj ponownie</button>
+      </div>
+    } @else if (alerts().length) {
+      <div class="divided-list">
+        @for (a of alerts(); track a.offerId) {
+          <div class="divided-row alert-row">
+            <a [routerLink]="['/zlecenia', a.listingId]" class="alert-row__title">{{ a.listingTitle }}</a>
+            <span class="alert-row__buyer">{{ a.buyerName }}</span>
+            <span class="alert-row__price spec-mono">{{ a.price | number:'1.2-2' }} zł</span>
+            <span class="alert-row__badge">{{ a.daysOverdue }} dni</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="state-box blueprint-grid">
+        <p>Brak zaległości — wszystkie wybrane oferty opłacone.</p>
+      </div>
+    }
+  </section>
 
-    <hr class="layer-rule" aria-hidden="true">
+  <hr class="layer-rule" aria-hidden="true">
 
-    <section class="fin-section" aria-labelledby="fin-sec-3">
-      <h2 class="section-label" id="fin-sec-3"><span class="tick-num" aria-hidden="true"></span> Pipeline</h2>
+  <section class="fin-section" aria-labelledby="fin-sec-3" [attr.aria-busy]="pipelineState() === 'loading'">
+    <h2 class="section-label" id="fin-sec-3"><span class="tick-num" aria-hidden="true"></span> Pipeline</h2>
 
+    @if (pipelineState() === 'loading') {
+      <div class="skeleton" aria-hidden="true">
+        <span class="skeleton__bar"></span>
+        <span class="skeleton__bar"></span>
+        <span class="skeleton__bar"></span>
+      </div>
+    } @else if (pipelineState() === 'error') {
+      <div class="state-box state-box--error" role="alert">
+        <p>Nie udało się załadować danych finansowych.</p>
+        <button type="button" class="btn btn--primary" (click)="loadPipeline()">Spróbuj ponownie</button>
+      </div>
+    } @else {
       <div class="pipeline-bars">
         @for (p of pipelineBars(); track p.status) {
           <div class="pipeline-bar" [style.width.%]="pipelineWidth(p)">
             <span class="pipeline-bar__label">{{ pipelineLabel(p.status) }}</span>
-            <span class="pipeline-bar__count spec-mono">{{ p.count }}</span>
+            <span class="pipeline-bar__figures">
+              <span class="pipeline-bar__count spec-mono">{{ p.count }}</span>
+              <span class="pipeline-bar__value spec-mono">{{ p.value | number:'1.2-2' }} zł</span>
+            </span>
           </div>
         }
       </div>
@@ -128,13 +158,25 @@
           </div>
         }
       </div>
-    </section>
+    }
+  </section>
 
-    <hr class="layer-rule" aria-hidden="true">
+  <hr class="layer-rule" aria-hidden="true">
 
-    <section class="fin-section" aria-labelledby="fin-sec-4">
-      <h2 class="section-label" id="fin-sec-4"><span class="tick-num" aria-hidden="true"></span> Koszty stałe</h2>
+  <section class="fin-section" aria-labelledby="fin-sec-4" [attr.aria-busy]="costsState() === 'loading'">
+    <h2 class="section-label" id="fin-sec-4"><span class="tick-num" aria-hidden="true"></span> Koszty stałe</h2>
 
+    @if (costsState() === 'loading') {
+      <div class="skeleton" aria-hidden="true">
+        <span class="skeleton__bar"></span>
+        <span class="skeleton__bar"></span>
+      </div>
+    } @else if (costsState() === 'error') {
+      <div class="state-box state-box--error" role="alert">
+        <p>Nie udało się załadować danych finansowych.</p>
+        <button type="button" class="btn btn--primary" (click)="loadCosts()">Spróbuj ponownie</button>
+      </div>
+    } @else {
       @if (costs().length) {
         <div class="divided-list">
           @for (c of costs(); track c.id) {
@@ -157,6 +199,10 @@
         <div class="state-box blueprint-grid">
           <p>Brak kosztów stałych.</p>
         </div>
+      }
+
+      @if (deleteError()) {
+        <p class="field__error" role="alert">Nie udało się usunąć kosztu. Spróbuj ponownie.</p>
       }
 
       <form class="cost-form" [formGroup]="costForm" (ngSubmit)="submitCost()" novalidate [attr.aria-label]="editingCostId() ? 'Edytuj koszt stały' : 'Dodaj koszt stały'">
@@ -212,15 +258,30 @@
           <button type="submit" class="btn btn--primary" [attr.aria-disabled]="costSaving() ? 'true' : null" [attr.aria-busy]="costSaving()">
             {{ editingCostId() ? 'Zapisz' : 'Dodaj koszt' }}
           </button>
+          <span class="save-error" aria-live="assertive">
+            @if (costSaveError()) { Nie udało się zapisać kosztu. Spróbuj ponownie. }
+          </span>
         </div>
       </form>
-    </section>
+    }
+  </section>
 
-    <hr class="layer-rule" aria-hidden="true">
+  <hr class="layer-rule" aria-hidden="true">
 
-    <section class="fin-section" aria-labelledby="fin-sec-5">
-      <h2 class="section-label" id="fin-sec-5"><span class="tick-num" aria-hidden="true"></span> Ustawienia kosztów</h2>
+  <section class="fin-section" aria-labelledby="fin-sec-5" [attr.aria-busy]="settingsState() === 'loading'">
+    <h2 class="section-label" id="fin-sec-5"><span class="tick-num" aria-hidden="true"></span> Ustawienia kosztów</h2>
 
+    @if (settingsState() === 'loading') {
+      <div class="skeleton" aria-hidden="true">
+        <span class="skeleton__bar"></span>
+        <span class="skeleton__bar"></span>
+      </div>
+    } @else if (settingsState() === 'error') {
+      <div class="state-box state-box--error" role="alert">
+        <p>Nie udało się załadować danych finansowych.</p>
+        <button type="button" class="btn btn--primary" (click)="loadSettings()">Spróbuj ponownie</button>
+      </div>
+    } @else {
       <form class="settings-form" [formGroup]="settingsForm" (ngSubmit)="saveSettings()" novalidate aria-label="Ustawienia kosztów">
         <div class="field">
           <label class="field__label" for="settings-filament">Filament (zł/kg)</label>
@@ -261,9 +322,11 @@
           <span class="save-confirm" aria-live="polite">
             @if (settingsSaved()) { Zapisano. }
           </span>
+          <span class="save-error" aria-live="assertive">
+            @if (settingsSaveError()) { Nie udało się zapisać ustawień. Spróbuj ponownie. }
+          </span>
         </div>
       </form>
-    </section>
-
-  }
+    }
+  </section>
 </div>

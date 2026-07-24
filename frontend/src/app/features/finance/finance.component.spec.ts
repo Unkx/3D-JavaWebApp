@@ -115,28 +115,30 @@ describe('FinanceComponent', () => {
     expect(compiled.textContent).toContain('Odrzucone: 2');
   });
 
-  it('shows the error state when a request fails', () => {
+  it('shows a section-scoped error while other sections still render', () => {
     const fixture = TestBed.createComponent(FinanceComponent);
     fixture.detectChanges();
 
     httpMock.expectOne('/api/finance/summary').flush('error', { status: 500, statusText: 'Server Error' });
     httpMock.expectOne('/api/finance/alerts').flush([]);
-    httpMock.expectOne('/api/finance/pipeline').flush([]);
+    httpMock.expectOne('/api/finance/pipeline').flush(pipeline);
     httpMock.expectOne('/api/finance/costs').flush([]);
     httpMock.expectOne('/api/finance/settings').flush(settings);
     fixture.detectChanges();
 
     const compiled: HTMLElement = fixture.nativeElement;
     expect(compiled.textContent).toContain('Nie udało się załadować danych finansowych.');
+    expect(compiled.textContent).toContain('Brak zaległości');
+    expect(compiled.textContent).toContain('W druku');
   });
 
-  it('clears the error state on retry once all requests succeed', () => {
+  it('retries only the failed section and clears its error on success', () => {
     const fixture = TestBed.createComponent(FinanceComponent);
     fixture.detectChanges();
 
     httpMock.expectOne('/api/finance/summary').flush('error', { status: 500, statusText: 'Server Error' });
     httpMock.expectOne('/api/finance/alerts').flush([]);
-    httpMock.expectOne('/api/finance/pipeline').flush([]);
+    httpMock.expectOne('/api/finance/pipeline').flush(pipeline);
     httpMock.expectOne('/api/finance/costs').flush([]);
     httpMock.expectOne('/api/finance/settings').flush(settings);
     fixture.detectChanges();
@@ -148,12 +150,38 @@ describe('FinanceComponent', () => {
     retryButton?.click();
     fixture.detectChanges();
 
-    flushAll();
+    httpMock.expectOne('/api/finance/summary').flush(summary);
     fixture.detectChanges();
 
     compiled = fixture.nativeElement;
     expect(compiled.querySelector('.state-box--error')).toBeFalsy();
     expect(compiled.querySelectorAll('.kpi__value').length).toBe(4);
+  });
+
+  it('shows loading skeletons until data arrives', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+
+    let compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.querySelectorAll('.skeleton').length).toBeGreaterThan(0);
+
+    flushAll();
+    fixture.detectChanges();
+
+    compiled = fixture.nativeElement;
+    expect(compiled.querySelectorAll('.skeleton').length).toBe(0);
+  });
+
+  it('shows PLN values on the pipeline funnel bars', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    const values = compiled.querySelectorAll('.pipeline-bar__value');
+    expect(values.length).toBe(6);
+    expect(values[0].textContent).toContain('100.00');
   });
 
   function flushWithCosts(): void {
@@ -242,6 +270,79 @@ describe('FinanceComponent', () => {
 
     httpMock.expectOne('/api/finance/costs').flush([]);
     fixture.detectChanges();
+  });
+
+  it('shows an error message when saving a cost fails', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.costForm.setValue({ name: 'Czynsz', monthlyAmount: 500, startDate: '', endDate: '' });
+    component.submitCost();
+    httpMock.expectOne('/api/finance/costs').flush('error', { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    const compiled: HTMLElement = fixture.nativeElement;
+    expect(compiled.textContent).toContain('Nie udało się zapisać kosztu.');
+
+    component.submitCost();
+    const retry = httpMock.expectOne('/api/finance/costs');
+    retry.flush({ id: 'new1', name: 'Czynsz', monthlyAmount: 500, startDate: '2026-01-01', endDate: null });
+    httpMock.expectOne('/api/finance/costs').flush(oneCost);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).not.toContain('Nie udało się zapisać kosztu.');
+  });
+
+  it('shows an error message when deleting a cost fails', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushWithCosts();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.requestDelete('c1');
+    component.confirmDelete();
+    httpMock.expectOne('/api/finance/costs/c1').flush('error', { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Nie udało się usunąć kosztu.');
+  });
+
+  it('cancels a pending delete without sending a request', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushWithCosts();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.requestDelete('c1');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Na pewno?');
+
+    component.cancelDeleteCost();
+    fixture.detectChanges();
+
+    expect(component.confirmDeleteId()).toBeNull();
+    expect(fixture.nativeElement.textContent).not.toContain('Na pewno?');
+    httpMock.expectNone('/api/finance/costs/c1');
+  });
+
+  it('shows an error message when saving settings fails', () => {
+    const fixture = TestBed.createComponent(FinanceComponent);
+    fixture.detectChanges();
+    flushAll();
+    fixture.detectChanges();
+
+    const component = fixture.componentInstance;
+    component.settingsForm.setValue({ filamentPricePerKg: 100, costPerPrintHour: 3 });
+    component.saveSettings();
+    httpMock.expectOne('/api/finance/settings').flush('error', { status: 500, statusText: 'Server Error' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Nie udało się zapisać ustawień.');
   });
 
   it('seeds the settings form from the loaded server values, not defaults', () => {

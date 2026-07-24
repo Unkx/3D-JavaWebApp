@@ -20,6 +20,8 @@ const PIPELINE_LABELS: Record<string, string> = {
 
 const POLISH_MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'];
 
+type SectionState = 'loading' | 'error' | 'ready';
+
 @Component({
   selector: 'app-finance',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,7 +38,12 @@ export class FinanceComponent implements OnInit {
   pipeline = signal<PipelineEntry[]>([]);
   costs = signal<RecurringCost[]>([]);
   settings = signal<CostSettings | null>(null);
-  loadError = signal(false);
+
+  summaryState = signal<SectionState>('loading');
+  alertsState = signal<SectionState>('loading');
+  pipelineState = signal<SectionState>('loading');
+  costsState = signal<SectionState>('loading');
+  settingsState = signal<SectionState>('loading');
 
   costForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(100)]],
@@ -56,6 +63,9 @@ export class FinanceComponent implements OnInit {
   confirmDeleteId = signal<string | null>(null);
   deletingCostId = signal<string | null>(null);
   costFormError = signal(false);
+  costSaveError = signal(false);
+  deleteError = signal(false);
+  settingsSaveError = signal(false);
 
   months = computed<MonthBucket[]>(() => this.summary()?.months ?? []);
 
@@ -69,14 +79,47 @@ export class FinanceComponent implements OnInit {
   maxPipelineCount = computed(() => Math.max(1, ...this.pipelineBars().map(p => p.count)));
 
   ngOnInit(): void {
-    this.loadError.set(false);
+    this.loadSummary();
+    this.loadAlerts();
+    this.loadPipeline();
+    this.loadCosts();
+    this.loadSettings();
+  }
+
+  loadSummary(): void {
+    this.summaryState.set('loading');
     this.finance.getSummary().subscribe({
-      next: s => this.summary.set(s),
-      error: () => this.loadError.set(true)
+      next: s => { this.summary.set(s); this.summaryState.set('ready'); },
+      error: () => this.summaryState.set('error')
     });
-    this.finance.getAlerts().subscribe({ next: a => this.alerts.set(a), error: () => this.loadError.set(true) });
-    this.finance.getPipeline().subscribe({ next: p => this.pipeline.set(p), error: () => this.loadError.set(true) });
-    this.finance.getCosts().subscribe({ next: c => this.costs.set(c), error: () => this.loadError.set(true) });
+  }
+
+  loadAlerts(): void {
+    this.alertsState.set('loading');
+    this.finance.getAlerts().subscribe({
+      next: a => { this.alerts.set(a); this.alertsState.set('ready'); },
+      error: () => this.alertsState.set('error')
+    });
+  }
+
+  loadPipeline(): void {
+    this.pipelineState.set('loading');
+    this.finance.getPipeline().subscribe({
+      next: p => { this.pipeline.set(p); this.pipelineState.set('ready'); },
+      error: () => this.pipelineState.set('error')
+    });
+  }
+
+  loadCosts(): void {
+    this.costsState.set('loading');
+    this.finance.getCosts().subscribe({
+      next: c => { this.costs.set(c); this.costsState.set('ready'); },
+      error: () => this.costsState.set('error')
+    });
+  }
+
+  loadSettings(): void {
+    this.settingsState.set('loading');
     this.finance.getSettings().subscribe({
       next: s => {
         this.settings.set(s);
@@ -84,8 +127,9 @@ export class FinanceComponent implements OnInit {
           filamentPricePerKg: s.filamentPricePerKg,
           costPerPrintHour: s.costPerPrintHour
         });
+        this.settingsState.set('ready');
       },
-      error: () => this.loadError.set(true)
+      error: () => this.settingsState.set('error')
     });
   }
 
@@ -119,16 +163,17 @@ export class FinanceComponent implements OnInit {
   }
 
   private refreshCosts(): void {
-    this.finance.getCosts().subscribe({ next: c => this.costs.set(c), error: () => this.loadError.set(true) });
+    this.finance.getCosts().subscribe({ next: c => this.costs.set(c), error: () => this.costsState.set('error') });
   }
 
   private refreshSummary(): void {
-    this.finance.getSummary().subscribe({ next: s => this.summary.set(s), error: () => this.loadError.set(true) });
+    this.finance.getSummary().subscribe({ next: s => this.summary.set(s), error: () => this.summaryState.set('error') });
   }
 
   submitCost(): void {
     if (this.costSaving()) { return; }
     this.costFormError.set(false);
+    this.costSaveError.set(false);
     if (this.costForm.invalid) {
       this.costForm.markAllAsTouched();
       this.costFormError.set(true);
@@ -155,7 +200,10 @@ export class FinanceComponent implements OnInit {
         this.cancelEdit();
         this.refreshCosts();
       },
-      error: () => this.costSaving.set(false)
+      error: () => {
+        this.costSaving.set(false);
+        this.costSaveError.set(true);
+      }
     });
   }
 
@@ -189,6 +237,7 @@ export class FinanceComponent implements OnInit {
     const id = this.confirmDeleteId();
     if (!id) { return; }
 
+    this.deleteError.set(false);
     this.deletingCostId.set(id);
     this.finance.deleteCost(id).subscribe({
       next: () => {
@@ -196,13 +245,17 @@ export class FinanceComponent implements OnInit {
         this.confirmDeleteId.set(null);
         this.refreshCosts();
       },
-      error: () => this.deletingCostId.set(null)
+      error: () => {
+        this.deletingCostId.set(null);
+        this.deleteError.set(true);
+      }
     });
   }
 
   saveSettings(): void {
     if (this.settingsSaving()) { return; }
     this.settingsSaved.set(false);
+    this.settingsSaveError.set(false);
     if (this.settingsForm.invalid) {
       this.settingsForm.markAllAsTouched();
       return;
@@ -217,7 +270,10 @@ export class FinanceComponent implements OnInit {
         this.settingsSaved.set(true);
         this.refreshSummary();
       },
-      error: () => this.settingsSaving.set(false)
+      error: () => {
+        this.settingsSaving.set(false);
+        this.settingsSaveError.set(true);
+      }
     });
   }
 }
