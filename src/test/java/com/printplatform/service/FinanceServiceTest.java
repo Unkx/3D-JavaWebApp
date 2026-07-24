@@ -24,6 +24,9 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -210,7 +213,7 @@ class FinanceServiceTest {
         Offer exactlySeven = selectedOffer(now.minusDays(7), now.minusDays(30));
         when(offerRepository.findByUserId(seller.getId()))
                 .thenReturn(List.of(overdue, fresh, exactlySeven));
-        when(paymentRepository.findByOfferId(any())).thenReturn(Optional.empty());
+        when(paymentRepository.findByOfferIdIn(any())).thenReturn(List.of());
         when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
 
         List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
@@ -227,7 +230,7 @@ class FinanceServiceTest {
         LocalDateTime now = LocalDateTime.now();
         Offer justPast = selectedOffer(now.minusDays(7).minusSeconds(5), now.minusDays(30));
         when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(justPast));
-        when(paymentRepository.findByOfferId(justPast.getId())).thenReturn(Optional.empty());
+        when(paymentRepository.findByOfferIdIn(any())).thenReturn(List.of());
         when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
 
         List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
@@ -241,7 +244,7 @@ class FinanceServiceTest {
         LocalDateTime now = LocalDateTime.now();
         Offer legacy = selectedOffer(null, now.minusDays(10));
         when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(legacy));
-        when(paymentRepository.findByOfferId(legacy.getId())).thenReturn(Optional.empty());
+        when(paymentRepository.findByOfferIdIn(any())).thenReturn(List.of());
         when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
 
         List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
@@ -251,12 +254,28 @@ class FinanceServiceTest {
     }
 
     @Test
+    void getAlerts_usesSingleBatchPaymentLookup() {
+        LocalDateTime now = LocalDateTime.now();
+        Offer first = selectedOffer(now.minusDays(9), now.minusDays(30));
+        Offer second = selectedOffer(now.minusDays(10), now.minusDays(30));
+        when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(first, second));
+        when(paymentRepository.findByOfferIdIn(any())).thenReturn(List.of());
+        when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
+
+        List<OverdueAlertDto> alerts = financeService.getAlerts(seller);
+
+        assertThat(alerts).hasSize(2);
+        verify(paymentRepository, times(1)).findByOfferIdIn(any());
+        verify(paymentRepository, never()).findByOfferId(any());
+    }
+
+    @Test
     void getAlerts_excludedWhenPaymentExists() {
         LocalDateTime now = LocalDateTime.now();
         Offer withPayment = selectedOffer(now.minusDays(9), now.minusDays(30));
         Payment held = payment(PaymentStatus.HELD, new BigDecimal("10.00"), now, null, withPayment);
         when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(withPayment));
-        when(paymentRepository.findByOfferId(withPayment.getId())).thenReturn(Optional.of(held));
+        when(paymentRepository.findByOfferIdIn(any())).thenReturn(List.of(held));
 
         assertThat(financeService.getAlerts(seller)).isEmpty();
     }
@@ -267,7 +286,7 @@ class FinanceServiceTest {
         Offer refundedOffer = selectedOffer(now.minusDays(9), now.minusDays(30));
         Payment refunded = payment(PaymentStatus.REFUNDED, new BigDecimal("10.00"), now, null, refundedOffer);
         when(offerRepository.findByUserId(seller.getId())).thenReturn(List.of(refundedOffer));
-        when(paymentRepository.findByOfferId(refundedOffer.getId())).thenReturn(Optional.of(refunded));
+        when(paymentRepository.findByOfferIdIn(any())).thenReturn(List.of(refunded));
         when(displayNameService.resolve(any(User.class))).thenReturn("Swift Maker");
 
         assertThat(financeService.getAlerts(seller)).hasSize(1);

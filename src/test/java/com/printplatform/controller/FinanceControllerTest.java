@@ -123,6 +123,68 @@ class FinanceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    void createCost_threeDecimalAmount_returns400() throws Exception {
+        User seller = persistUser();
+        RecurringCostRequest request = recurringCostRequest("Filament storage", "25.505");
+
+        mockMvc.perform(post("/api/finance/costs")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(seller))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateSettings_threeDecimalValue_returns400() throws Exception {
+        User seller = persistUser();
+        CostSettingsRequest request = new CostSettingsRequest();
+        request.setFilamentPricePerKg(new BigDecimal("120.005"));
+        request.setCostPerPrintHour(new BigDecimal("1.50"));
+
+        mockMvc.perform(put("/api/finance/settings")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(seller))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateCost_otherSellersCost_returns403() throws Exception {
+        User owner = persistUser();
+        User intruder = persistUser();
+        String createResponse = mockMvc.perform(post("/api/finance/costs")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(recurringCostRequest("Prąd", "40.00"))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID costId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText());
+
+        mockMvc.perform(put("/api/finance/costs/" + costId)
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(intruder))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(recurringCostRequest("Hacked", "1.00"))))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void deleteCost_otherSellersCost_returns403() throws Exception {
+        User owner = persistUser();
+        User intruder = persistUser();
+        String createResponse = mockMvc.perform(post("/api/finance/costs")
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(recurringCostRequest("Czynsz", "100.00"))))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        UUID costId = UUID.fromString(objectMapper.readTree(createResponse).get("id").asText());
+
+        mockMvc.perform(delete("/api/finance/costs/" + costId)
+                        .header(HttpHeaders.AUTHORIZATION, bearerToken(intruder)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     void deleteCost_ownedCost_returns204() throws Exception {
         User seller = persistUser();
         RecurringCostRequest createRequest = recurringCostRequest("Rent", "100.00");

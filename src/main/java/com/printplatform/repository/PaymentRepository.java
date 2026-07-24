@@ -4,11 +4,13 @@ import com.printplatform.model.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     Optional<Payment> findByOfferId(UUID offerId);
+    List<Payment> findByOfferIdIn(Collection<UUID> offerIds);
     List<Payment> findByCreatedAtAfter(LocalDateTime since);
     List<Payment> findBySellerId(UUID sellerId);
 }

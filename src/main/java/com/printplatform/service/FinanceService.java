@@ -135,6 +135,9 @@ public class FinanceService {
 
     private static final int OVERDUE_DAYS = 7;
 
+    private static final String END_BEFORE_START_MESSAGE =
+            "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia";
+
     @Transactional(readOnly = true)
     public List<PipelineEntryDto> getPipeline(User seller) {
         List<Offer> offers = offerRepository.findByUserId(seller.getId());
@@ -158,11 +161,21 @@ public class FinanceService {
     @Transactional(readOnly = true)
     public List<OverdueAlertDto> getAlerts(User seller) {
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        return offerRepository.findByUserId(seller.getId()).stream()
+        List<Offer> selected = offerRepository.findByUserId(seller.getId()).stream()
                 .filter(o -> o.getStatus() == OfferStatus.SELECTED)
-                .filter(o -> paymentRepository.findByOfferId(o.getId())
-                        .map(p -> p.getStatus() == PaymentStatus.REFUNDED)
-                        .orElse(true))
+                .toList();
+        Map<UUID, PaymentStatus> paymentStatusByOffer = new HashMap<>();
+        if (!selected.isEmpty()) {
+            for (Payment p : paymentRepository.findByOfferIdIn(
+                    selected.stream().map(Offer::getId).toList())) {
+                paymentStatusByOffer.put(p.getOffer().getId(), p.getStatus());
+            }
+        }
+        return selected.stream()
+                .filter(o -> {
+                    PaymentStatus status = paymentStatusByOffer.get(o.getId());
+                    return status == null || status == PaymentStatus.REFUNDED;
+                })
                 .map(o -> {
                     java.time.LocalDateTime since =
                             o.getSelectedAt() != null ? o.getSelectedAt() : o.getCreatedAt();
@@ -193,8 +206,7 @@ public class FinanceService {
     private void validateDates(RecurringCostRequest req) {
         if (req.getStartDate() != null && req.getEndDate() != null
                 && req.getEndDate().isBefore(req.getStartDate())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, END_BEFORE_START_MESSAGE);
         }
     }
 
@@ -229,8 +241,7 @@ public class FinanceService {
             cost.setStartDate(req.getStartDate());
         }
         if (req.getEndDate() != null && req.getEndDate().isBefore(cost.getStartDate())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Data zakończenia nie może być wcześniejsza niż data rozpoczęcia");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, END_BEFORE_START_MESSAGE);
         }
         cost.setEndDate(req.getEndDate());
         return recurringCostRepository.save(cost);
