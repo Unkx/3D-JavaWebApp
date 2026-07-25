@@ -5,18 +5,25 @@
 }
 
 .faq-hero__badge {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  padding: 0.3rem 0.875rem;
-  background: var(--al);
-  color: var(--accent);
-  font-size: 0.75rem;
-  font-weight: 700;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--ab);
-  margin-bottom: 1.25rem;
-  letter-spacing: 0.08em;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-dark);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+.faq-hero__badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  border-radius: 1px;
+  flex-shrink: 0;
 }
 
 .faq-hero__title {

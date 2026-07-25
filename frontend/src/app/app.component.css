@@ -43,15 +43,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  background: var(--accent-gradient);
-  border-radius: 8px;
-  color: #fff;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
 }
 
-.navbar__title { color: var(--accent); }
+.navbar__title { color: var(--text-primary); }
 
 /* ===== DESKTOP NAV LINKS ===== */
 .navbar__links-desktop {
@@ -77,13 +74,13 @@
 }
 
 .navbar__links-desktop a.active {
-  background: rgba(0, 200, 192, 0.08);
+  background: var(--accent-2-light);
   color: var(--accent);
   font-weight: 700;
 }
 
 [data-theme="light"] .navbar__links-desktop a.active {
-  background: rgba(0, 146, 140, 0.08);
+  color: var(--accent-dark);
 }
 
 .navbar__links-desktop a.btn-primary {

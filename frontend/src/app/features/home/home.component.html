@@ -1,14 +1,14 @@
 <!-- HERO -->
 <section class="hero blueprint-grid" aria-labelledby="hero-title">
   <div class="hero__content">
-    <span class="hero__badge">Platforma druku 3D</span>
+    <p class="hero__eyebrow">Platforma druku 3D</p>
     <h1 class="hero__title" id="hero-title">
-      Zlecaj druk 3D<br>
-      <span class="hero__accent">szybko i tanio</span>
+      Zlecaj druk 3D.<br>
+      Porównuj <span class="hero__accent">realne</span> oferty.
     </h1>
     <p class="hero__desc">
-      Połącz się z lokalnymi właścicielami drukarek 3D. Opisz projekt,
-      otrzymaj oferty i wybierz najlepszą cenę.
+      Opisz projekt, materiał i budżet. Lokalni drukarze odpowiadają
+      wycenami — Ty wybierasz najlepszą.
     </p>
     <div class="hero__actions">
       @if (auth.isLoggedIn()) {
@@ -123,14 +123,16 @@
 
 <!-- JAK TO DZIAŁA -->
 <section class="section" appReveal aria-labelledby="steps-title">
-  <h2 class="section-label" id="steps-title"><span class="tick-num">01</span> Jak to działa?</h2>
-  <div class="steps">
-    @for (step of steps; track step.title; let i = $index) {
-      <div class="step">
-        <h3 class="step__title">
-          <span class="tick-num">{{ i < 9 ? '0' + (i + 1) : (i + 1) }}</span> {{ step.title }}
-        </h3>
-        <p class="step__desc">{{ step.desc }}</p>
+  <h2 class="section-head" id="steps-title">
+    <span class="section-kicker">Proces</span>
+    <span class="section-title">Jak to działa</span>
+  </h2>
+  <div class="flow">
+    @for (step of steps; track step.title) {
+      <div class="flow-step">
+        <span class="flow-dot" aria-hidden="true"></span>
+        <h3 class="flow-step__title">{{ step.title }}</h3>
+        <p class="flow-step__desc">{{ step.desc }}</p>
       </div>
     }
   </div>
@@ -140,12 +142,16 @@
 
 <!-- MATERIAŁY -->
 <section class="section" appReveal aria-labelledby="materials-title">
-  <h2 class="section-label" id="materials-title"><span class="tick-num">02</span> Obsługiwane materiały</h2>
-  <div class="divided-list">
-    @for (mat of materials; track mat.name; let i = $index) {
-      <div class="divided-row material-row">
-        <span class="material-row__name spec-mono">{{ mat.name }}</span>
-        <span class="material-row__desc">{{ mat.desc }}</span>
+  <h2 class="section-head" id="materials-title">
+    <span class="section-kicker">Materiały</span>
+    <span class="section-title">Obsługiwane materiały</span>
+  </h2>
+  <div class="materials-grid">
+    @for (mat of materials; track mat.name) {
+      <div class="material-card">
+        <h3 class="material-card__name spec-mono">{{ mat.name }}</h3>
+        <p class="material-card__desc">{{ mat.desc }}</p>
+        <span class="material-card__tag spec-mono">{{ mat.price }}</span>
       </div>
     }
   </div>

@@ -29,7 +29,7 @@
 
       <!-- ── Listings ── -->
       <section class="card listings-card" aria-label="Ogłoszenia">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Ogłoszenia ({{ listings().length }})</h2>
+        <h2 class="section-label card__title">Ogłoszenia ({{ listings().length }})</h2>
         @if (listingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (listings().length === 0) {
@@ -97,7 +97,7 @@
 
       <!-- ── Ruch na stronie ── -->
       <section class="card traffic-card" aria-label="Ruch na stronie">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="trending-up" [size]="16" /> Ruch na stronie (7 dni)</h2>
+        <h2 class="section-label card__title"><app-icon name="trending-up" [size]="16" /> Ruch na stronie (7 dni)</h2>
         @if (trafficLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!traffic()) {
@@ -123,7 +123,7 @@
 
       <!-- ── Przychód ── -->
       <section class="card revenue-card" aria-label="Przychód">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="coin" [size]="16" /> Przychód (7 dni)</h2>
+        <h2 class="section-label card__title"><app-icon name="coin" [size]="16" /> Przychód (7 dni)</h2>
         @if (revenueLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!revenue()) {
@@ -140,7 +140,7 @@
 
       <!-- ── Users table ── -->
       <section class="card users-card" aria-label="Lista użytkowników">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Użytkownicy ({{ users().length }})</h2>
+        <h2 class="section-label card__title">Użytkownicy ({{ users().length }})</h2>
         @if (usersLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (users().length === 0) {
@@ -202,7 +202,7 @@
 
       <!-- ── Admin codes ── -->
       <section class="card codes-card" aria-label="Kody administratora">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="key" [size]="16" /> Kody administratora</h2>
+        <h2 class="section-label card__title"><app-icon name="key" [size]="16" /> Kody administratora</h2>
         <p class="admin-desc">
           Wygeneruj kod i przekaż go zaufanej osobie. Po wpisaniu kodu jej konto otrzyma
           uprawnienia administratora.
@@ -237,7 +237,7 @@
 
       <!-- ── Dziennik działań administratora ── -->
       <section class="card audit-log-card" aria-label="Dziennik działań administratora">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="clipboard-list" [size]="16" /> Dziennik działań ({{ auditLog().length }})</h2>
+        <h2 class="section-label card__title"><app-icon name="clipboard-list" [size]="16" /> Dziennik działań ({{ auditLog().length }})</h2>
         @if (auditLogLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (auditLog().length === 0) {
@@ -270,7 +270,7 @@
 
       <!-- ── Oceny ── -->
       <section class="card ratings-card" aria-label="Oceny">
-        <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> <app-icon name="star" [size]="16" /> Oceny ({{ ratings().length }})</h2>
+        <h2 class="section-label card__title"><app-icon name="star" [size]="16" /> Oceny ({{ ratings().length }})</h2>
         @if (ratingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (ratings().length === 0) {
@@ -322,7 +322,7 @@
       <!-- ── Szczegóły profilu ── -->
       <section class="card" aria-label="Szczegóły profilu">
         <div class="section-header">
-          <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Szczegóły profilu</h2>
+          <h2 class="section-label card__title">Szczegóły profilu</h2>
           @if (!editingDetails()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditDetails()">Edytuj</button>
           }
@@ -392,7 +392,7 @@
       <!-- ── Dane konta ── -->
       <section class="card" aria-label="Dane konta">
         <div class="section-header">
-          <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Dane konta</h2>
+          <h2 class="section-label card__title">Dane konta</h2>
           @if (!editingAccount()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditAccount()">Edytuj</button>
           }
@@ -433,7 +433,7 @@
       <!-- ── Wysyłka ── -->
       <section class="card" aria-label="Adres wysyłki">
         <div class="section-header">
-          <h2 class="section-label card__title"><span class="tick-num" aria-hidden="true"></span> Wysyłka</h2>
+          <h2 class="section-label card__title">Wysyłka</h2>
           @if (!editingShipping()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditShipping()">Edytuj</button>
           }

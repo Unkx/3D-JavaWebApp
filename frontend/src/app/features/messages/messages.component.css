@@ -45,13 +45,9 @@
 .conv-item:hover { background: var(--s2); }
 
 .conv-item--active {
-  background: rgba(0, 200, 192, 0.06);
+  background: var(--accent-faint);
   border-left: 3px solid var(--accent);
   padding-left: calc(1.25rem - 3px);
-}
-
-[data-theme="light"] .conv-item--active {
-  background: rgba(0, 146, 140, 0.06);
 }
 
 .conv-item--unread .conv-item__title { font-weight: 700; color: var(--text); }
@@ -200,14 +196,10 @@
 
 .bubble--own {
   align-self: flex-end;
-  background: rgba(0, 200, 192, 0.12);
+  background: var(--al);
   border: 1px solid var(--ab);
   border-radius: var(--radius-lg) 0 var(--radius-lg) var(--radius-lg);
   color: var(--text);
-}
-
-[data-theme="light"] .bubble--own {
-  background: rgba(0, 146, 140, 0.12);
 }
 
 .bubble__sender {

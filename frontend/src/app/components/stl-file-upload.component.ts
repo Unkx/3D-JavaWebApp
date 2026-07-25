@@ -133,14 +133,14 @@ import { IconComponent } from './icon.component';
     }
 
     .file-input-wrapper:hover {
-      border-color: var(--accent, #00928c);
-      background: var(--al, rgba(0, 146, 140, 0.08));
+      border-color: var(--accent, #2563a8);
+      background: var(--al, rgba(37, 99, 168, 0.08));
     }
 
     .file-input-wrapper.dragover {
-      border-color: var(--accent, #00928c);
-      background: var(--al, rgba(0, 146, 140, 0.08));
-      box-shadow: 0 0 0 3px var(--al, rgba(0, 146, 140, 0.15));
+      border-color: var(--accent, #2563a8);
+      background: var(--al, rgba(37, 99, 168, 0.08));
+      box-shadow: 0 0 0 3px var(--al, rgba(37, 99, 168, 0.15));
     }
 
     .file-input {

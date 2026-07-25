@@ -8,7 +8,7 @@ const LAYER_HEIGHT = 0.32;
 const BUILD_END = CYCLE_SECONDS * 0.6;
 const SHIFT_END = CYCLE_SECONDS * 0.75;
 const TOP_LAYER_INDICES = [4, 5];
-const ACCENT_COLOR = 0x00c8c0;
+const ACCENT_COLOR = 0x5fa0e0;
 
 function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value));

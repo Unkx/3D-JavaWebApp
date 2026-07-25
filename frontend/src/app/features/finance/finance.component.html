@@ -2,7 +2,7 @@
   <h1 class="page__title">Finanse</h1>
 
   <section class="fin-section" aria-labelledby="fin-sec-1" [attr.aria-busy]="summaryState() === 'loading'">
-    <h2 class="section-label" id="fin-sec-1"><span class="tick-num" aria-hidden="true"></span> Przepływy</h2>
+    <h2 class="section-label" id="fin-sec-1">Przepływy</h2>
 
     @if (summaryState() === 'loading') {
       <div class="skeleton" aria-hidden="true">
@@ -87,7 +87,7 @@
   <hr class="layer-rule" aria-hidden="true">
 
   <section class="fin-section" aria-labelledby="fin-sec-2" [attr.aria-busy]="alertsState() === 'loading'">
-    <h2 class="section-label" id="fin-sec-2"><span class="tick-num" aria-hidden="true"></span> Zaległości</h2>
+    <h2 class="section-label" id="fin-sec-2">Zaległości</h2>
 
     @if (alertsState() === 'loading') {
       <div class="skeleton" aria-hidden="true">
@@ -120,7 +120,7 @@
   <hr class="layer-rule" aria-hidden="true">
 
   <section class="fin-section" aria-labelledby="fin-sec-3" [attr.aria-busy]="pipelineState() === 'loading'">
-    <h2 class="section-label" id="fin-sec-3"><span class="tick-num" aria-hidden="true"></span> Pipeline</h2>
+    <h2 class="section-label" id="fin-sec-3">Pipeline</h2>
 
     @if (pipelineState() === 'loading') {
       <div class="skeleton" aria-hidden="true">
@@ -164,7 +164,7 @@
   <hr class="layer-rule" aria-hidden="true">
 
   <section class="fin-section" aria-labelledby="fin-sec-4" [attr.aria-busy]="costsState() === 'loading'">
-    <h2 class="section-label" id="fin-sec-4"><span class="tick-num" aria-hidden="true"></span> Koszty stałe</h2>
+    <h2 class="section-label" id="fin-sec-4">Koszty stałe</h2>
 
     @if (costsState() === 'loading') {
       <div class="skeleton" aria-hidden="true">
@@ -269,7 +269,7 @@
   <hr class="layer-rule" aria-hidden="true">
 
   <section class="fin-section" aria-labelledby="fin-sec-5" [attr.aria-busy]="settingsState() === 'loading'">
-    <h2 class="section-label" id="fin-sec-5"><span class="tick-num" aria-hidden="true"></span> Ustawienia kosztów</h2>
+    <h2 class="section-label" id="fin-sec-5">Ustawienia kosztów</h2>
 
     @if (settingsState() === 'loading') {
       <div class="skeleton" aria-hidden="true">

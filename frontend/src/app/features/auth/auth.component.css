@@ -35,11 +35,7 @@
   content: '';
   display: block;
   height: 3px;
-  background: linear-gradient(90deg, var(--accent), rgba(0, 200, 192, 0.25));
-}
-
-[data-theme="light"] .auth-card::before {
-  background: linear-gradient(90deg, var(--accent), rgba(0, 146, 140, 0.25));
+  background: linear-gradient(90deg, var(--accent), var(--ab));
 }
 
 .auth-card__inner {

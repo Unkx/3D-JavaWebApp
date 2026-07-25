@@ -13,27 +13,12 @@
 
   <a routerLink="/" class="navbar__brand" aria-label="Strona główna" (click)="closeMenu()">
     <span class="navbar__icon" aria-hidden="true">
-      @if (theme.isDark()) {
-        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
-          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0EC8B4"/>
-          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#0A9882"/>
-          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#076B5A"/>
-          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
-          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
-          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-        </svg>
-      } @else {
-        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
-          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0A9882"/>
-          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#076B5A"/>
-          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#044840"/>
-          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
-          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
-        </svg>
-      }
+      <svg width="22" height="22" viewBox="0 0 44 44" fill="none">
+        <path d="M22 2 L40 12 V32 L22 42 L4 32 V12 Z" fill="var(--accent)"/>
+        <line x1="7" y1="22" x2="37" y2="22" stroke="var(--bg)" stroke-width="1.5" opacity="0.45"/>
+        <line x1="6" y1="29" x2="38" y2="29" stroke="var(--bg)" stroke-width="1.5" opacity="0.45"/>
+        <line x1="10" y1="36" x2="34" y2="36" stroke="var(--bg)" stroke-width="1.5" opacity="0.45"/>
+      </svg>
     </span>
     <span class="navbar__title">Druk3D</span>
   </a>
@@ -98,27 +83,12 @@
 <aside class="sidebar" [class.sidebar--open]="menuOpen()" id="main-nav" aria-label="Nawigacja mobilna">
   <a routerLink="/" class="sidebar__brand" (click)="closeMenu()">
     <span class="navbar__icon" aria-hidden="true">
-      @if (theme.isDark()) {
-        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
-          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0EC8B4"/>
-          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#0A9882"/>
-          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#076B5A"/>
-          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
-          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.5"/>
-          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-        </svg>
-      } @else {
-        <svg width="22" height="22" viewBox="0 0 44 42" fill="none">
-          <path d="M22,2 L40,12 L22,22 L4,12 Z" fill="#0A9882"/>
-          <path d="M4,12 L22,22 L22,40 L4,30 Z" fill="#076B5A"/>
-          <path d="M40,12 L22,22 L22,40 L40,30 Z" fill="#044840"/>
-          <line x1="4" y1="18" x2="22" y2="28" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-          <line x1="4" y1="24" x2="22" y2="34" stroke="#0EC8B4" stroke-width="0.8" opacity="0.3"/>
-          <line x1="22" y1="28" x2="40" y2="18" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
-          <line x1="22" y1="34" x2="40" y2="24" stroke="#0EC8B4" stroke-width="0.8" opacity="0.2"/>
-        </svg>
-      }
+      <svg width="22" height="22" viewBox="0 0 44 44" fill="none">
+        <path d="M22 2 L40 12 V32 L22 42 L4 32 V12 Z" fill="var(--accent)"/>
+        <line x1="7" y1="22" x2="37" y2="22" stroke="var(--bg)" stroke-width="1.5" opacity="0.45"/>
+        <line x1="6" y1="29" x2="38" y2="29" stroke="var(--bg)" stroke-width="1.5" opacity="0.45"/>
+        <line x1="10" y1="36" x2="34" y2="36" stroke="var(--bg)" stroke-width="1.5" opacity="0.45"/>
+      </svg>
     </span>
     <span class="navbar__title">Druk3D</span>
   </a>

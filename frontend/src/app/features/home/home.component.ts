@@ -22,11 +22,11 @@ export class HomeComponent {
   ];
 
   readonly materials = [
-    { name: 'PLA',   desc: 'Najtańszy, łatwy w druku, idealny do prototypów' },
-    { name: 'PETG',  desc: 'Wytrzymały i odporny na temperaturę' },
-    { name: 'ABS',   desc: 'Twardy, odporny na uderzenia' },
-    { name: 'RESIN', desc: 'Wysoka precyzja i gładka powierzchnia' },
-    { name: 'TPU',   desc: 'Elastyczny, gumopodobny filament' },
-    { name: 'ASA',   desc: 'Odporny na UV, do zastosowań zewnętrznych' },
+    { name: 'PLA',   desc: 'Najtańszy, łatwy w druku, idealny do prototypów', price: 'od 0.15 zł/g' },
+    { name: 'PETG',  desc: 'Wytrzymały i odporny na temperaturę', price: 'od 0.22 zł/g' },
+    { name: 'ABS',   desc: 'Twardy, odporny na uderzenia', price: 'od 0.20 zł/g' },
+    { name: 'RESIN', desc: 'Wysoka precyzja i gładka powierzchnia', price: 'od 0.45 zł/g' },
+    { name: 'TPU',   desc: 'Elastyczny, gumopodobny filament', price: 'od 0.30 zł/g' },
+    { name: 'ASA',   desc: 'Odporny na UV, do zastosowań zewnętrznych', price: 'od 0.25 zł/g' },
   ];
 }

@@ -1,12 +1,6 @@
 .page {
   max-width: 720px;
   margin: 0 auto;
-  counter-reset: panel-sec;
-}
-
-.page .section-label .tick-num::before {
-  counter-increment: panel-sec;
-  content: counter(panel-sec, decimal-leading-zero);
 }
 
 .page__title {

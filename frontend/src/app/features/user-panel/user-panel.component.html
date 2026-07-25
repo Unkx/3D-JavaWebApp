@@ -13,7 +13,7 @@
 
       <!-- ── Profile header ── -->
       <section class="panel-section" aria-label="Profil">
-        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Profil</h2>
+        <h2 class="section-label">Profil</h2>
         <div class="profile-card">
           <div class="profile-avatar" aria-hidden="true">{{ avatarChar(profile()!) }}</div>
           <div class="profile-info">
@@ -33,7 +33,7 @@
       <hr class="layer-rule" aria-hidden="true" />
 
       <section class="panel-section" aria-label="Awatar">
-        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Awatar</h2>
+        <h2 class="section-label">Awatar</h2>
         @if (!avatarLoadFailed() && publicSelf()?.hasAvatarData) {
           <img [src]="avatarUrl(profile()!.id)" [alt]="displayName(profile()!)" class="avatar-card__preview" (error)="onAvatarError()" />
         } @else if (!avatarLoadFailed() && publicSelf()?.avatarUrl) {
@@ -60,7 +60,7 @@
 
       <section class="panel-section" aria-label="Prywatność">
         <div class="section-header">
-          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Prywatność profilu</h2>
+          <h2 class="section-label">Prywatność profilu</h2>
           @if (!editingPrivacy()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditPrivacy()">Edytuj</button>
           }
@@ -90,7 +90,7 @@
 
       <!-- ── Oceny ── -->
       <section class="panel-section" aria-label="Oceny">
-        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> <app-icon name="star" [size]="16" /> Oceny</h2>
+        <h2 class="section-label"><app-icon name="star" [size]="16" /> Oceny</h2>
         @if (ratingsLoading()) {
           <p class="muted">Ładowanie...</p>
         } @else if (!ratings() || ratings()!.summary.count === 0) {
@@ -117,7 +117,7 @@
 
       <!-- ── Stats ── -->
       <section class="panel-section" aria-label="Statystyki aktywności">
-        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Aktywność</h2>
+        <h2 class="section-label">Aktywność</h2>
         <div class="stats-grid">
           <div class="stat-item">
             <span class="stat-item__value spec-mono">{{ profile()!.listingsCount }}</span>
@@ -134,7 +134,7 @@
 
       <!-- ── Quick actions ── -->
       <section class="panel-section" aria-label="Szybkie akcje">
-        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Szybkie akcje</h2>
+        <h2 class="section-label">Szybkie akcje</h2>
         <div class="actions-list">
           <a routerLink="/dodaj-zlecenie" class="action-item">
             <span class="action-item__icon"><app-icon name="plus" [size]="20" /></span>
@@ -159,7 +159,7 @@
       <!-- ── Szczegóły profilu ── -->
       <section class="panel-section" aria-label="Szczegóły profilu">
         <div class="section-header">
-          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Szczegóły profilu</h2>
+          <h2 class="section-label">Szczegóły profilu</h2>
           @if (!editingDetails()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditDetails()">Edytuj</button>
           }
@@ -243,7 +243,7 @@
       <!-- ── Dane konta ── -->
       <section class="panel-section" aria-label="Dane konta">
         <div class="section-header">
-          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Dane konta</h2>
+          <h2 class="section-label">Dane konta</h2>
           @if (!editingAccount()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditAccount()">Edytuj</button>
           }
@@ -298,7 +298,7 @@
       <!-- ── Wysyłka ── -->
       <section class="panel-section" aria-label="Adres wysyłki">
         <div class="section-header">
-          <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> Wysyłka</h2>
+          <h2 class="section-label">Wysyłka</h2>
           @if (!editingShipping()) {
             <button class="btn btn--ghost btn--sm" (click)="startEditShipping()">Edytuj</button>
           }
@@ -371,7 +371,7 @@
 
       <!-- ── Redeem admin code ── -->
       <section class="panel-section admin-card" aria-label="Zostań administratorem">
-        <h2 class="section-label"><span class="tick-num" aria-hidden="true"></span> <app-icon name="key" [size]="16" /> Masz kod administratora?</h2>
+        <h2 class="section-label"><app-icon name="key" [size]="16" /> Masz kod administratora?</h2>
         <p class="admin-card__desc">
           Wpisz kod otrzymany od administratora, aby uzyskać uprawnienia administratora.
         </p>

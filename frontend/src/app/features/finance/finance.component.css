@@ -3,12 +3,6 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  counter-reset: fin-sec;
-}
-
-.page .section-label .tick-num::before {
-  counter-increment: fin-sec;
-  content: counter(fin-sec, decimal-leading-zero);
 }
 
 .page__title {
