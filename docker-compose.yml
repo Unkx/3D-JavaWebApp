@@ -31,6 +31,10 @@ services:
       # Local/CI compose stack has no real mail server — accounts registered here
       # would otherwise be stuck unverified forever. Never set this for a real deployment.
       AUTO_VERIFY_EMAIL: ${AUTO_VERIFY_EMAIL:-true}
+      # Verbose SQL logging and raw exception messages in error responses — useful
+      # for local debugging, but never set either of these for a real deployment.
+      SHOW_SQL: ${SHOW_SQL:-true}
+      ERROR_INCLUDE_MESSAGE: ${ERROR_INCLUDE_MESSAGE:-always}
     depends_on:
       db:
         condition: service_healthy
