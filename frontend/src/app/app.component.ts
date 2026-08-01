@@ -7,6 +7,7 @@ import { ThemeService } from './services/theme.service';
 import { ConversationService } from './services/conversation.service';
 import { IdleTimeoutService } from './services/idle-timeout.service';
 import { AnalyticsService } from './services/analytics.service';
+import { BackendWarmupService } from './services/backend-warmup.service';
 import { FooterComponent } from './components/footer.component';
 
 @Component({
@@ -20,6 +21,7 @@ export class AppComponent implements OnDestroy {
   auth = inject(AuthService);
   theme = inject(ThemeService);
   idle = inject(IdleTimeoutService);
+  warmup = inject(BackendWarmupService);
   menuOpen = signal(false);
   offline = signal(!navigator.onLine);
   isFullscreenRoute = signal(false);

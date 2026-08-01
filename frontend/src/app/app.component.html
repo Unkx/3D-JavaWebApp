@@ -140,6 +140,13 @@
   </div>
 }
 
+@if (warmup.slow()) {
+  <div class="warmup-banner" role="status" aria-live="polite">
+    <span class="warmup-banner__dot" aria-hidden="true"></span>
+    <span>Serwer się budzi po okresie nieaktywności — to może potrwać do minuty.</span>
+  </div>
+}
+
 @if (idle.warningVisible()) {
   <div class="idle-banner" role="alert">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

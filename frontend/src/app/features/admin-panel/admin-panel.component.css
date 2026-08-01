@@ -29,7 +29,7 @@
 .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 
 /* Cards */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; min-width: 0; }
 
 .card__title { margin: 0 0 1.25rem; }
 .card__subtitle { font-size: 0.875rem; font-weight: 700; color: var(--text-primary); margin: 0 0 0.75rem; }
