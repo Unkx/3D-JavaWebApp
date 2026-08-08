@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /profil
+Disallow: /admin
+Disallow: /moje-zlecenia
+Disallow: /wiadomosci
+Disallow: /finanse
+Disallow: /dodaj-zlecenie
+Disallow: /reset-password
+Disallow: /verify-email
+
+Sitemap: https://druk3d.pl/sitemap.xml

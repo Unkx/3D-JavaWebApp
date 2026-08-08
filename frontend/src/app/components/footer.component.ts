@@ -14,8 +14,10 @@ import { RouterLink } from '@angular/router';
 
         <nav class="site-footer__col" aria-label="Nawigacja">
           <span class="site-footer__heading">Nawigacja</span>
+          <a routerLink="/">Strona główna</a>
           <a routerLink="/zlecenia">Zlecenia</a>
           <a routerLink="/faq">FAQ</a>
+          <a routerLink="/o-nas">O nas</a>
         </nav>
 
         <nav class="site-footer__col" aria-label="Informacje prawne">
